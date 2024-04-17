@@ -37,6 +37,21 @@ class CurationsResource(RecordResource):
         # does in the end)
         options["url_prefix"] = ""
         return super().create_blueprint(**options)
+    
+
+    def as_blueprint(self, **options):
+        """Creating the blueprint and registering error handlers on the application.
+        
+        This is required, as the CurationComponent will throw inside another blueprint.
+        """
+
+        blueprint = super().as_blueprint(**options)
+
+        for exc_or_code, error_handler in self.create_error_handlers():
+            blueprint.record_once(lambda s, exc_or_code=exc_or_code, error_handler=error_handler: s.app.errorhandler(exc_or_code)(error_handler))
+
+        return blueprint
+
 
     def create_url_rules(self):
         """Create the URL rules for the record resource."""

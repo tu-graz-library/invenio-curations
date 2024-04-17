@@ -27,3 +27,37 @@ TODO: Please provide feature overview of module
 
 Further documentation is available on
 https://invenio-curations.readthedocs.io/
+
+
+## Add service component
+In order to require an accepted curation request before publishing a record, the component has to be added to the RDM record service
+```py
+from invenio_curations.services.components import CurationComponent
+from invenio_rdm_records.services.components import DefaultRecordsComponents
+RDM_RECORDS_SERVICE_COMPONENTS = DefaultRecordsComponents + [
+    CurationComponent,
+]
+```
+
+## Overwrite deposit view
+The deposit view has to be updated to include the curation section. Most importantly, the curation specific java script has to be included in the javascript block:
+`{{ webpack['invenio-curations-deposit.js'] }}`
+
+This can be achieved by providing a custom template. Make sure to copy the current template from `invenio_app_rdm/records_ui/templates/semantic-ui/invenio_app_rdm/records/deposit.html`.
+In order to override this, place it into your instances `templates/semantic-ui/invenio_app_rdm/records/deposit.html` folder.
+Then add the afore mentioned line to the javascript block in the template
+```
+{%- block javascript %}
+  {{ super() }}
+  ...
+
+  {# This line right here #}
+  {{ webpack['invenio-curations-deposit.js'] }}
+{%- endblock %}
+
+```
+
+## Create curator role
+A curator role is used to ensure a user has the permission to manage curation requests. Its name is specified via a config variable `CURATIONS_MODERATION_ROLE`.
+In order to create this role, the following command can be run inside an instance: `invenio roles create <name-of-curation-role>`
+Adding a role to a user can be achieved by running: `invenio roles add <user-email-address> <name-of-curation-role>`
