@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2024 CERN.
+# Copyright (C) 2024 Graz University of Technology.
 #
 # Invenio-Curations is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
@@ -14,7 +14,7 @@ from invenio_requests.services.results import ResolverRegistry
 from invenio_search.engine import dsl
 
 from ..requests import CurationRequest
-from .errors import OpenRecordCurationRequestAlreadyExists
+from .errors import OpenRecordCurationRequestAlreadyExists, RoleNotFound
 
 
 class CurationRequestService:
@@ -24,26 +24,35 @@ class CurationRequestService:
         """Service initialisation as a sub-service of requests."""
         self.requests_service = requests_service
 
-    def role(self):
+    @property
+    def curation_role(self):
         """Creates a RDMCuration request and submits it."""
         role_name = current_app.config.get("CURATIONS_MODERATION_ROLE")
         return Role.query.filter(Role.name == role_name).one_or_none()
 
     @property
+    def curation_role_name(self):
+        return current_app.config.get("CURATIONS_MODERATION_ROLE")
+
+    @property
     def request_type_cls(self):
-        """User moderation request type."""
+        """Curation request type."""
         return current_request_type_registry.lookup(CurationRequest.type_id)
 
     def get_review(self, identity, topic, **kwargs):
+        """Get the curation review for a topic."""
+
         topic_reference = ResolverRegistry.reference_entity(topic)
+        # Assume there is only one item in the reference dict
+        topic_key, topic_value = next(iter(topic_reference.items()))
+
         results = self.requests_service.search(
             identity,
             extra_filter=dsl.query.Bool(
                 "must",
                 must=[
                     dsl.Q("term", **{"type": self.request_type_cls.type_id}),
-                    # TODO: make type independent search
-                    dsl.Q("term", **{"topic.record": topic_reference["record"]}),
+                    dsl.Q("term", **{"topic.{}".format(topic_key): topic_value}),
                 ],
             ),
             **kwargs,
@@ -67,7 +76,6 @@ class CurationRequestService:
                     dsl.Q("term", **{"topic.record": record["id"]}),
                     dsl.Q("term", **{"is_open": False}),
                     dsl.Q("term", **{"status": "accepted"}),
-                    # dsl.Q("range", **{"updated": {"gte": record.updated}}),
                 ],
             ),
         )
@@ -77,7 +85,9 @@ class CurationRequestService:
     def create(self, identity, data=None, uow=None, **kwargs):
         """Creates a RDMCuration request and submits it."""
 
-        role = self.role()
+        role = self.curation_role
+        if not role:
+            raise RoleNotFound(self.curation_role_name)
         assert role, _(
             "Curation request moderation role must exist to enable record curation requests."
         )

@@ -12,37 +12,53 @@ from invenio_drafts_resources.services.records.uow import ParentRecordCommitOp
 from invenio_i18n import lazy_gettext as _
 from invenio_notifications.services.uow import NotificationOp
 # TODO: provide service in a different way to not depend on rdm-records
-from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_requests.customizations import RequestType, actions
-from invenio_requests.customizations.states import RequestState
 
 
-class CurationSubmitAction(actions.CreateAndSubmitAction):
-    """Submit action for user access requests."""
+class CurationCreateAndSubmitAction(actions.CreateAndSubmitAction):
 
     def execute(self, identity, uow):
-        """Execute the submit action."""
+        """Execute the create action."""
 
-        # self.request["title"] = self.request.topic.resolve().metadata["title"]
         receiver = self.request.receiver.resolve()
         record = self.request.topic.resolve()
 
         data = {
-            "permission": "preview",
-            "subject": {
-                "type": "role",
-                "id": str(receiver.id),
-            },
-            "origin": f"request:{self.request.id}",
+            "grants": [
+                {
+                    "permission": "preview",
+                    "subject": {
+                        "type": "role",
+                        "id": str(receiver.id),
+                    },
+                    "origin": f"request:{self.request.id}",
+                }
+            ]
         }
 
-        service = current_rdm_records_service
+        service = self.request.topic.get_service()
         # NOTE: we're using the system identity here to avoid the grant creation
         #       potentially being blocked by the requesting user's profile visibility
-        service.access.create_grant(system_identity, record.pid.pid_value, data)
+        service.access.bulk_create_grants(system_identity, record.pid.pid_value, data)
         uow.register(
             ParentRecordCommitOp(record.parent, indexer_context=dict(service=service))
         )
+        # TODO: send notification to group
+        # uow.register(
+        #     NotificationOp(
+        #         UserAccessRequestSubmitNotificationBuilder.build(request=self.request)
+        #     )
+        # )
+
+        super().execute(identity, uow)
+
+class CurationSubmitAction(actions.SubmitAction):
+    """Submit action for user access requests."""
+
+    status_from = ["created", "accepted", "cancelled"]
+
+    def execute(self, identity, uow):
+        """Execute the submit action."""
 
         # TODO: send notification to group
         # uow.register(
@@ -56,7 +72,8 @@ class CurationSubmitAction(actions.CreateAndSubmitAction):
 class CurationAcceptAction(actions.AcceptAction):
     """Decline a request."""
 
-    status_from = ["in_review"]
+    # status_from = ["in_review"]
+    status_from = ["submitted"]
 
     def execute(self, identity, uow):
         """Execute the accept action."""
@@ -82,25 +99,25 @@ class CurationExpireAction(actions.ExpireAction):
     status_from = ["submitted", "in_review", "reviewed", "revised"]
 
 
-class CurationInReviewAction(actions.RequestAction):
-    """Mark request as in review."""
+# class CurationInReviewAction(actions.RequestAction):
+#     """Mark request as in review."""
 
-    status_from = ["submitted", "revised"]
-    status_to = "in_review"
-
-
-class CurationReviewAction(actions.RequestAction):
-    """Request changes for request."""
-
-    status_from = ["in_review"]
-    status_to = "reviewed"
+#     status_from = ["submitted", "revised"]
+#     status_to = "in_review"
 
 
-class CurationReviseAction(actions.RequestAction):
-    """Mark request as ready for review."""
+# class CurationReviewAction(actions.RequestAction):
+#     """Request changes for request."""
 
-    status_from = ["reviewed", "accepted", "cancelled", "declined"]
-    status_to = "revised"
+#     status_from = ["in_review"]
+#     status_to = "reviewed"
+
+
+# class CurationReviseAction(actions.RequestAction):
+#     """Mark request as ready for review."""
+
+#     status_from = ["reviewed", "accepted", "cancelled", "declined"]
+#     status_to = "revised"
 
 
 #
@@ -115,22 +132,22 @@ class CurationRequest(RequestType):
     create_action = "create"
     available_actions = {
         **RequestType.available_actions,
-        "create": CurationSubmitAction,
+        "create": CurationCreateAndSubmitAction,
         "submit": CurationSubmitAction,
         "accept": CurationAcceptAction,
         "decline": CurationDeclineAction,
         "cancel": CurationCancelAction,
         "expire": CurationExpireAction,
-        "in_review": CurationInReviewAction,
-        "review": CurationReviewAction,
-        "revise": CurationReviseAction,
+        # "in_review": CurationInReviewAction,
+        # "review": CurationReviewAction,
+        # "revise": CurationReviseAction,
     }
 
     available_statuses = {
         **RequestType.available_statuses,
-        "in_review": RequestState.OPEN,
-        "reviewed": RequestState.OPEN,
-        "revised": RequestState.OPEN,
+        # "in_review": RequestState.OPEN,
+        # "reviewed": RequestState.OPEN,
+        # "revised": RequestState.OPEN,
     }
     """Available statuses for the request.
 

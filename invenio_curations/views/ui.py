@@ -10,8 +10,6 @@
 from flask import Blueprint, g, render_template
 from flask_login import current_user
 from flask_menu import current_menu
-# TODO: do not depend on app_rdm
-from invenio_app_rdm.records_ui.views.deposits import get_search_url
 from invenio_i18n import lazy_gettext as _
 from invenio_users_resources.proxies import current_user_resources
 
@@ -21,7 +19,7 @@ from ..proxies import current_curations_service
 
 
 def _user_has_role():
-    role = current_curations_service.role()
+    role = current_curations_service.curation_role
     if not role:
         return False
     return current_user.has_role(role)
@@ -35,7 +33,7 @@ def curation_requests_overview():
 
     return render_template(
         "invenio_curations/overview.html",
-        searchbar_config=dict(searchUrl=get_search_url()),
+        searchbar_config=dict(searchUrl="/"),
         user_avatar=url,
         has_permission=_user_has_role(),
     )
@@ -56,9 +54,6 @@ def create_ui_blueprint(app):
 
     @blueprint.before_app_first_request
     def register_menus():
-        # using a try/except block as this function is used in the API and UI registration.
-        # in the API, the menu is not available
-
         user_dashboard = current_menu.submenu("dashboard")
         user_dashboard.submenu("curation-overview").register(
             "invenio_curations.curation_requests_overview",

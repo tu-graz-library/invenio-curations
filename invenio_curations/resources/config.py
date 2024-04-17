@@ -18,7 +18,9 @@ from marshmallow import fields
 from invenio_curations.services.errors import (
     CurationRequestNotAccepted,
     OpenRecordCurationRequestAlreadyExists,
+    RoleNotFound,
 )
+
 import marshmallow as ma
 
 
@@ -48,6 +50,12 @@ request_error_handlers = {
             ],
         )
     ),
+    RoleNotFound: create_error_handler(
+        lambda e: HTTPJSONException(
+            code=404,
+            description=str(e),
+        )
+    )
 }
 
 

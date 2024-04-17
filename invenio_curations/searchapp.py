@@ -18,11 +18,11 @@ def search_app_context():
     return {
         "search_app_curations_requests_config": partial(
             search_app_config,
-            "CURATIONS_SEARCH_REQUESTS",
-            current_app.config["REQUESTS_FACETS"],
-            current_app.config["RDM_SORT_OPTIONS"],
-            "/api/curations/",
-            {"Accept": "application/json"},
+            config_name="CURATIONS_SEARCH_REQUESTS",
+            available_facets=current_app.config["REQUESTS_FACETS"],
+            sort_options=current_app.config["RDM_SORT_OPTIONS"],
+            endpoint="/api/curations/",
+            headers={"Accept": "application/json"},
             initial_filters=[["is_open", "true"]],
             hidden_params=[["expand", "1"]],
         ),
