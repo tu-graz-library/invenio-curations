@@ -80,11 +80,10 @@ class CurationComponent(ServiceComponent, ABC):
                 record=record,
             ),
         )
-
+        # TODO: File updates are not picked up
         diff = dictdiffer.diff(current_data, updated_data)
         diff_list = list(diff)
-        print("diff_list", diff_list)
 
         # Request is closed but draft was updated with new data. Put back for review
         if diff_list:
-            current_requests_service.execute_action(identity, request["id"], "revise")
+            current_requests_service.execute_action(identity, request["id"], "submit")

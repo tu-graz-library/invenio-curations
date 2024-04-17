@@ -7,23 +7,14 @@
 
 import { i18next } from "@translations/invenio_app_rdm/i18next";
 import React, { Component } from "react";
-import { http } from "react-invenio-forms";
-
 import { RequestMetadata } from "@js/invenio_requests";
-import { Button, Card, Header } from "semantic-ui-react";
+import { Button, Card } from "semantic-ui-react";
 import PropTypes from "prop-types";
 import Overridable from "react-overridable";
 import {
-  CustomFields,
+  http,
   FieldLabel,
-  RadioField,
-  TextField,
-  withCancel,
 } from "react-invenio-forms";
-
-function wait(milliseconds) {
-  return new Promise((resolve) => setTimeout(resolve, milliseconds));
-}
 
 export class CurationsContainer extends Component {
   constructor(props) {
@@ -39,7 +30,7 @@ export class CurationsContainer extends Component {
     return this.props.record;
   }
 
-  fetchLatestCurationRequest = async () => {
+  fetchCurationRequest = async () => {
     this.loading = true;
 
     try {
@@ -47,7 +38,6 @@ export class CurationsContainer extends Component {
         params: {
           expand: 1,
           topic: `record:${this.record["id"]}`,
-          is_open: true,
         },
       });
 
@@ -98,7 +88,7 @@ export class CurationsContainer extends Component {
   }
 
   componentDidMount() {
-    this.fetchLatestCurationRequest();
+    this.fetchCurationRequest();
   }
 
   render() {
@@ -118,7 +108,7 @@ export class CurationsContainer extends Component {
           <Card.Content>
             <Button
               fluid
-              onClick={this.fetchLatestCurationRequest}
+              onClick={this.fetchCurationRequest}
               loading={this.loading}
               primary
               size="medium"

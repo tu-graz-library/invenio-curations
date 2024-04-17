@@ -18,3 +18,17 @@ class CurationRequestNotAccepted(Exception):
     """No curation request exists yet."""
 
     description = _("The record has not been curated yet.")
+
+
+class RoleNotFound(Exception):
+    """The role does not exist."""
+
+    def __init__(self, role_name):
+        """Initialise error."""
+        super().__init__(
+            _(
+                "A role with name '{name}' does not exist.".format(
+                    name=role_name
+                )
+            )
+        )
