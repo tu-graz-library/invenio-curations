@@ -36,7 +36,7 @@ class CurationCreateAndSubmitAction(actions.CreateAndSubmitAction):
             ]
         }
 
-        service = self.request.topic.get_service()
+        service = self.request.topic.get_resolver().get_service()
         # NOTE: we're using the system identity here to avoid the grant creation
         #       potentially being blocked by the requesting user's profile visibility
         service.access.bulk_create_grants(system_identity, record.pid.pid_value, data)
