@@ -40,7 +40,7 @@ RDM_RECORDS_SERVICE_COMPONENTS = DefaultRecordsComponents + [
 ```
 
 ## Overwrite deposit view
-The deposit view has to be updated to include the curation section. Most importantly, the curation specific java script has to be included in the javascript block:
+The deposit view has to be updated to include the curation section. Most importantly, the curation specific javascript has to be included in the javascript block:
 `{{ webpack['invenio-curations-deposit.js'] }}`
 
 This can be achieved by providing a custom template. Make sure to copy the current template from `invenio_app_rdm/records_ui/templates/semantic-ui/invenio_app_rdm/records/deposit.html`.

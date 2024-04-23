@@ -11,7 +11,6 @@ from invenio_access.permissions import system_identity
 from invenio_drafts_resources.services.records.uow import ParentRecordCommitOp
 from invenio_i18n import lazy_gettext as _
 from invenio_notifications.services.uow import NotificationOp
-# TODO: provide service in a different way to not depend on rdm-records
 from invenio_requests.customizations import RequestType, actions
 
 

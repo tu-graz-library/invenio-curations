@@ -8,11 +8,30 @@
 """Invenio module for generic and customizable curations."""
 
 
+from flask_menu import current_menu
+from invenio_i18n import lazy_gettext as _
 from invenio_requests.proxies import current_requests_service
 
 from . import config
 from .resources import CurationsResource, CurationsResourceConfig
 from .services import CurationRequestService, CurationsServiceConfig
+from .views.ui import user_has_curations_management_role
+
+
+def finalize_app(app):
+    """Finalize app."""
+    init_menu(app)
+
+
+def init_menu(app):
+    """Initialize flask menu."""
+    user_dashboard = current_menu.submenu("dashboard")
+    user_dashboard.submenu("curation-overview").register(
+        "invenio_curations.curation_requests_overview",
+        text=_("Curation Requests"),
+        order=100,
+        visible_when=user_has_curations_management_role,
+    )
 
 
 class InvenioCurations(object):
