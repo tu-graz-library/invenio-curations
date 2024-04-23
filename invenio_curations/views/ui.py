@@ -9,8 +9,6 @@
 
 from flask import Blueprint, g, render_template
 from flask_login import current_user
-from flask_menu import current_menu
-from invenio_i18n import lazy_gettext as _
 from invenio_users_resources.proxies import current_user_resources
 
 from invenio_curations.searchapp import search_app_context
@@ -18,7 +16,7 @@ from invenio_curations.searchapp import search_app_context
 from ..proxies import current_curations_service
 
 
-def _user_has_role():
+def user_has_curations_management_role():
     role = current_curations_service.curation_role
     if not role:
         return False
@@ -35,7 +33,7 @@ def curation_requests_overview():
         "invenio_curations/overview.html",
         searchbar_config=dict(searchUrl="/"),
         user_avatar=url,
-        has_permission=_user_has_role(),
+        has_permission=user_has_curations_management_role(),
     )
 
 
@@ -52,16 +50,6 @@ def create_ui_blueprint(app):
     # Add URL rules
     blueprint.add_url_rule("/curations/overview", view_func=curation_requests_overview)
 
-    @blueprint.before_app_first_request
-    def register_menus():
-        user_dashboard = current_menu.submenu("dashboard")
-        user_dashboard.submenu("curation-overview").register(
-            "invenio_curations.curation_requests_overview",
-            text=_("Curation Requests"),
-            order=4,
-            visible_when=_user_has_role,
-        )
-
-
+    # Add context processor for search
     blueprint.app_context_processor(search_app_context)
     return blueprint
