@@ -29,7 +29,29 @@ Further documentation is available on
 https://invenio-curations.readthedocs.io/
 
 
-## Add service component
+
+## Update invenio.cfg
+### Add notification builders and entity resolver for groups
+
+from invenio_curations.notifications.builders import (
+    CurationRequestAcceptNotificationBuilder,
+    CurationRequestSubmitNotificationBuilder,
+)
+
+from invenio_records_resources.references.entity_resolvers import ServiceResultResolver
+
+from invenio_app_rdm.config import NOTIFICATIONS_BUILDERS, NOTIFICATIONS_ENTITY_RESOLVERS
+NOTIFICATIONS_BUILDERS = {
+    **NOTIFICATIONS_BUILDERS,
+    # Curation request
+    CurationRequestAcceptNotificationBuilder.type: CurationRequestAcceptNotificationBuilder,
+    CurationRequestSubmitNotificationBuilder.type: CurationRequestSubmitNotificationBuilder,
+}
+
+NOTIFICATIONS_ENTITY_RESOLVERS = NOTIFICATIONS_ENTITY_RESOLVERS + [ServiceResultResolver(service_id="groups", type_key="group")]
+
+
+### Add service component
 In order to require an accepted curation request before publishing a record, the component has to be added to the RDM record service
 ```py
 from invenio_curations.services.components import CurationComponent
