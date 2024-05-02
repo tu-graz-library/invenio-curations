@@ -9,12 +9,12 @@
 """Component for checking curations."""
 
 from abc import ABC
+
 import dictdiffer
 from invenio_access.permissions import system_identity
 from invenio_drafts_resources.services.records.components import ServiceComponent
 from invenio_i18n import lazy_gettext as _
 from invenio_requests.proxies import current_requests_service
-
 
 from ..proxies import current_curations_service
 from .errors import CurationRequestNotAccepted
@@ -32,6 +32,31 @@ class CurationComponent(ServiceComponent, ABC):
 
         if not review_accepted:
             raise CurationRequestNotAccepted()
+
+    def delete_draft(self, identity, draft=None, record=None, force=False):
+        """Delete a draft."""
+        request = current_curations_service.get_review(
+            system_identity,
+            draft,
+            expand=True,
+        )
+
+        # No open request. Nothing to do.
+        if request is None:
+            return
+
+        # New record or new version -> request can be removed.
+        if not record:
+            current_requests_service.delete(
+                system_identity, request["id"], uow=self.uow
+            )
+            return
+
+        # Delete draft for a published record.
+        # Since only one request per record should exist, it is not deleted. Instead, put it back to accepted.
+        current_requests_service.execute_action(
+            system_identity, request["id"], "accept"
+        )
 
     def update_draft(self, identity, data=None, record=None, errors=None):
         """Update draft handler."""
@@ -59,6 +84,7 @@ class CurationComponent(ServiceComponent, ABC):
         if request["is_open"]:
             return
 
+        # Compare metadata of current draft and updated draft.
         current_draft = self.service.draft_cls.pid.resolve(
             record["id"], registered_only=False
         )
@@ -80,7 +106,8 @@ class CurationComponent(ServiceComponent, ABC):
                 record=record,
             ),
         )
-        # TODO: File updates are not picked up
+        # TODO: File updates are not picked up. File actions are handled in dedicated files service.
+        #       Files service is not configurable per default and we can not add a component there.
         diff = dictdiffer.diff(current_data, updated_data)
         diff_list = list(diff)
 

@@ -51,6 +51,7 @@ class CurationCreateAndSubmitAction(actions.CreateAndSubmitAction):
 
         super().execute(identity, uow)
 
+
 class CurationSubmitAction(actions.SubmitAction):
     """Submit action for user access requests."""
 
@@ -98,6 +99,13 @@ class CurationExpireAction(actions.ExpireAction):
     status_from = ["submitted", "in_review", "reviewed", "revised"]
 
 
+class CurationDeleteAction(actions.DeleteAction):
+    """Delete a request."""
+
+    status_from = ["created", "submitted", "accepted", "cancelled"]
+    status_to = "deleted"
+
+
 # class CurationInReviewAction(actions.RequestAction):
 #     """Mark request as in review."""
 
@@ -137,6 +145,7 @@ class CurationRequest(RequestType):
         "decline": CurationDeclineAction,
         "cancel": CurationCancelAction,
         "expire": CurationExpireAction,
+        "delete": CurationDeleteAction,
         # "in_review": CurationInReviewAction,
         # "review": CurationReviewAction,
         # "revise": CurationReviseAction,
