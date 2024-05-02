@@ -13,6 +13,11 @@ from invenio_i18n import lazy_gettext as _
 from invenio_notifications.services.uow import NotificationOp
 from invenio_requests.customizations import RequestType, actions
 
+from invenio_curations.notifications.builders import (
+    CurationRequestAcceptNotificationBuilder,
+    CurationRequestSubmitNotificationBuilder,
+)
+
 
 class CurationCreateAndSubmitAction(actions.CreateAndSubmitAction):
 
@@ -42,12 +47,14 @@ class CurationCreateAndSubmitAction(actions.CreateAndSubmitAction):
         uow.register(
             ParentRecordCommitOp(record.parent, indexer_context=dict(service=service))
         )
-        # TODO: send notification to group
-        # uow.register(
-        #     NotificationOp(
-        #         UserAccessRequestSubmitNotificationBuilder.build(request=self.request)
-        #     )
-        # )
+
+        uow.register(
+            NotificationOp(
+                CurationRequestSubmitNotificationBuilder.build(
+                    identity=identity, request=self.request
+                )
+            )
+        )
 
         super().execute(identity, uow)
 
@@ -60,23 +67,32 @@ class CurationSubmitAction(actions.SubmitAction):
     def execute(self, identity, uow):
         """Execute the submit action."""
 
-        # TODO: send notification to group
-        # uow.register(
-        #     NotificationOp(
-        #         UserAccessRequestSubmitNotificationBuilder.build(request=self.request)
-        #     )
-        # )
+        uow.register(
+            NotificationOp(
+                CurationRequestSubmitNotificationBuilder.build(
+                    identity=identity, request=self.request
+                )
+            )
+        )
         super().execute(identity, uow)
 
 
 class CurationAcceptAction(actions.AcceptAction):
-    """Decline a request."""
+    """Accept a request."""
 
     # status_from = ["in_review"]
     status_from = ["submitted"]
 
     def execute(self, identity, uow):
         """Execute the accept action."""
+
+        uow.register(
+            NotificationOp(
+                CurationRequestAcceptNotificationBuilder.build(
+                    identity=identity, request=self.request
+                )
+            )
+        )
 
         super().execute(identity, uow)
 
