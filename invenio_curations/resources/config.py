@@ -9,6 +9,7 @@
 """Requests resource config."""
 
 
+import marshmallow as ma
 from flask_resources import HTTPJSONException, create_error_handler
 from invenio_records_resources.resources import RecordResourceConfig
 from invenio_records_resources.services.base.config import ConfiguratorMixin, FromConfig
@@ -20,8 +21,6 @@ from invenio_curations.services.errors import (
     OpenRecordCurationRequestAlreadyExists,
     RoleNotFound,
 )
-
-import marshmallow as ma
 
 
 #
@@ -55,7 +54,7 @@ request_error_handlers = {
             code=404,
             description=str(e),
         )
-    )
+    ),
 }
 
 
