@@ -16,7 +16,6 @@ from invenio_records_resources.resources import RecordResource
 from invenio_records_resources.resources.records.resource import (
     request_data,
     request_extra_args,
-    request_headers,
     request_search_args,
     request_view_args,
 )
@@ -37,21 +36,25 @@ class CurationsResource(RecordResource):
         # does in the end)
         options["url_prefix"] = ""
         return super().create_blueprint(**options)
-    
 
     def as_blueprint(self, **options):
         """Creating the blueprint and registering error handlers on the application.
-        
+
         This is required, as the CurationComponent will throw inside another blueprint.
         """
 
         blueprint = super().as_blueprint(**options)
 
         for exc_or_code, error_handler in self.create_error_handlers():
-            blueprint.record_once(lambda s, exc_or_code=exc_or_code, error_handler=error_handler: s.app.errorhandler(exc_or_code)(error_handler))
+            blueprint.record_once(
+                lambda s, exc_or_code=exc_or_code, error_handler=error_handler: s.app.errorhandler(
+                    exc_or_code
+                )(
+                    error_handler
+                )
+            )
 
         return blueprint
-
 
     def create_url_rules(self):
         """Create the URL rules for the record resource."""
@@ -95,74 +98,3 @@ class CurationsResource(RecordResource):
             expand=resource_requestctx.args.get("expand", True),
         )
         return item.to_dict(), 201
-
-    # @request_extra_args
-    # @request_search_args
-    # @request_view_args
-    # @response_handler(many=True)
-    # def search_user_requests(self):
-    #     """Perform a search over user requets.
-
-    #     /GET /user/requests
-    #     """
-    #     hits = self.service.search_user_requests(
-    #         identity=g.identity,
-    #         params=resource_requestctx.args,
-    #         search_preference=search_preference(),
-    #         expand=resource_requestctx.args.get("expand", False),
-    #     )
-    #     return hits.to_dict(), 200
-
-    # @request_extra_args
-    # @request_view_args
-    # @response_handler()
-    # def read(self):
-    #     """Read an item."""
-    #     item = self.service.read(
-    #         id_=resource_requestctx.view_args["id"],
-    #         identity=g.identity,
-    #         expand=resource_requestctx.args.get("expand", False),
-    #     )
-    #     return item.to_dict(), 200
-
-    # @request_extra_args
-    # @request_headers
-    # @request_view_args
-    # @request_data
-    # @response_handler()
-    # def update(self):
-    #     """Update an item."""
-    #     # TODO should we allow updating of requests in this general resource?
-    #     item = self.service.update(
-    #         id_=resource_requestctx.view_args["id"],
-    #         identity=g.identity,
-    #         data=resource_requestctx.data,
-    #         expand=resource_requestctx.args.get("expand", False),
-    #     )
-    #     return item.to_dict(), 200
-
-    # @request_headers
-    # @request_view_args
-    # def delete(self):
-    #     """Delete an item."""
-    #     self.service.delete(
-    #         id_=resource_requestctx.view_args["id"],
-    #         identity=g.identity,
-    #     )
-    #     return "", 204
-
-    # @request_extra_args
-    # @request_view_args
-    # @request_headers
-    # @request_data
-    # @response_handler()
-    # def execute_action(self):
-    #     """Execute action."""
-    #     item = self.service.execute_action(
-    #         identity=g.identity,
-    #         id_=resource_requestctx.view_args["id"],
-    #         action=resource_requestctx.view_args["action"],
-    #         data=resource_requestctx.data,
-    #         expand=resource_requestctx.args.get("expand", False),
-    #     )
-    #     return item.to_dict(), 200

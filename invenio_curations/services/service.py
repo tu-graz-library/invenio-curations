@@ -66,14 +66,17 @@ class CurationRequestService:
     def accepted_record(self, identity, record):
         """Check if current version of record has been accepted."""
 
+        topic_reference = ResolverRegistry.reference_entity(record)
+        # Assume there is only one item in the reference dict
+        topic_key, topic_value = next(iter(topic_reference.items()))
+
         results = self.requests_service.search(
             identity,
             extra_filter=dsl.query.Bool(
                 "must",
                 must=[
                     dsl.Q("term", **{"type": self.request_type_cls.type_id}),
-                    # TODO: make type independent search
-                    dsl.Q("term", **{"topic.record": record["id"]}),
+                    dsl.Q("term", **{"topic.{}".format(topic_key): topic_value}),
                     dsl.Q("term", **{"is_open": False}),
                     dsl.Q("term", **{"status": "accepted"}),
                 ],
@@ -107,7 +110,9 @@ class CurationRequestService:
         )
 
         default_data = {
-            "title": "RDM Curation: {title}".format(title=topic.metadata["title"]),
+            "title": "RDM Curation: {title}".format(
+                title=topic.metadata.get("title", topic["id"])
+            ),
         }
 
         if self.get_review(identity, topic):
