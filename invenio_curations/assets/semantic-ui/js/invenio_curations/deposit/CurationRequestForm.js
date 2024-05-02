@@ -11,24 +11,58 @@ import { RequestMetadata } from "@js/invenio_requests";
 import { Button, Card } from "semantic-ui-react";
 import PropTypes from "prop-types";
 import Overridable from "react-overridable";
-import {
-  http,
-  FieldLabel,
-} from "react-invenio-forms";
+import { http, FieldLabel } from "react-invenio-forms";
 
-export class CurationsContainer extends Component {
+export class CurationsContainerComponent extends Component {
   constructor(props) {
     super(props);
-    this.config = props.config || {};
+    this.recordFetchInterval = null;
     this.state = {
       loading: false,
       latestRequest: null,
+      record: props.record,
     };
   }
 
-  get record() {
-    return this.props.record;
+  componentDidMount() {
+    this.fetchCurationRequest();
+
+    this.recordFetchInterval = setInterval(() => {
+      this.readLocalRecordId();
+      if (this.record["id"] !== undefined && this.record["id"] !== null) {
+        clearInterval(this.recordFetchInterval);
+      }
+    }, 1000);
   }
+
+  componentWillUnmount() {
+    clearInterval(this.recordFetchInterval);
+  }
+
+  get record() {
+    const { record } = this.state;
+    return record;
+  }
+
+  readLocalRecordId = () => {
+    try {
+      let recid = undefined;
+      let urlParts = document.URL.split("uploads/");
+      if (urlParts.length > 1) {
+        recid = urlParts[1];
+        if (recid === "new") return;
+
+        this.setState((prevState) => {
+          const record = prevState.record;
+          return {
+            record: { ...record, id: recid },
+          };
+        });
+      }
+    } catch (error) {
+      console.error("Error during fetching local record:", error);
+    }
+  };
 
   fetchCurationRequest = async () => {
     this.loading = true;
@@ -42,8 +76,7 @@ export class CurationsContainer extends Component {
       });
 
       this.setState({
-        latestRequest:
-          request.data.hits.total > 0 ? request.data.hits.hits[0] : null,
+        latestRequest: request.data.hits.total > 0 ? request.data.hits.hits[0] : null,
       });
     } catch (e) {
       console.error(e);
@@ -84,60 +117,53 @@ export class CurationsContainer extends Component {
   }
 
   get loading() {
-    return this.state.loading;
-  }
-
-  componentDidMount() {
-    this.fetchCurationRequest();
+    const { loading } = this.state;
+    return loading;
   }
 
   render() {
-    let { latestRequest } = this.state;
+    let { latestRequest, record } = this.state;
+    const recordIdAvailable = record["id"] !== undefined && record["id"] !== null;
 
     return (
       <Overridable id="InvenioCurations.Deposit.CardCurationsBox.container">
         <Card>
           <Card.Content>
             <Card.Header>
-              <FieldLabel
-                label={i18next.t("Curation")}
-                icon={"list"}
-              ></FieldLabel>
+              <FieldLabel label={i18next.t("Curation")} icon="list" />
             </Card.Header>
           </Card.Content>
           <Card.Content>
-            <Button
-              fluid
-              onClick={this.fetchCurationRequest}
-              loading={this.loading}
-              primary
-              size="medium"
-              icon
-              labelPosition="left"
-              type="button"
-            >
-              {i18next.t("Fetch latest request")}
-            </Button>
-            {latestRequest && (
-              <RequestMetadata request={latestRequest}></RequestMetadata>
-            )}
+            {latestRequest && <RequestMetadata request={latestRequest} />}
           </Card.Content>
           <Card.Content>
             {!latestRequest && (
               <div>
                 <p>{i18next.t("No open request for this record exists.")}</p>
-                <Button
-                  fluid
-                  onClick={this.createCurationRequest}
-                  loading={this.loading}
-                  primary
-                  size="medium"
-                  icon
-                  labelPosition="left"
-                  type="button"
-                >
-                  {i18next.t("Create curation request")}
-                </Button>
+                {!recordIdAvailable && (
+                  <p>
+                    {i18next.t(
+                      "Before creating a curation request, the draft has to be saved."
+                    )}
+                  </p>
+                )}
+                {recordIdAvailable && (
+                  <Button
+                    fluid
+                    onClick={async () => {
+                      await this.fetchCurationRequest();
+                      await this.createCurationRequest();
+                    }}
+                    loading={this.loading}
+                    primary
+                    size="medium"
+                    icon
+                    labelPosition="left"
+                    type="button"
+                  >
+                    {i18next.t("Create curation request")}
+                  </Button>
+                )}
               </div>
             )}
           </Card.Content>
@@ -147,12 +173,10 @@ export class CurationsContainer extends Component {
   }
 }
 
-CurationsContainer.propTypes = {
-  config: PropTypes.object.isRequired,
+CurationsContainerComponent.propTypes = {
   record: PropTypes.object.isRequired,
-  permissions: PropTypes.object,
 };
 
-CurationsContainer.defaultProps = {
-  permissions: null,
-};
+CurationsContainerComponent.defaultProps = {};
+
+export const CurationsContainer = CurationsContainerComponent;
