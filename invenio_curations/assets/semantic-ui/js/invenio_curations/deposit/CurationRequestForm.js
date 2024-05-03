@@ -7,8 +7,8 @@
 
 import { i18next } from "@translations/invenio_app_rdm/i18next";
 import React, { Component } from "react";
-import { RequestMetadata } from "@js/invenio_requests";
-import { Button, Card } from "semantic-ui-react";
+import RequestStatusLabel from "@js/invenio_requests/request/RequestStatusLabel";
+import { Button, Card, Grid, GridColumn, Icon, Label, Popup } from "semantic-ui-react";
 import PropTypes from "prop-types";
 import Overridable from "react-overridable";
 import { http, FieldLabel } from "react-invenio-forms";
@@ -126,46 +126,67 @@ export class CurationsContainerComponent extends Component {
     const recordIdAvailable = record["id"] !== undefined && record["id"] !== null;
 
     return (
-      <Overridable id="InvenioCurations.Deposit.CardCurationsBox.container">
-        <Card>
+      <Overridable id="InvenioCurations.Deposit.CurationsBox.Container">
+        <Card fluid>
           <Card.Content>
-            <Card.Header>
-              <FieldLabel label={i18next.t("Curation")} icon="list" />
-            </Card.Header>
-          </Card.Content>
-          <Card.Content>
-            {latestRequest && <RequestMetadata request={latestRequest} />}
-          </Card.Content>
-          <Card.Content>
-            {!latestRequest && (
-              <div>
-                <p>{i18next.t("No open request for this record exists.")}</p>
-                {!recordIdAvailable && (
-                  <p>
-                    {i18next.t(
-                      "Before creating a curation request, the draft has to be saved."
-                    )}
-                  </p>
-                )}
-                {recordIdAvailable && (
-                  <Button
-                    fluid
-                    onClick={async () => {
-                      await this.fetchCurationRequest();
-                      await this.createCurationRequest();
-                    }}
-                    loading={this.loading}
-                    primary
-                    size="medium"
-                    icon
-                    labelPosition="left"
-                    type="button"
-                  >
-                    {i18next.t("Create curation request")}
-                  </Button>
-                )}
-              </div>
-            )}
+            <Card.Content>
+              <Grid verticalAlign="top" columns={3}>
+                <GridColumn>
+                  <FieldLabel label={i18next.t("Curation")} icon="list" />
+                </GridColumn>
+
+                <GridColumn textAlign="center">
+                  {latestRequest ? (
+                    <>
+                      <Label verticalAlign="top">{i18next.t("Status")}</Label>
+                      <RequestStatusLabel status={latestRequest.status} />
+                    </>
+                  ) : (
+                    <div>
+                      <p>{i18next.t("No open request for this record exists.")}</p>
+                    </div>
+                  )}
+                </GridColumn>
+                <GridColumn textAlign="right">
+                  {latestRequest ? (
+                    <Button
+                      as="a"
+                      href={`/me/requests/${latestRequest.id}`}
+                      icon
+                      labelPosition="right"
+                      size="tiny"
+                    >
+                      {i18next.t("View request")}
+                      <Icon name="right arrow" />
+                    </Button>
+                  ) : (
+                    <Popup
+                      disabled={recordIdAvailable}
+                      content={i18next.t(
+                        "Before creating a curation request, the draft has to be saved."
+                      )}
+                      trigger={
+                        <span>
+                          <Button
+                            onClick={async () => {
+                              await this.fetchCurationRequest();
+                              await this.createCurationRequest();
+                            }}
+                            loading={this.loading}
+                            primary
+                            size="tiny"
+                            type="button"
+                            disabled={!recordIdAvailable}
+                          >
+                            {i18next.t("Create curation request")}
+                          </Button>
+                        </span>
+                      }
+                    />
+                  )}
+                </GridColumn>
+              </Grid>
+            </Card.Content>
           </Card.Content>
         </Card>
       </Overridable>
