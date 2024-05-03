@@ -20,14 +20,13 @@ export const getInputFromDOM = (elementName) => {
   return null;
 };
 
-const depositSidebar = document.getElementsByClassName("deposit-sidebar")[0];
-if (depositSidebar) {
-  const stickyMenu = depositSidebar.getElementsByClassName("sticky")[0];
-
+const depositForm = document.getElementById("rdm-deposit-form");
+if (depositForm) {
   let curationsContainer = document.createElement("div", {
     id: "curations-container",
   });
-  curationsContainer = stickyMenu.appendChild(curationsContainer);
+
+  depositForm.prepend(curationsContainer);
   ReactDOM.render(
     <OverridableContext.Provider value={overriddenComponents}>
       <CurationsContainer

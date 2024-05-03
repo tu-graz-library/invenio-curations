@@ -47,12 +47,16 @@ class CurationComponent(ServiceComponent, ABC):
 
         # New record or new version -> request can be removed.
         if record is None:
-            current_requests_service.delete(identity, request["id"], uow=self.uow)
+            current_requests_service.delete(
+                system_identity, request["id"], uow=self.uow
+            )
             return
 
         # Delete draft for a published record.
         # Since only one request per record should exist, it is not deleted. Instead, put it back to accepted.
-        current_requests_service.execute_action(identity, request["id"], "accept")
+        current_requests_service.execute_action(
+            system_identity, request["id"], "accept"
+        )
 
     def update_draft(self, identity, data=None, record=None, errors=None):
         """Update draft handler."""
