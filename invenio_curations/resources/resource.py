@@ -42,7 +42,6 @@ class CurationsResource(RecordResource):
 
         This is required, as the CurationComponent will throw inside another blueprint.
         """
-
         blueprint = super().as_blueprint(**options)
 
         for exc_or_code, error_handler in self.create_error_handlers():
