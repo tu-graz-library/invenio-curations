@@ -32,6 +32,7 @@ class CurationRequestService:
 
     @property
     def curation_role_name(self):
+        """Curation role name from config."""
         return current_app.config.get("CURATIONS_MODERATION_ROLE")
 
     @property
@@ -41,7 +42,6 @@ class CurationRequestService:
 
     def get_review(self, identity, topic, **kwargs):
         """Get the curation review for a topic."""
-
         topic_reference = ResolverRegistry.reference_entity(topic)
         # Assume there is only one item in the reference dict
         topic_key, topic_value = next(iter(topic_reference.items()))
@@ -65,7 +65,6 @@ class CurationRequestService:
 
     def accepted_record(self, identity, record):
         """Check if current version of record has been accepted."""
-
         topic_reference = ResolverRegistry.reference_entity(record)
         # Assume there is only one item in the reference dict
         topic_key, topic_value = next(iter(topic_reference.items()))
@@ -86,8 +85,7 @@ class CurationRequestService:
 
     @unit_of_work()
     def create(self, identity, data=None, uow=None, **kwargs):
-        """Creates a RDMCuration request and submits it."""
-
+        """Create a RDMCuration request and submit it."""
         role = self.curation_role
         if not role:
             raise RoleNotFound(self.curation_role_name)
@@ -135,6 +133,7 @@ class CurationRequestService:
     def search(
         self, identity, params=None, search_preference=None, expand=False, **kwargs
     ):
+        """Search for curation requests."""
         return self.requests_service.search(
             identity,
             extra_filter=dsl.query.Bool(

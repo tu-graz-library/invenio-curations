@@ -5,7 +5,7 @@
 # Invenio-Curation is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
 
-""" Curation request type."""
+"""Curation request type."""
 
 from invenio_access.permissions import system_identity
 from invenio_drafts_resources.services.records.uow import ParentRecordCommitOp
@@ -20,10 +20,10 @@ from invenio_curations.notifications.builders import (
 
 
 class CurationCreateAndSubmitAction(actions.CreateAndSubmitAction):
+    """Create and submit a request."""
 
     def execute(self, identity, uow):
         """Execute the create action."""
-
         receiver = self.request.receiver.resolve()
         record = self.request.topic.resolve()
 
@@ -66,7 +66,6 @@ class CurationSubmitAction(actions.SubmitAction):
 
     def execute(self, identity, uow):
         """Execute the submit action."""
-
         uow.register(
             NotificationOp(
                 CurationRequestSubmitNotificationBuilder.build(
@@ -85,7 +84,6 @@ class CurationAcceptAction(actions.AcceptAction):
 
     def execute(self, identity, uow):
         """Execute the accept action."""
-
         uow.register(
             NotificationOp(
                 CurationRequestAcceptNotificationBuilder.build(

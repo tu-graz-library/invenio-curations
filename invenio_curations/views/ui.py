@@ -16,11 +16,12 @@ from invenio_curations.searchapp import search_app_context
 from ..proxies import current_curations_service
 
 
-def user_has_curations_management_role():
+def user_has_curations_management_role(identity):
+    """Check if provided identity provides the curation role."""
     role = current_curations_service.curation_role
     if not role:
         return False
-    return current_user.has_role(role)
+    return identity.user.has_role(role)
 
 
 def curation_requests_overview():
@@ -33,13 +34,12 @@ def curation_requests_overview():
         "invenio_curations/overview.html",
         searchbar_config=dict(searchUrl="/"),
         user_avatar=url,
-        has_permission=user_has_curations_management_role(),
+        has_permission=user_has_curations_management_role(g.identity),
     )
 
 
 def create_ui_blueprint(app):
     """Register blueprint routes on app."""
-
     blueprint = Blueprint(
         "invenio_curations",
         __name__,
