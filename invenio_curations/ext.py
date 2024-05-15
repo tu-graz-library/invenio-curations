@@ -8,6 +8,7 @@
 """Invenio module for generic and customizable curations."""
 
 
+from flask import g
 from flask_menu import current_menu
 from invenio_i18n import lazy_gettext as _
 from invenio_requests.proxies import current_requests_service
@@ -30,7 +31,7 @@ def init_menu(app):
         "invenio_curations.curation_requests_overview",
         text=_("Curation Requests"),
         order=100,
-        visible_when=user_has_curations_management_role,
+        visible_when=lambda: user_has_curations_management_role(g.identity),
     )
 
 
