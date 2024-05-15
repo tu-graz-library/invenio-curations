@@ -1,0 +1,9 @@
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  build-n-publish:
+    uses: tu-graz-library/.github/.github/workflows/pypi-publish.yml@main
+    secrets: inherit
