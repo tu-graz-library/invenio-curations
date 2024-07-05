@@ -1,13 +1,15 @@
 ..
     Copyright (C) 2021 CERN.
+    Copyright (C) 2024 Graz University of Technology.
+    Copyright (C) 2024 TU Wien.
 
-    Invenio-curations is free software; you can redistribute it and/or
+    Invenio-Curations is free software; you can redistribute it and/or
     modify it under the terms of the MIT License; see LICENSE file for more
     details.
 
-==================
- Invenio-curations
-==================
+=================
+Invenio-Curations
+=================
 
 .. image:: https://github.com/tu-graz-library/invenio-curations/workflows/CI/badge.svg
         :target: https://github.com/tu-graz-library/invenio-curations/actions?query=workflow%3ACI
@@ -29,57 +31,89 @@ Further documentation is available on
 https://invenio-curations.readthedocs.io/
 
 
+Update ``invenio.cfg``
+----------------------
 
-## Update invenio.cfg
-### Add notification builders and entity resolver for groups
+Add `notification builders` and `entity resolver` for `groups`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-from invenio_curations.notifications.builders import (
-    CurationRequestAcceptNotificationBuilder,
-    CurationRequestSubmitNotificationBuilder,
-)
+Currently, requests can only be sent to a single `receiver`.
+However, curation reviews are typically performed by a `group` of people rather than one single fixed `user`.
+Thus, the curation requests are sent to a `group` rather than a single `user` in the system so that all users with a certain `role` can receive and act on curation requests.
 
-from invenio_records_resources.references.entity_resolvers import ServiceResultResolver
+To enable resolution of user groups, an `entity resolver` has to be added to the configuration.
 
-from invenio_app_rdm.config import NOTIFICATIONS_BUILDERS, NOTIFICATIONS_ENTITY_RESOLVERS
-NOTIFICATIONS_BUILDERS = {
-    **NOTIFICATIONS_BUILDERS,
-    # Curation request
-    CurationRequestAcceptNotificationBuilder.type: CurationRequestAcceptNotificationBuilder,
-    CurationRequestSubmitNotificationBuilder.type: CurationRequestSubmitNotificationBuilder,
-}
+Additionally, notification builders have to be configured so that notifications are sent out to the involved users whenever something's happening in the curation review.
 
-NOTIFICATIONS_ENTITY_RESOLVERS = NOTIFICATIONS_ENTITY_RESOLVERS + [ServiceResultResolver(service_id="groups", type_key="group")]
+.. code-block:: python
+
+    from invenio_curations.notifications.builders import (
+        CurationRequestAcceptNotificationBuilder,
+        CurationRequestSubmitNotificationBuilder,
+    )
+    from invenio_records_resources.references.entity_resolvers import ServiceResultResolver
+    from invenio_app_rdm.config import NOTIFICATIONS_BUILDERS, NOTIFICATIONS_ENTITY_RESOLVERS
+
+    # enable sending of notifications when something's happening in the review
+    NOTIFICATIONS_BUILDERS = {
+        **NOTIFICATIONS_BUILDERS,
+        # Curation request
+        CurationRequestAcceptNotificationBuilder.type: CurationRequestAcceptNotificationBuilder,
+        CurationRequestSubmitNotificationBuilder.type: CurationRequestSubmitNotificationBuilder,
+    }
+
+    # enable requests to target groups of users (i.e. `roles`)
+    NOTIFICATIONS_ENTITY_RESOLVERS = NOTIFICATIONS_ENTITY_RESOLVERS + [
+        ServiceResultResolver(service_id="groups", type_key="group")
+    ]
 
 
-### Add service component
-In order to require an accepted curation request before publishing a record, the component has to be added to the RDM record service
-```py
-from invenio_curations.services.components import CurationComponent
-from invenio_rdm_records.services.components import DefaultRecordsComponents
-RDM_RECORDS_SERVICE_COMPONENTS = DefaultRecordsComponents + [
-    CurationComponent,
-]
-```
+Add service component
+^^^^^^^^^^^^^^^^^^^^^
 
-## Overwrite deposit view
-The deposit view has to be updated to include the curation section. Most importantly, the curation specific javascript has to be included in the javascript block:
-`{{ webpack['invenio-curations-deposit.js'] }}`
+In order to require an accepted curation request before publishing a record, the component has to be appended to the RDM record service:
 
-This can be achieved by providing a custom template. Make sure to copy the current template from `invenio_app_rdm/records_ui/templates/semantic-ui/invenio_app_rdm/records/deposit.html`.
-In order to override this, place it into your instances `templates/semantic-ui/invenio_app_rdm/records/deposit.html` folder.
-Then add the afore mentioned line to the javascript block in the template
-```
-{%- block javascript %}
-  {{ super() }}
-  ...
+.. code-block:: python
 
-  {# This line right here #}
-  {{ webpack['invenio-curations-deposit.js'] }}
-{%- endblock %}
+    from invenio_curations.services.components import CurationComponent
+    from invenio_rdm_records.services.components import DefaultRecordsComponents
 
-```
+    # NOTE: the curation component should be added at the end
+    RDM_RECORDS_SERVICE_COMPONENTS = DefaultRecordsComponents + [
+        CurationComponent,
+    ]
 
-## Create curator role
-A curator role is used to ensure a user has the permission to manage curation requests. Its name is specified via a config variable `CURATIONS_MODERATION_ROLE`.
-In order to create this role, the following command can be run inside an instance: `invenio roles create <name-of-curation-role>`
-Adding a role to a user can be achieved by running: `invenio roles add <user-email-address> <name-of-curation-role>`
+
+Overwrite deposit view template
+-------------------------------
+
+The deposit view has to be updated to include the curation section.
+Most importantly, the curation specific JavaScript has to be included in the JavaScript block:
+``{{ webpack['invenio-curations-deposit.js'] }}``
+
+This can be achieved by providing a custom template, e.g. in your instance's ``templates/`` directory:
+
+Copy the current template from ``invenio_app_rdm/records_ui/templates/semantic-ui/invenio_app_rdm/records/deposit.html`` (available e.g. `here <https://github.com/inveniosoftware/invenio-app-rdm/blob/master/invenio_app_rdm/records_ui/templates/semantic-ui/invenio_app_rdm/records/deposit.html>`_) into your instance's ``templates/`` directory (the last parts of the path have to match): ``templates/semantic-ui/invenio_app_rdm/records/deposit.html``.
+
+Then add the aforementioned line to the JavaScript block in your template:
+
+.. code-block:: jinja
+
+    {%- block javascript %}
+      {{ super() }}
+      ...
+
+      {# This line right here #}
+      {{ webpack['invenio-curations-deposit.js'] }}
+    {%- endblock %}
+
+
+Create curator role
+-------------------
+
+The permission to manage curation requests is controlled by a specific role in the system.
+The name of this role can be specified via a configuration variable ``CURATIONS_MODERATION_ROLE``.
+
+The following ``invenio roles`` command can be used to create the role if it doesn't exist yet: ``invenio roles create <name-of-curation-role>``.
+
+After the role has been created, it can be assigned to users via: ``invenio roles add <user-email-address> <name-of-curation-role>``.
