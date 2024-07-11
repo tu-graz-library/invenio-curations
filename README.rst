@@ -84,6 +84,46 @@ In order to require an accepted curation request before publishing a record, the
     ]
 
 
+Set requests permission policy
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In the default InvenioRDM implementation, a user can submit an unpublished record to a community. Doing so will result in a `CommunitySubmission` request.
+If this request is accepted, the record would also get published. Our `CurationComponent` would already stop the publish action. However, in the UI, the button to accept and publish is still visible and pushing it will present the user with a generic error.
+In order to prevent this, the request permissions can be adapted such that the button is not shown in the first place.
+Since we only want to change the behaviour of these community submission requests, we first check the type and then check the associated record. If the record has been accepted, the general request permissions will be applied. Otherwise, no one can accept the community submission.
+
+.. code-block:: python
+    from invenio_rdm_records.requests import CommunityInclusion, CommunitySubmission
+    from invenio_rdm_records.services.permissions import RDMRequestsPermissionPolicy
+    from invenio_curations.services.generators import (
+        IfCurationRequestAccepted,
+        IfRequestTypes,
+    )
+
+
+    class CurationRDMRequestsPermissionPolicy(RDMRequestsPermissionPolicy):
+        """."""
+
+        can_action_accept = [
+            IfRequestTypes(
+                request_types=[
+                    CommunitySubmission,
+                ],
+                then_=[
+                    IfCurationRequestAccepted(
+                        then_=RDMRequestsPermissionPolicy.can_action_accept, else_=[]
+                    )
+                ],
+                else_=RDMRequestsPermissionPolicy.can_action_accept,
+            )
+        ]
+
+
+    REQUESTS_PERMISSION_POLICY = CurationRDMRequestsPermissionPolicy
+
+
+
+
 Overwrite deposit view template
 -------------------------------
 
