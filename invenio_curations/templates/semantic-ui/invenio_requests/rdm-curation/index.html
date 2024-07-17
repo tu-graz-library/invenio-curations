@@ -1,27 +1,28 @@
 {# -*- coding: utf-8 -*-
 
-  This file is part of Invenio.
   Copyright (C) 2016-2023 CERN.
+  Copyright (C) 2024 Graz University of Technology.
 
-  Invenio is free software; you can redistribute it and/or modify it
+  Invenio-Curations is free software; you can redistribute it and/or modify it
   under the terms of the MIT License; see LICENSE file for more details.
 #}
 
 {#
-  Renders the request details page when publishing a draft and including it in a community.
+  Renders the rdm-curation request details page.
 #}
 
 {% extends "invenio_requests/details/index.html" %}
-
-{% set active_dashboard_menu_item = 'curation-overview' %}
+{% set is_curator = current_user.has_role(config["CURATIONS_MODERATION_ROLE"]) %}
+{% set active_dashboard_menu_item = "curation-overview" if is_curator else "requests" %}
 
 {%- block request_header %}
-  {% set back_button_url = url_for("invenio_curations.curation_requests_overview") %}
+
+  {% set back_button_url = url_for("invenio_curations.curation_requests_overview" if is_curator else "invenio_app_rdm_users.requests") %}
   {% from "invenio_requests/macros/request_header.html" import inclusion_request_header %}
   {{ inclusion_request_header(
       request=invenio_request,
       record=record,
-      accepted=request_is_accepted,
+      accepted=False, 
       back_button_url=back_button_url,
       back_button_text=_("Back to requests")
     ) }}

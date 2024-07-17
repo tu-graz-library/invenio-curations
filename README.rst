@@ -93,6 +93,7 @@ In order to prevent this, the request permissions can be adapted such that the b
 Since we only want to change the behaviour of these community submission requests, we first check the type and then check the associated record. If the record has been accepted, the general request permissions will be applied. Otherwise, no one can accept the community submission.
 
 .. code-block:: python
+
     from invenio_rdm_records.requests import CommunityInclusion, CommunitySubmission
     from invenio_rdm_records.services.permissions import RDMRequestsPermissionPolicy
     from invenio_curations.services.generators import (
@@ -120,8 +121,6 @@ Since we only want to change the behaviour of these community submission request
 
 
     REQUESTS_PERMISSION_POLICY = CurationRDMRequestsPermissionPolicy
-
-
 
 
 Overwrite deposit view template
