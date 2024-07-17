@@ -7,7 +7,7 @@
 
 """Curations ui views module."""
 
-from flask import Blueprint, g, render_template
+from flask import Blueprint, abort, g, render_template
 from flask_login import current_user
 from invenio_users_resources.proxies import current_user_resources
 
@@ -26,6 +26,9 @@ def user_has_curations_management_role(identity):
 
 def curation_requests_overview():
     """Display user dashboard page."""
+    if not user_has_curations_management_role(g.identity):
+        abort(403)
+
     url = current_user_resources.users_service.links_item_tpl.expand(
         g.identity, current_user
     )["avatar"]
@@ -34,7 +37,6 @@ def curation_requests_overview():
         "invenio_curations/overview.html",
         searchbar_config=dict(searchUrl="/"),
         user_avatar=url,
-        has_permission=user_has_curations_management_role(g.identity),
     )
 
 
