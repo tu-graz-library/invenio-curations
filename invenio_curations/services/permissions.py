@@ -19,11 +19,11 @@ class CurationPermissionPolicy(RequestPermissionPolicy):
 
     can_read = RequestPermissionPolicy.can_read + [
         Status(
-            ["in_review", "reviewed", "revised"],
+            ["review", "critiqued", "resubmitted"],
             [Creator(), Receiver()],
         ),
     ]
     can_create_comment = can_read
-    can_action_in_review = RequestPermissionPolicy.can_action_accept
-    can_action_reviewed = RequestPermissionPolicy.can_action_accept
-    can_action_revised = RequestPermissionPolicy.can_action_cancel
+    can_action_review = RequestPermissionPolicy.can_action_accept
+    can_action_critique = RequestPermissionPolicy.can_action_accept
+    can_action_resubmit = RequestPermissionPolicy.can_action_cancel

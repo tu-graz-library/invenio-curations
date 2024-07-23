@@ -80,6 +80,9 @@ class CurationComponent(ServiceComponent, ABC):
             )
             return
 
+        # TODO: Should updates be disallowed if the record/request is currently being reviewed?
+        # It could be possible that the record gets updated while a curator performs a review. The curator would be looking at an outdated record and the review might not be correct.
+
         # If a request is open, it still has to be reviewed eventually.
         if request["is_open"]:
             return
@@ -113,4 +116,4 @@ class CurationComponent(ServiceComponent, ABC):
 
         # Request is closed but draft was updated with new data. Put back for review
         if diff_list:
-            current_requests_service.execute_action(identity, request["id"], "submit")
+            current_requests_service.execute_action(identity, request["id"], "resubmit")
