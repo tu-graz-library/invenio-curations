@@ -11,7 +11,7 @@ from invenio_access.permissions import system_identity
 from invenio_drafts_resources.services.records.uow import ParentRecordCommitOp
 from invenio_i18n import lazy_gettext as _
 from invenio_notifications.services.uow import NotificationOp
-from invenio_requests.customizations import RequestType, actions
+from invenio_requests.customizations import RequestState, RequestType, actions
 
 from invenio_curations.notifications.builders import (
     CurationRequestAcceptNotificationBuilder,
@@ -27,6 +27,7 @@ class CurationCreateAndSubmitAction(actions.CreateAndSubmitAction):
         receiver = self.request.receiver.resolve()
         record = self.request.topic.resolve()
 
+        # Adding a grant here as modifying the record permissions is quite tedious.
         data = {
             "grants": [
                 {
@@ -62,7 +63,8 @@ class CurationCreateAndSubmitAction(actions.CreateAndSubmitAction):
 class CurationSubmitAction(actions.SubmitAction):
     """Submit action for user access requests."""
 
-    status_from = ["created", "accepted", "cancelled"]
+    # submit can only happen once.
+    status_from = ["created"]
 
     def execute(self, identity, uow):
         """Execute the submit action."""
@@ -79,8 +81,8 @@ class CurationSubmitAction(actions.SubmitAction):
 class CurationAcceptAction(actions.AcceptAction):
     """Accept a request."""
 
-    # status_from = ["in_review"]
-    status_from = ["submitted"]
+    # Require to go through review before accepting.
+    status_from = ["review"]
 
     def execute(self, identity, uow):
         """Execute the accept action."""
@@ -98,47 +100,57 @@ class CurationAcceptAction(actions.AcceptAction):
 class CurationDeclineAction(actions.DeclineAction):
     """Decline a request."""
 
-    status_from = ["in_review"]
+    # Instead of declining, the record should be critiqued.
+    status_from = []
 
 
 class CurationCancelAction(actions.CancelAction):
     """Cancel a request."""
 
-    status_from = ["submitted", "in_review", "reviewed", "revised"]
+    # A user might want to cancel their request.
+    status_from = ["submitted", "critiqued", "resubmitted"]
 
 
 class CurationExpireAction(actions.ExpireAction):
     """Expire a request."""
 
-    status_from = ["submitted", "in_review", "reviewed", "revised"]
+    status_from = ["submitted", "critiqued", "resubmitted"]
 
 
 class CurationDeleteAction(actions.DeleteAction):
     """Delete a request."""
 
-    status_from = ["created", "submitted", "accepted", "cancelled"]
+    # When a user deletes their draft, the request will get deleted. Should be possible from every state.
+    status_from = [
+        "created",
+        "submitted",
+        "review",
+        "critiqued",
+        "accepted",
+        "cancelled",
+    ]
     status_to = "deleted"
 
 
-# class CurationInReviewAction(actions.RequestAction):
-#     """Mark request as in review."""
+class CurationReviewAction(actions.RequestAction):
+    """Mark request as review."""
 
-#     status_from = ["submitted", "revised"]
-#     status_to = "in_review"
-
-
-# class CurationReviewAction(actions.RequestAction):
-#     """Request changes for request."""
-
-#     status_from = ["in_review"]
-#     status_to = "reviewed"
+    status_from = ["submitted", "resubmitted"]
+    status_to = "review"
 
 
-# class CurationReviseAction(actions.RequestAction):
-#     """Mark request as ready for review."""
+class CurationCritiqueAction(actions.RequestAction):
+    """Request changes for request."""
 
-#     status_from = ["reviewed", "accepted", "cancelled", "declined"]
-#     status_to = "revised"
+    status_from = ["review"]
+    status_to = "critiqued"
+
+
+class CurationResubmitAction(actions.RequestAction):
+    """Mark request as ready for review."""
+
+    status_from = ["critiqued", "accepted", "cancelled", "declined"]
+    status_to = "resubmitted"
 
 
 #
@@ -160,16 +172,16 @@ class CurationRequest(RequestType):
         "cancel": CurationCancelAction,
         "expire": CurationExpireAction,
         "delete": CurationDeleteAction,
-        # "in_review": CurationInReviewAction,
-        # "review": CurationReviewAction,
-        # "revise": CurationReviseAction,
+        "review": CurationReviewAction,
+        "critique": CurationCritiqueAction,
+        "resubmit": CurationResubmitAction,
     }
 
     available_statuses = {
         **RequestType.available_statuses,
-        # "in_review": RequestState.OPEN,
-        # "reviewed": RequestState.OPEN,
-        # "revised": RequestState.OPEN,
+        "review": RequestState.OPEN,
+        "critiqued": RequestState.OPEN,
+        "resubmitted": RequestState.OPEN,
     }
     """Available statuses for the request.
 
