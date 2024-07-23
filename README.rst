@@ -87,6 +87,12 @@ In order to require an accepted curation request before publishing a record, the
 Set requests permission policy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Setting the requests permission is done due to the following reasons:
+
+Additional actions have to be specified.
+
+Reading a request and creating comments depends on the state. Since new states are added, these states have to be included for these two permissions.
+
 In the default InvenioRDM implementation, a user can submit an unpublished record to a community. Doing so will result in a `CommunitySubmission` request.
 If this request is accepted, the record would also get published. Our `CurationComponent` would already stop the publish action. However, in the UI, the button to accept and publish is still visible and pushing it will present the user with a generic error.
 In order to prevent this, the request permissions can be adapted such that the button is not shown in the first place.
@@ -94,13 +100,13 @@ Since we only want to change the behaviour of these community submission request
 
 .. code-block:: python
 
-    from invenio_rdm_records.requests import CommunityInclusion, CommunitySubmission
-    from invenio_rdm_records.services.permissions import RDMRequestsPermissionPolicy
     from invenio_curations.services.generators import (
         IfCurationRequestAccepted,
         IfRequestTypes,
     )
-
+    from invenio_rdm_records.requests import CommunityInclusion, CommunitySubmission
+    from invenio_rdm_records.services.permissions import RDMRequestsPermissionPolicy
+    from invenio_requests.services.generators import Creator, Receiver, Status
 
     class CurationRDMRequestsPermissionPolicy(RDMRequestsPermissionPolicy):
         """."""
@@ -119,6 +125,19 @@ Since we only want to change the behaviour of these community submission request
             )
         ]
 
+        # Update can read and can comment with new states
+        can_read = RDMRequestsPermissionPolicy.can_read + [
+            Status(
+                ["review", "critiqued", "resubmitted"],
+                [Creator(), Receiver()],
+            ),
+        ]
+        can_create_comment = can_read
+
+        # Add new actions
+        can_action_review = RDMRequestsPermissionPolicy.can_action_accept
+        can_action_critique = RDMRequestsPermissionPolicy.can_action_accept
+        can_action_resubmit = RDMRequestsPermissionPolicy.can_action_submit
 
     REQUESTS_PERMISSION_POLICY = CurationRDMRequestsPermissionPolicy
 
