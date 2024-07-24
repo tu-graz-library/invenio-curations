@@ -25,6 +25,8 @@ Invenio-Curations
 
 Invenio module for generic and customizable curations.
 
+Requires InvenioRDM v12 or higher
+
 TODO: Please provide feature overview of module
 
 Further documentation is available on
@@ -49,6 +51,8 @@ Additionally, notification builders have to be configured so that notifications 
 
     from invenio_curations.notifications.builders import (
         CurationRequestAcceptNotificationBuilder,
+        CurationRequestCritiqueNotificationBuilder,
+        CurationRequestResubmitNotificationBuilder,
         CurationRequestSubmitNotificationBuilder,
     )
     from invenio_records_resources.references.entity_resolvers import ServiceResultResolver
@@ -59,6 +63,8 @@ Additionally, notification builders have to be configured so that notifications 
         **NOTIFICATIONS_BUILDERS,
         # Curation request
         CurationRequestAcceptNotificationBuilder.type: CurationRequestAcceptNotificationBuilder,
+        CurationRequestCritiqueNotificationBuilder.type: CurationRequestCritiqueNotificationBuilder,
+        CurationRequestResubmitNotificationBuilder.type: CurationRequestResubmitNotificationBuilder,
         CurationRequestSubmitNotificationBuilder.type: CurationRequestSubmitNotificationBuilder,
     }
 
