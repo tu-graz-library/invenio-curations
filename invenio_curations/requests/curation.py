@@ -15,6 +15,8 @@ from invenio_requests.customizations import RequestState, RequestType, actions
 
 from invenio_curations.notifications.builders import (
     CurationRequestAcceptNotificationBuilder,
+    CurationRequestCritiqueNotificationBuilder,
+    CurationRequestResubmitNotificationBuilder,
     CurationRequestSubmitNotificationBuilder,
 )
 
@@ -145,12 +147,35 @@ class CurationCritiqueAction(actions.RequestAction):
     status_from = ["review"]
     status_to = "critiqued"
 
+    def execute(self, identity, uow):
+        """Execute the accept action."""
+        uow.register(
+            NotificationOp(
+                CurationRequestCritiqueNotificationBuilder.build(
+                    identity=identity, request=self.request
+                )
+            )
+        )
+
+        super().execute(identity, uow)
+
 
 class CurationResubmitAction(actions.RequestAction):
     """Mark request as ready for review."""
 
     status_from = ["critiqued", "accepted", "cancelled", "declined"]
     status_to = "resubmitted"
+
+    def execute(self, identity, uow):
+        """Execute the submit action."""
+        uow.register(
+            NotificationOp(
+                CurationRequestResubmitNotificationBuilder.build(
+                    identity=identity, request=self.request
+                )
+            )
+        )
+        super().execute(identity, uow)
 
 
 #

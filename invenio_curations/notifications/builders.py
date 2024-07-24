@@ -63,10 +63,28 @@ class CurationRequestSubmitNotificationBuilder(
     recipients = [GroupMembersRecipient("request.receiver")]
 
 
+class CurationRequestResubmitNotificationBuilder(
+    CurationRequestActionNotificationBuilder
+):
+    """Notification builder for resubmit action."""
+
+    type = f"{CurationRequestActionNotificationBuilder.type}.resubmit"
+    recipients = [GroupMembersRecipient("request.receiver")]
+
+
 class CurationRequestAcceptNotificationBuilder(
     CurationRequestActionNotificationBuilder
 ):
     """Notification builder for accept action."""
 
     type = f"{CurationRequestActionNotificationBuilder.type}.accept"
+    recipients = [UserRecipient("request.created_by")]
+
+
+class CurationRequestCritiqueNotificationBuilder(
+    CurationRequestActionNotificationBuilder
+):
+    """Notification builder for critique action."""
+
+    type = f"{CurationRequestActionNotificationBuilder.type}.critique"
     recipients = [UserRecipient("request.created_by")]
