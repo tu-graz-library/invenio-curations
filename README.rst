@@ -172,6 +172,23 @@ Then add the aforementioned line to the JavaScript block in your template:
     {%- endblock %}
 
 
+Register React component overrides for the requests UI
+------------------------------------------------------
+
+This module provides a handful of new elements for requests that sometimes get rendered in an awkward way out of the box.
+`Invenio-Curations` provides a few `component overrides <https://inveniordm.docs.cern.ch/develop/howtos/override_components/>`_ that render those new elements in a much more appealing way.
+These overrides need to be registered in the overridable registry (i.e. in your instance's ``assets/js/invenio_app_rdm/overridableRegistry/mapping.js``):
+
+.. code-block:: javascript
+
+    import { curationComponentOverrides } from "@js/invenio_curations/requests";
+
+    export const overriddenComponents = {
+        // ... after your other overrides ...
+        ...curationComponentOverrides,
+    };
+
+
 Create curator role
 -------------------
 

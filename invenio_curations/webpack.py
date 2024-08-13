@@ -3,6 +3,7 @@
 # This file is part of Invenio.
 # Copyright (C) 2016-2021 CERN.
 # Copyright (C)      2024 Graz University of Technology.
+# Copyright (C)      2024 TU Wien.
 #
 # Invenio is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -32,7 +33,7 @@ curations = WebpackThemeBundle(
             dependencies={},
             aliases={
                 # "@translations/invenio_curations": "translations/invenio_curations",
-                # "@js/invenio_curations": "js/invenio_curations",
+                "@js/invenio_curations": "js/invenio_curations",
             },
         ),
     },
