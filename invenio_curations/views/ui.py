@@ -18,7 +18,7 @@ from ..proxies import current_curations_service
 
 def user_has_curations_management_role(identity):
     """Check if provided identity provides the curation role."""
-    role = current_curations_service.curation_role
+    role = current_curations_service.moderation_role
     if not role:
         return False
     return identity.user.has_role(role)

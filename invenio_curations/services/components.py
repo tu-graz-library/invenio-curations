@@ -15,6 +15,7 @@ import dictdiffer
 from invenio_access.permissions import system_identity
 from invenio_drafts_resources.services.records.components import ServiceComponent
 from invenio_i18n import lazy_gettext as _
+from invenio_pidstore.models import PIDStatus
 from invenio_requests.proxies import current_requests_service
 
 from ..proxies import current_curations_service
@@ -26,6 +27,17 @@ class CurationComponent(ServiceComponent, ABC):
 
     def publish(self, identity, draft=None, record=None, **kwargs):
         """Check if record curation request has been accepted."""
+        # The `PIDComponent` takes care of calling `record.register()` which sets the
+        # status for `record.pid.status` to "R", but the draft's dictionary data
+        # only gets updated via `record.commit()` (which is performed by the `uow`).
+        # Thus, if we spot a discrepancy here we can deduce that this is the first time
+        # the record gets published.
+        has_been_published = (
+            draft.pid.status == draft["pid"]["status"] == PIDStatus.REGISTERED
+        )
+        if has_been_published and current_curations_service.allow_publishing_edits:
+            return
+
         review_accepted = current_curations_service.accepted_record(
             system_identity,
             draft,
@@ -61,6 +73,10 @@ class CurationComponent(ServiceComponent, ABC):
 
     def update_draft(self, identity, data=None, record=None, errors=None):
         """Update draft handler."""
+        has_published_record = record is not None and record.is_published
+        if has_published_record and current_curations_service.allow_publishing_edits:
+            return
+
         request = current_curations_service.get_review(
             system_identity,
             record,
