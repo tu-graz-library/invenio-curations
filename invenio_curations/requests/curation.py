@@ -21,6 +21,8 @@ from invenio_curations.notifications.builders import (
     CurationRequestSubmitNotificationBuilder,
 )
 
+from ..proxies import current_curations_service
+
 
 class CurationCreateAndSubmitAction(actions.CreateAndSubmitAction):
     """Create and submit a request."""
@@ -30,33 +32,37 @@ class CurationCreateAndSubmitAction(actions.CreateAndSubmitAction):
         receiver = self.request.receiver.resolve()
         record = self.request.topic.resolve()
 
-        # Adding a grant here as modifying the record permissions is quite tedious.
-        data = {
-            "grants": [
-                {
-                    "permission": "preview",
-                    "subject": {
-                        "type": "role",
-                        "id": str(receiver.id),
-                    },
-                    "origin": f"request:{self.request.id}",
-                }
-            ]
-        }
+        # if configured, share access to the record with moderators by creating grants
+        # rather than requiring an override of the record permission policy
+        if current_curations_service.moderator_permissions_via_grants:
+            data = {
+                "grants": [
+                    {
+                        "permission": "preview",
+                        "subject": {
+                            "type": "role",
+                            "id": str(receiver.id),
+                        },
+                        "origin": f"request:{self.request.id}",
+                    }
+                ]
+            }
 
-        service = self.request.topic.get_resolver().get_service()
-        # NOTE: we're using the system identity here to avoid the grant creation
-        #       potentially being blocked by the requesting user's profile visibility
-        try:
-            service.access.bulk_create_grants(
-                system_identity, record.pid.pid_value, data
+            service = self.request.topic.get_resolver().get_service()
+            # NOTE: we're using the system identity here to avoid the grant creation
+            #       potentially being blocked by the requesting user's profile visibility
+            try:
+                service.access.bulk_create_grants(
+                    system_identity, record.pid.pid_value, data
+                )
+            except GrantExistsError:
+                pass
+
+            uow.register(
+                ParentRecordCommitOp(
+                    record.parent, indexer_context=dict(service=service)
+                )
             )
-        except GrantExistsError:
-            pass
-
-        uow.register(
-            ParentRecordCommitOp(record.parent, indexer_context=dict(service=service))
-        )
 
         uow.register(
             NotificationOp(

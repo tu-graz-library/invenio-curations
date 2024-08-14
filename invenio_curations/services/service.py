@@ -4,9 +4,12 @@
 #
 # Invenio-Curations is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
+
 """Curation service."""
+
 from flask import current_app
 from invenio_accounts.models import Role
+from invenio_accounts.proxies import current_datastore
 from invenio_i18n import gettext as _
 from invenio_records_resources.services.uow import unit_of_work
 from invenio_requests.proxies import current_request_type_registry
@@ -25,15 +28,31 @@ class CurationRequestService:
         self.requests_service = requests_service
 
     @property
-    def curation_role(self):
-        """Creates a RDMCuration request and submits it."""
-        role_name = current_app.config.get("CURATIONS_MODERATION_ROLE")
-        return Role.query.filter(Role.name == role_name).one_or_none()
+    def allow_publishing_edits(self):
+        """Get the configured value of ``CURATIONS_ALLOW_PUBLISHING_EDITS``."""
+        return current_app.config.get("CURATIONS_ALLOW_PUBLISHING_EDITS", False)
 
     @property
-    def curation_role_name(self):
-        """Curation role name from config."""
-        return current_app.config.get("CURATIONS_MODERATION_ROLE")
+    def moderator_permissions_via_grants(self):
+        """Get the configured value of ``CURATIONS_PERMISSIONS_VIA_GRANTS``."""
+        return current_app.config.get("CURATIONS_PERMISSIONS_VIA_GRANTS", True)
+
+    @property
+    def moderation_role_name(self):
+        """Get the configured name of the ``CURATIONS_MODERATION_ROLE``."""
+        role = current_app.config["CURATIONS_MODERATION_ROLE"]
+
+        if isinstance(role, Role):
+            # As of InvenioRDM v12, the role's name and ID should be the same anyway
+            return role.name or role.id
+
+        # If it's not a role, we assume it's a string
+        return role
+
+    @property
+    def moderation_role(self):
+        """Get the configured ``CURATIONS_MODERATION_ROLE`` role."""
+        return current_datastore.find_role(self.moderation_role_name)
 
     @property
     def request_type_cls(self):
@@ -86,9 +105,9 @@ class CurationRequestService:
     @unit_of_work()
     def create(self, identity, data=None, uow=None, **kwargs):
         """Create a RDMCuration request and submit it."""
-        role = self.curation_role
+        role = self.moderation_role
         if not role:
-            raise RoleNotFound(self.curation_role_name)
+            raise RoleNotFound(self.moderation_role_name)
         assert role, _(
             "Curation request moderation role must exist to enable record curation requests."
         )
