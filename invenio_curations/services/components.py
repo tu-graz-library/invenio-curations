@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2024 Graz University of Technology.
+# Copyright (C) 2024 TU Wien.
 #
 # Invenio-Curations is free software; you can redistribute it and/or
 # modify it under the terms of the MIT License; see LICENSE file for more
@@ -91,6 +92,13 @@ class CurationComponent(ServiceComponent, ABC):
         current_draft = self.service.draft_cls.pid.resolve(
             record["id"], registered_only=False
         )
+
+        # Sometimes the metadata differs between the passed `record` and resolved
+        # `current_draft` in references (e.g. in the `record` object, the creator's
+        # affiliation has an ID & name, but in the `current_draft` it's only the ID)
+        # this discrepancy can be removed by resolving or cleaning the relations
+        current_draft.relations.clean()
+        record.relations.clean()
 
         current_data = self.service.schema.dump(
             current_draft,
