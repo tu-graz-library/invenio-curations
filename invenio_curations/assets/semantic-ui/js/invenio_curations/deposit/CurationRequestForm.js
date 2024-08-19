@@ -124,29 +124,28 @@ export class CurationsContainerComponent extends Component {
   render() {
     let { latestRequest, record } = this.state;
     const recordIdAvailable = record["id"] !== undefined && record["id"] !== null;
+    const recordCurationLabel = (
+      <span className="ml-5 mr-10">{i18next.t("Curation request")}</span>
+    );
 
     return (
       <Overridable id="InvenioCurations.Deposit.CurationsBox.Container">
         <Card fluid>
           <Card.Content>
             <Card.Content>
-              <Grid verticalAlign="top" columns={3}>
+              <Grid verticalAlign="top" columns={2}>
                 <GridColumn>
-                  <FieldLabel label={i18next.t("Curation")} icon="list" />
-                </GridColumn>
+                  <FieldLabel label={recordCurationLabel} icon="eye" />
 
-                <GridColumn textAlign="center">
                   {latestRequest ? (
-                    <>
-                      <Label verticalAlign="top">{i18next.t("Status")}</Label>
-                      <RequestStatusLabel status={latestRequest.status} />
-                    </>
+                    <RequestStatusLabel status={latestRequest.status} />
                   ) : (
-                    <div>
-                      <p>{i18next.t("No open request for this record exists.")}</p>
-                    </div>
+                    <span className="ui label">
+                      {i18next.t("No open request for this record exists.")}
+                    </span>
                   )}
                 </GridColumn>
+
                 <GridColumn textAlign="right">
                   {latestRequest ? (
                     <Button
