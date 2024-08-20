@@ -10,48 +10,30 @@ import PropTypes from "prop-types";
 import { Button } from "semantic-ui-react";
 import { Dropdown } from "semantic-ui-react";
 import { AppMedia } from "@js/invenio_theme/Media";
+import {
+  RequestCritiqueButton,
+  RequestResubmitButton,
+  RequestReviewButton,
+} from "./Buttons";
 
 const { MediaContextProvider, Media } = AppMedia;
 
 const RequestBaseModalTrigger = (props) => {
-  const {
-    onClick,
-    requestType,
-    loading,
-    ariaAttributes,
-    size,
-    className,
-    icon,
-    text,
-    color,
-  } = props;
+  const { onClick, requestType, loading, ariaAttributes, size, className, button } =
+    props;
 
   return (
     <MediaContextProvider>
-      <Media greaterThanOrEqual="tablet">
-        <Button
-          icon={icon}
-          labelPosition="left"
-          content={text}
-          onClick={onClick}
-          positive={color === "positive"}
-          negative={color === "negative"}
-          loading={loading}
-          disabled={loading}
-          size={size}
-          className={className}
-          {...ariaAttributes}
-        />
-      </Media>
+      <Media greaterThanOrEqual="tablet">{button}</Media>
       <Media at="mobile">
         <Dropdown.Item
           icon={{
-            name: icon,
-            color: color,
+            name: button.props.icon,
+            color: button.props.color,
             className: "mr-5",
           }}
           onClick={onClick}
-          content={text}
+          content={button.props.content}
         />
       </Media>
     </MediaContextProvider>
@@ -59,24 +41,21 @@ const RequestBaseModalTrigger = (props) => {
 };
 
 export const RequestCritiqueModalTrigger = (props) => {
-  const text = i18next.t("Request changes");
-  const icon = "exclamation circle";
-  const color = "negative";
-  return RequestBaseModalTrigger({ ...props, text, icon, color });
+  return (
+    <RequestBaseModalTrigger {...props} button=<RequestCritiqueButton {...props} /> />
+  );
 };
 
 export const RequestResubmitModalTrigger = (props) => {
-  const text = i18next.t("Resubmit for review");
-  const icon = "paper hand outline";
-  const color = "neutral";
-  return RequestBaseModalTrigger({ ...props, text, icon, color });
+  return (
+    <RequestBaseModalTrigger {...props} button=<RequestResubmitButton {...props} /> />
+  );
 };
 
 export const RequestReviewModalTrigger = (props) => {
-  const text = i18next.t("Start review");
-  const icon = "eye";
-  const color = "neutral";
-  return RequestBaseModalTrigger({ ...props, text, icon, color });
+  return (
+    <RequestBaseModalTrigger {...props} button=<RequestReviewButton {...props} /> />
+  );
 };
 
 for (const component of [
