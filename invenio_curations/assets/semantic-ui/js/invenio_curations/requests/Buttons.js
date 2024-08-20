@@ -8,50 +8,58 @@ import React from "react";
 import { i18next } from "@translations/invenio_requests/i18next";
 import { Button } from "semantic-ui-react";
 
-const RequestBaseButton = (props) => {
-  const { onClick, loading, ariaAttributes, size, content, className, icon, color } =
-    props;
+class RequestBaseButton extends React.Component {
+  render() {
+    const { onClick, loading, ariaAttributes, size, content, className, icon, color } =
+      this.props;
 
+    return (
+      <Button
+        icon={icon}
+        labelPosition="left"
+        content={content}
+        onClick={onClick}
+        negative={color === "negative"}
+        positive={color === "positive"}
+        loading={loading}
+        disabled={loading}
+        size={size}
+        className={className}
+        {...ariaAttributes}
+      />
+    );
+  }
+}
+
+export const RequestCritiqueButton = (props) => {
   return (
-    <Button
-      icon={icon}
-      labelPosition="left"
-      content={content}
-      onClick={onClick}
-      negative={color === "negative"}
-      positive={color === "positive"}
-      loading={loading}
-      disabled={loading}
-      size={size}
-      className={className}
-      {...ariaAttributes}
+    <RequestBaseButton
+      icon="exclamation circle"
+      color="negative"
+      content={i18next.t("Request changes")}
+      {...props}
     />
   );
 };
 
-export const RequestCritiqueButton = (props) => {
-  return RequestBaseButton({
-    icon: "exclamation circle",
-    color: "negative",
-    content: i18next.t("Request changes"),
-    ...props,
-  });
-};
-
 export const RequestResubmitButton = (props) => {
-  return RequestBaseButton({
-    icon: "paper hand outline",
-    color: "neutral",
-    content: i18next.t("Resubmit for review"),
-    ...props,
-  });
+  return (
+    <RequestBaseButton
+      icon="paper hand outline"
+      color="neutral"
+      content={i18next.t("Resubmit for review")}
+      {...props}
+    />
+  );
 };
 
 export const RequestReviewButton = (props) => {
-  return RequestBaseButton({
-    icon: "eye",
-    color: "neutral",
-    content: i18next.t("Start review"),
-    ...props,
-  });
+  return (
+    <RequestBaseButton
+      icon="eye"
+      color="neutral"
+      content={i18next.t("Start review")}
+      {...props}
+    />
+  );
 };
