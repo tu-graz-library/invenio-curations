@@ -11,7 +11,6 @@
 from celery import shared_task
 from flask import current_app
 from invenio_access.permissions import system_identity
-from invenio_search.engine import dsl
 
 from invenio_curations.services.errors import OpenRecordCurationRequestAlreadyExists
 
