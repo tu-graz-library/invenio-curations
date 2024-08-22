@@ -9,7 +9,7 @@
 
 """Curations service configuration."""
 
-from invenio_records_resources.services import RecordServiceConfig, SearchOptions
+from invenio_records_resources.services import RecordServiceConfig
 from invenio_records_resources.services.base.config import ConfiguratorMixin, FromConfig
 from invenio_requests.services.requests.config import RequestSearchOptions
 

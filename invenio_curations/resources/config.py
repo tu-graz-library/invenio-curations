@@ -14,7 +14,6 @@ from flask_resources import HTTPJSONException, create_error_handler
 from invenio_records_resources.resources import RecordResourceConfig
 from invenio_records_resources.services.base.config import ConfiguratorMixin, FromConfig
 from invenio_requests.resources.requests.config import RequestSearchRequestArgsSchema
-from marshmallow import fields
 
 from invenio_curations.services.errors import (
     CurationRequestNotAccepted,
