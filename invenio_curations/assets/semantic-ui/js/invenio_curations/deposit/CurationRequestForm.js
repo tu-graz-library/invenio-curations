@@ -11,7 +11,7 @@ import PropTypes from "prop-types";
 import React, { Component } from "react";
 import { http, FieldLabel } from "react-invenio-forms";
 import Overridable from "react-overridable";
-import { Button, Card, Grid, GridColumn, Icon, Label, Popup } from "semantic-ui-react";
+import { Button, Card, Grid, GridColumn, Icon, Popup } from "semantic-ui-react";
 
 export class CurationsContainerComponent extends Component {
   constructor(props) {

@@ -8,17 +8,9 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { OverridableContext, overrideStore } from "react-overridable";
 import { CurationsContainer } from "./CurationRequestForm";
+import { getInputFromDOM } from "./utils";
 
 const overriddenComponents = overrideStore.getAll();
-
-// Copied from rdm-records to not depend on it.
-export const getInputFromDOM = (elementName) => {
-  const element = document.getElementsByName(elementName);
-  if (element.length > 0 && element[0].hasAttribute("value")) {
-    return JSON.parse(element[0].value);
-  }
-  return null;
-};
 
 const depositForm = document.getElementById("rdm-deposit-form");
 if (depositForm) {
