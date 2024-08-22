@@ -4,6 +4,7 @@
 // Invenio-Curations is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
 
+import { defaultContribComponents } from "@js/invenio_requests/contrib";
 import { i18next } from "@translations/invenio_requests/i18next";
 import {
   RequestCritiqueButton,
@@ -28,7 +29,6 @@ import {
   TimelineResubmitEvent,
   TimelineReviewEvent,
 } from "./timelineActionEvents.js";
-import { defaultContribComponents } from "@js/invenio_requests/contrib";
 
 export const curationComponentOverrides = {
   ...defaultContribComponents,

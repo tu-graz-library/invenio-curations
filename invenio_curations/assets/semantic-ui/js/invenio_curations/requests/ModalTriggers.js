@@ -4,12 +4,10 @@
 // Invenio-Curations is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
 
-import React from "react";
-import { i18next } from "@translations/invenio_requests/i18next";
-import PropTypes from "prop-types";
-import { Button } from "semantic-ui-react";
-import { Dropdown } from "semantic-ui-react";
 import { AppMedia } from "@js/invenio_theme/Media";
+import PropTypes from "prop-types";
+import React from "react";
+import { Dropdown } from "semantic-ui-react";
 import {
   RequestCritiqueButton,
   RequestResubmitButton,
@@ -19,8 +17,7 @@ import {
 const { MediaContextProvider, Media } = AppMedia;
 
 const RequestBaseModalTrigger = (props) => {
-  const { onClick, requestType, loading, ariaAttributes, size, className, button } =
-    props;
+  const { onClick, button } = props;
 
   return (
     <MediaContextProvider>

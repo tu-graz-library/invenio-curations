@@ -6,8 +6,8 @@
 
 import React from "react";
 import ReactDOM from "react-dom";
-import { CurationsContainer } from "./CurationRequestForm";
 import { OverridableContext, overrideStore } from "react-overridable";
+import { CurationsContainer } from "./CurationRequestForm";
 
 const overriddenComponents = overrideStore.getAll();
 
@@ -22,7 +22,7 @@ export const getInputFromDOM = (elementName) => {
 
 const depositForm = document.getElementById("rdm-deposit-form");
 if (depositForm) {
-  let curationsContainer = document.createElement("div", {
+  const curationsContainer = document.createElement("div", {
     id: "curations-container",
   });
 
