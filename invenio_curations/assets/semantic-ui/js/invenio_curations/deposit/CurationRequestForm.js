@@ -5,13 +5,13 @@
 // Invenio-curations is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
 
-import { i18next } from "@translations/invenio_app_rdm/i18next";
-import React, { Component } from "react";
 import RequestStatusLabel from "@js/invenio_requests/request/RequestStatusLabel";
-import { Button, Card, Grid, GridColumn, Icon, Label, Popup } from "semantic-ui-react";
+import { i18next } from "@translations/invenio_app_rdm/i18next";
 import PropTypes from "prop-types";
-import Overridable from "react-overridable";
+import React, { Component } from "react";
 import { http, FieldLabel } from "react-invenio-forms";
+import Overridable from "react-overridable";
+import { Button, Card, Grid, GridColumn, Icon, Label, Popup } from "semantic-ui-react";
 
 export class CurationsContainerComponent extends Component {
   constructor(props) {
@@ -29,7 +29,7 @@ export class CurationsContainerComponent extends Component {
 
     this.recordFetchInterval = setInterval(() => {
       this.readLocalRecordId();
-      if (this.record["id"] !== undefined && this.record["id"] !== null) {
+      if (this.record.id !== undefined && this.record.id !== null) {
         clearInterval(this.recordFetchInterval);
       }
     }, 1000);
@@ -47,7 +47,7 @@ export class CurationsContainerComponent extends Component {
   readLocalRecordId = () => {
     try {
       let recid = undefined;
-      let urlParts = document.URL.split("uploads/");
+      const urlParts = document.URL.split("uploads/");
       if (urlParts.length > 1) {
         recid = urlParts[1];
         if (recid === "new") return;
@@ -68,10 +68,10 @@ export class CurationsContainerComponent extends Component {
     this.loading = true;
 
     try {
-      let request = await http.get(`/api/curations`, {
+      const request = await http.get("/api/curations", {
         params: {
           expand: 1,
-          topic: `record:${this.record["id"]}`,
+          topic: `record:${this.record.id}`,
         },
       });
 
@@ -88,13 +88,13 @@ export class CurationsContainerComponent extends Component {
   createCurationRequest = async () => {
     this.loading = true;
 
-    let payload = {
+    const payload = {
       topic: {
-        record: this.record["id"],
+        record: this.record.id,
       },
     };
     try {
-      let request = await http.post(`/api/curations`, payload, {
+      const request = await http.post("/api/curations", payload, {
         params: {
           expand: 1,
         },
@@ -122,8 +122,8 @@ export class CurationsContainerComponent extends Component {
   }
 
   render() {
-    let { latestRequest, record } = this.state;
-    const recordIdAvailable = record["id"] !== undefined && record["id"] !== null;
+    const { latestRequest, record } = this.state;
+    const recordIdAvailable = record.id !== undefined && record.id !== null;
     const recordCurationLabel = (
       <span className="ml-5 mr-10">{i18next.t("Curation request")}</span>
     );

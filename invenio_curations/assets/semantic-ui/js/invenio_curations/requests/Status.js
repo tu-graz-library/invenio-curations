@@ -4,9 +4,9 @@
 // Invenio-Curations is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
 
+import { i18next } from "@translations/invenio_requests/i18next";
 import React from "react";
 import { Icon } from "semantic-ui-react";
-import { i18next } from "@translations/invenio_requests/i18next";
 
 export const CritiquedStatus = () => (
   <div>

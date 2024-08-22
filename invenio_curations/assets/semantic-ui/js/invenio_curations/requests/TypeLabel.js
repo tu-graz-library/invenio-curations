@@ -8,7 +8,7 @@ import { i18next } from "@translations/invenio_requests/i18next";
 import React from "react";
 import { Label } from "semantic-ui-react";
 
-export const LabelTypeRDMCuration = (props) => (
+export const LabelTypeRDMCuration = () => (
   <Label horizontal className="primary" size="small">
     {i18next.t("Curation review")}
   </Label>
