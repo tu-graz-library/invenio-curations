@@ -49,23 +49,15 @@ Additionally, notification builders have to be configured so that notifications 
 
 .. code-block:: python
 
-    from invenio_curations.notifications.builders import (
-        CurationRequestAcceptNotificationBuilder,
-        CurationRequestCritiqueNotificationBuilder,
-        CurationRequestResubmitNotificationBuilder,
-        CurationRequestSubmitNotificationBuilder,
-    )
-    from invenio_records_resources.references.entity_resolvers import ServiceResultResolver
     from invenio_app_rdm.config import NOTIFICATIONS_BUILDERS, NOTIFICATIONS_ENTITY_RESOLVERS
+    from invenio_curations.config import CURATIONS_NOTIFICATIONS_BUILDERS
+    from invenio_records_resources.references.entity_resolvers import ServiceResultResolver
 
     # enable sending of notifications when something's happening in the review
     NOTIFICATIONS_BUILDERS = {
         **NOTIFICATIONS_BUILDERS,
         # Curation request
-        CurationRequestAcceptNotificationBuilder.type: CurationRequestAcceptNotificationBuilder,
-        CurationRequestCritiqueNotificationBuilder.type: CurationRequestCritiqueNotificationBuilder,
-        CurationRequestResubmitNotificationBuilder.type: CurationRequestResubmitNotificationBuilder,
-        CurationRequestSubmitNotificationBuilder.type: CurationRequestSubmitNotificationBuilder,
+        **CURATIONS_NOTIFICATIONS_BUILDERS
     }
 
     # enable requests to target groups of users (i.e. `roles`)
