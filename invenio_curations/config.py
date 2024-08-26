@@ -7,6 +7,12 @@
 
 """Invenio module for curations."""
 
+from invenio_curations.notifications.builders import (
+    CurationRequestAcceptNotificationBuilder,
+    CurationRequestCritiqueNotificationBuilder,
+    CurationRequestResubmitNotificationBuilder,
+    CurationRequestSubmitNotificationBuilder,
+)
 from invenio_curations.services import facets
 
 CURATIONS_FACETS = {
@@ -37,3 +43,14 @@ CURATIONS_SEARCH_REQUESTS = {
     "sort": ["bestmatch", "newest", "oldest"],
 }
 """Curation requests search configuration (i.e list of curations requests)"""
+
+CURATIONS_NOTIFICATIONS_BUILDERS = {
+    builder.type: builder
+    for builder in [
+        CurationRequestAcceptNotificationBuilder,
+        CurationRequestCritiqueNotificationBuilder,
+        CurationRequestResubmitNotificationBuilder,
+        CurationRequestSubmitNotificationBuilder,
+    ]
+}
+"""Curation related notification builders as map for easy import."""
