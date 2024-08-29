@@ -140,45 +140,29 @@ Since we only want to change the behaviour of these community submission request
     REQUESTS_PERMISSION_POLICY = CurationRDMRequestsPermissionPolicy
 
 
-Overwrite deposit view template
--------------------------------
+Make the new workflow available through the UI
+----------------------------------------------
 
-The deposit view has to be updated to include the curation section.
-Most importantly, the curation specific JavaScript has to be included in the JavaScript block:
-``{{ webpack['invenio-curations-deposit.js'] }}``
+The changes so far have dealt with setting up the mechanism for the curation workflow in the backend.
+To also make the workflow accessible for users through the UI, some frontend components have to be updated as well.
 
-This can be achieved by providing a custom template, e.g. in your instance's ``templates/`` directory:
-
-Copy the current template from ``invenio_app_rdm/records_ui/templates/semantic-ui/invenio_app_rdm/records/deposit.html`` (available e.g. `here <https://github.com/inveniosoftware/invenio-app-rdm/blob/master/invenio_app_rdm/records_ui/templates/semantic-ui/invenio_app_rdm/records/deposit.html>`_) into your instance's ``templates/`` directory (the last parts of the path have to match): ``templates/semantic-ui/invenio_app_rdm/records/deposit.html``.
-
-Then add the aforementioned line to the JavaScript block in your template:
-
-.. code-block:: jinja
-
-    {%- block javascript %}
-      {{ super() }}
-      ...
-
-      {# This line right here #}
-      {{ webpack['invenio-curations-deposit.js'] }}
-    {%- endblock %}
-
-
-Register React component overrides for the requests UI
-------------------------------------------------------
-
-This module provides a handful of new elements for requests that sometimes get rendered in an awkward way out of the box.
-`Invenio-Curations` provides a few `component overrides <https://inveniordm.docs.cern.ch/develop/howtos/override_components/>`_ that render those new elements in a much more appealing way.
+`Invenio-Curations` provides a few `component overrides <https://inveniordm.docs.cern.ch/develop/howtos/override_components/>`_.
 These overrides need to be registered in the overridable registry (i.e. in your instance's ``assets/js/invenio_app_rdm/overridableRegistry/mapping.js``):
 
 .. code-block:: javascript
 
     import { curationComponentOverrides } from "@js/invenio_curations/requests";
+    import { DepositBox } from "@js/invenio_curations/deposit/DepositBox";
 
     export const overriddenComponents = {
         // ... after your other overrides ...
         ...curationComponentOverrides,
+        "InvenioAppRdm.Deposit.CardDepositStatusBox.container": DepositBox,
     };
+
+The ``DepositBox`` overrides the record's lifecycle management box on the deposit form.
+It takes care of rendering the "publish" button only when appropriate in the curation workflow.
+The other ``curationComponentOverrides`` provide better rendering for the new elements (e.g. event types) in the request page.
 
 
 Create curator role
