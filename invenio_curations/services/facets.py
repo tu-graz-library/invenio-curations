@@ -10,12 +10,14 @@
 
 from invenio_i18n import gettext as _
 from invenio_records_resources.services.records.facets import TermsFacet
+from invenio_requests.services.requests import facets
 
 type = TermsFacet(
     field="type",
     label=_("Type"),
     value_labels={
-        "curation": _("Curation review"),
+        **facets.type._value_labels,
+        "rdm-curation": _("RDM Curation"),
     },
 )
 
@@ -23,21 +25,9 @@ status = TermsFacet(
     field="status",
     label=_("Status"),
     value_labels={
-        "submitted": _("Submitted"),
-        "expired": _("Expired"),
-        "accepted": _("Accepted"),
-        "declined": _("Declined"),
-        "cancelled": _("Cancelled"),
-        # TODO: add other stati
-    },
-)
-
-
-is_open = TermsFacet(
-    field="is_open",
-    label=_("Open"),
-    value_labels={
-        "true": _("Open"),
-        "false": _("Closed"),
+        **facets.status._value_labels,
+        "review": _("In review"),
+        "critiqued": _("Changes requested"),
+        "resubmitted": _("Resubmitted"),
     },
 )
