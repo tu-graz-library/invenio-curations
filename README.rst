@@ -82,6 +82,31 @@ In order to require an accepted curation request before publishing a record, the
     ]
 
 
+Set the search facets
+^^^^^^^^^^^^^^^^^^^^^
+
+To show friendlier names than the internal identifiers for the new request type and its status values in the search facets, you need to set the following configuration:
+
+.. code-block:: python
+
+   from invenio_curations.services import facets as curations_facets
+
+    REQUESTS_FACETS = {
+        "type": {
+            "facet": curations_facets.type,
+            "ui": {
+                "field": "type",
+            },
+        },
+        "status": {
+            "facet": curations_facets.status,
+            "ui": {
+                "field": "status",
+            },
+        },
+    }
+
+
 Set requests permission policy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
