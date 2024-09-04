@@ -5,7 +5,7 @@
 // under the terms of the MIT License; see LICENSE file for more details.
 
 import React from "react";
-import { Button, Grid, Icon, Popup } from "semantic-ui-react";
+import { Button, Icon, Popup } from "semantic-ui-react";
 import RequestStatusLabel from "@js/invenio_requests/request/RequestStatusLabel";
 import { PublishButton } from "@js/invenio_rdm_records";
 import PropTypes from "prop-types";
@@ -37,7 +37,7 @@ export const RequestOrPublishButton = (props) => {
             fluid
           >
             <Icon name="paper hand outline" />
-            {"Resubmit updated record"}
+            Resubmit updated record
           </Button>
         );
         break;
@@ -54,7 +54,7 @@ export const RequestOrPublishButton = (props) => {
               positive
               fluid
             >
-              {"View request"}
+              View request
               <Icon name="right arrow" />
             </Button>
             <RequestStatusLabel status={request.status} />
@@ -65,7 +65,7 @@ export const RequestOrPublishButton = (props) => {
     elem = (
       <Popup
         disabled={record?.id != null}
-        content={"Before creating a curation request, the draft has to be saved."}
+        content="Before creating a curation request, the draft has to be saved."
         position="top center"
         trigger={
           <span>
@@ -82,7 +82,7 @@ export const RequestOrPublishButton = (props) => {
               fluid
             >
               <Icon name="paper hand outline" />
-              {"Start publication process"}
+              Start publication process
             </Button>
           </span>
         }

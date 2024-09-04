@@ -8,30 +8,39 @@ import React from "react";
 import { http } from "react-invenio-forms";
 import { Card, Form, Grid } from "semantic-ui-react";
 import PropTypes from "prop-types";
-import { getInputFromDOM } from "./utils";
 import { DepositStatusBox, SaveButton, PreviewButton } from "@js/invenio_rdm_records";
 import { ShareDraftButton } from "@js/invenio_app_rdm/deposit/ShareDraftButton";
 import { RequestOrPublishButton } from "./RequestOrPublishButton";
+import { connect } from "react-redux";
+import { connect as connectFormik } from "formik";
 
 // this component overrides the deposit status box from Invenio-App-RDM v12:
 // https://github.com/inveniosoftware/invenio-app-rdm/blob/maint-v12.x/invenio_app_rdm/theme/assets/semantic-ui/js/invenio_app_rdm/deposit/RDMDepositForm.js#L607-L651
-export class DepositBox extends React.Component {
+export class DepositBoxComponent extends React.Component {
   constructor(props) {
     super(props);
-    let { record, permissions, groupsEnabled } = props;
+    let { permissions, groupsEnabled } = props;
 
     this.recordFetchInterval = null;
     this.state = {
       latestRequest: null,
       loading: false,
-      record: record || getInputFromDOM("deposits-record"),
       permissions: permissions,
       groupsEnabled: groupsEnabled,
     };
   }
 
+  componentDidMount() {
+    this.fetchCurationRequest();
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.recordFetchInterval);
+  }
+
   get record() {
-    return this.state.record;
+    const { record } = this.props;
+    return record;
   }
 
   set loading(val) {
@@ -39,45 +48,9 @@ export class DepositBox extends React.Component {
   }
 
   get loading() {
-    return this.state.loading;
+    const { loading } = this.state;
+    return loading;
   }
-
-  componentDidMount() {
-    this.fetchCurationRequest();
-
-    this.recordFetchInterval = setInterval(() => {
-      this.readLocalRecordId();
-      if (this.record?.id != null) {
-        clearInterval(this.recordFetchInterval);
-      }
-    }, 1000);
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.recordFetchInterval);
-  }
-
-  // try to fetch the record id from locally available information (like the URL)
-  readLocalRecordId = () => {
-    if (this.state.record?.id != null) {
-      // if we already have a recid, there's no need to do anything
-      return;
-    }
-
-    try {
-      const urlParts = document.URL.split("uploads/");
-      if (urlParts.length > 1) {
-        const recid = urlParts[1];
-        if (recid === "new") return;
-
-        this.setState((prevState) => {
-          return { record: { ...prevState.record, id: recid } };
-        });
-      }
-    } catch (error) {
-      console.error("Error while fetching local record:", error);
-    }
-  };
 
   // get the (latest) curation request for the current record
   fetchCurationRequest = async () => {
@@ -130,7 +103,8 @@ export class DepositBox extends React.Component {
   };
 
   render() {
-    const { latestRequest, record, groupsEnabled, permissions } = this.state;
+    const { latestRequest, groupsEnabled, permissions } = this.state;
+    const { record } = this.props;
 
     return (
       <Card className="access-right">
@@ -181,14 +155,22 @@ export class DepositBox extends React.Component {
   }
 }
 
-DepositBox.propTypes = {
+DepositBoxComponent.propTypes = {
   record: PropTypes.object.isRequired,
   permissions: PropTypes.object,
   groupsEnabled: PropTypes.bool,
 };
 
-DepositBox.defaultProps = {
-  record: null,
+DepositBoxComponent.defaultProps = {
   permissions: null,
   groupsEnabled: false,
 };
+
+const mapStateToProps = (state) => ({
+  record: state.deposit.record,
+});
+
+export const DepositBox = connect(
+  mapStateToProps,
+  null
+)(connectFormik(DepositBoxComponent));
