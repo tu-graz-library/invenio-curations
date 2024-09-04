@@ -1,0 +1,73 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: i18next-conv\n"
+"mime-version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"POT-Creation-Date: 2024-09-04T12:44:42.800Z\n"
+"PO-Revision-Date: 2024-09-04T12:44:42.800Z\n"
+"Language: en\n"
+
+msgid "Curation request"
+msgstr "Curation request"
+
+msgid "No open request for this record exists."
+msgstr "No open request for this record exists."
+
+msgid "View request"
+msgstr "View request"
+
+msgid "Before creating a curation request, the draft has to be saved."
+msgstr "Before creating a curation request, the draft has to be saved."
+
+msgid "Create curation request"
+msgstr "Create curation request"
+
+msgid "Resubmit updated record"
+msgstr "Resubmit updated record"
+
+msgid "Start publication process"
+msgstr "Start publication process"
+
+msgid "Request changes"
+msgstr "Request changes"
+
+msgid "Resubmit for review"
+msgstr "Resubmit for review"
+
+msgid "Start review"
+msgstr "Start review"
+
+msgid "Start curation review"
+msgstr "Start curation review"
+
+msgid "Resubmit record for review"
+msgstr "Resubmit record for review"
+
+msgid "Changes requested"
+msgstr "Changes requested"
+
+msgid "Resubmitted for review"
+msgstr "Resubmitted for review"
+
+msgid "In review"
+msgstr "In review"
+
+msgid "Review available"
+msgstr "Review available"
+
+msgid "Resubmitted"
+msgstr "Resubmitted"
+
+msgid "requested changes"
+msgstr "requested changes"
+
+msgid "resubmitted the record for review"
+msgstr "resubmitted the record for review"
+
+msgid "started a review"
+msgstr "started a review"
+
+msgid "Curation review"
+msgstr "Curation review"

@@ -1,5 +1,6 @@
 // This file is part of InvenioRDM
 // Copyright (C) 2024 TU Wien.
+// Copyright (C) 2024 Graz University of Technology.
 //
 // Invenio-Curations is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
@@ -9,6 +10,7 @@ import { Button, Icon, Popup } from "semantic-ui-react";
 import RequestStatusLabel from "@js/invenio_requests/request/RequestStatusLabel";
 import { PublishButton } from "@js/invenio_rdm_records";
 import PropTypes from "prop-types";
+import { i18next } from "@translations/invenio_curations/i18next";
 
 export const RequestOrPublishButton = (props) => {
   const { request, record, handleCreateRequest, handleResubmitRequest, loading } =
@@ -37,7 +39,7 @@ export const RequestOrPublishButton = (props) => {
             fluid
           >
             <Icon name="paper hand outline" />
-            Resubmit updated record
+            {i18next.t("Resubmit updated record")}
           </Button>
         );
         break;
@@ -54,7 +56,7 @@ export const RequestOrPublishButton = (props) => {
               positive
               fluid
             >
-              View request
+              {i18next.t("View request")}
               <Icon name="right arrow" />
             </Button>
             <RequestStatusLabel status={request.status} />
@@ -65,7 +67,9 @@ export const RequestOrPublishButton = (props) => {
     elem = (
       <Popup
         disabled={record?.id != null}
-        content="Before creating a curation request, the draft has to be saved."
+        content={i18next.t(
+          "Before creating a curation request, the draft has to be saved."
+        )}
         position="top center"
         trigger={
           <span>
@@ -82,7 +86,7 @@ export const RequestOrPublishButton = (props) => {
               fluid
             >
               <Icon name="paper hand outline" />
-              Start publication process
+              {i18next.t("Start publication process")}
             </Button>
           </span>
         }

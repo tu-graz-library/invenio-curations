@@ -6,7 +6,7 @@
 // under the terms of the MIT License; see LICENSE file for more details.
 
 import RequestStatusLabel from "@js/invenio_requests/request/RequestStatusLabel";
-import { i18next } from "@translations/invenio_app_rdm/i18next";
+import { i18next } from "@translations/invenio_curations/i18next";
 import PropTypes from "prop-types";
 import React, { Component } from "react";
 import { http, FieldLabel } from "react-invenio-forms";
