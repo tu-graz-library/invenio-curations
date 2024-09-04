@@ -1,0 +1,110 @@
+# German translations for invenio-curations.
+# Copyright (C) 2024 Graz University of Technology
+# This file is distributed under the same license as the invenio-curations
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: invenio-curations 0.1.0\n"
+"Report-Msgid-Bugs-To: info@tugraz.at\n"
+"POT-Creation-Date: 2024-09-04 15:05+0200\n"
+"PO-Revision-Date: 2024-09-04 15:07+0200\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: de\n"
+"Language-Team: de <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.15.0\n"
+
+#: invenio_curations/ext.py:32
+msgid "Curation Requests"
+msgstr ""
+
+#: invenio_curations/requests/curation.py:190
+msgid "Curation"
+msgstr ""
+
+#: invenio_curations/services/components.py:76
+msgid ""
+"Missing curation request. Please create a curation request, if the record"
+" is ready to be published."
+msgstr ""
+
+#: invenio_curations/services/errors.py:14
+msgid "An open curation request for this record exists already."
+msgstr ""
+
+#: invenio_curations/services/errors.py:20
+msgid "The record has not been curated yet."
+msgstr ""
+
+#: invenio_curations/services/errors.py:29
+msgid "A role with name '{name}' does not exist."
+msgstr ""
+
+#: invenio_curations/services/facets.py:16
+msgid "Type"
+msgstr ""
+
+#: invenio_curations/services/facets.py:18
+msgid "Curation review"
+msgstr ""
+
+#: invenio_curations/services/facets.py:24
+msgid "Status"
+msgstr ""
+
+#: invenio_curations/services/facets.py:26
+msgid "Submitted"
+msgstr ""
+
+#: invenio_curations/services/facets.py:27
+msgid "Expired"
+msgstr ""
+
+#: invenio_curations/services/facets.py:28
+msgid "Accepted"
+msgstr ""
+
+#: invenio_curations/services/facets.py:29
+msgid "Declined"
+msgstr ""
+
+#: invenio_curations/services/facets.py:30
+msgid "Cancelled"
+msgstr ""
+
+#: invenio_curations/services/facets.py:38
+#: invenio_curations/services/facets.py:40
+msgid "Open"
+msgstr ""
+
+#: invenio_curations/services/facets.py:41
+msgid "Closed"
+msgstr ""
+
+#: invenio_curations/services/service.py:92
+msgid ""
+"Curation request moderation role must exist to enable record curation "
+"requests."
+msgstr ""
+
+#: invenio_curations/templates/semantic-ui/invenio_curations/overview.html:9
+msgid "Requests"
+msgstr ""
+
+#: invenio_curations/templates/semantic-ui/invenio_requests/rdm-curation/index.html:27
+msgid "Back to requests"
+msgstr ""
+
+#: invenio_curations/templates/semantic-ui/invenio_requests/rdm-curation/index.html:49
+msgid "Conversation"
+msgstr ""
+
+#: invenio_curations/templates/semantic-ui/invenio_requests/rdm-curation/index.html:61
+msgid "Record"
+msgstr ""
+
