@@ -32,7 +32,7 @@ curations = WebpackThemeBundle(
             },
             dependencies={},
             aliases={
-                # "@translations/invenio_curations": "translations/invenio_curations",
+                "@translations/invenio_curations": "translations/invenio_curations",
                 "@js/invenio_curations": "js/invenio_curations",
             },
         ),
