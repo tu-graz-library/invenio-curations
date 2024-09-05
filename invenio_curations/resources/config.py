@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2022 KTH Royal Institute of Technology
+# Copyright (C) 2024 Graz University of Technology.
 #
 # Invenio-Curations is free software; you can redistribute it and/or
 # modify it under the terms of the MIT License; see LICENSE file for more
@@ -84,3 +85,10 @@ class CurationsResourceConfig(RecordResourceConfig, ConfiguratorMixin):
     error_handlers = FromConfig(
         "CURATIONS_ERROR_HANDLERS", default=request_error_handlers
     )
+
+    response_handlers = {
+        "application/vnd.inveniordm.v1+json": RecordResourceConfig.response_handlers[
+            "application/json"
+        ],
+        **RecordResourceConfig.response_handlers,
+    }
