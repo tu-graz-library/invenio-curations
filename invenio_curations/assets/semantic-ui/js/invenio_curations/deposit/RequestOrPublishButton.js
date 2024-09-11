@@ -66,7 +66,7 @@ export const RequestOrPublishButton = (props) => {
   } else {
     elem = (
       <Popup
-        disabled={record?.id != null}
+        disabled={recordIdAvailable}
         content={i18next.t(
           "Before creating a curation request, the draft has to be saved."
         )}
