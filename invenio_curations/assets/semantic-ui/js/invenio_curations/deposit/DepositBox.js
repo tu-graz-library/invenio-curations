@@ -20,14 +20,11 @@ import { connect as connectFormik } from "formik";
 export class DepositBoxComponent extends React.Component {
   constructor(props) {
     super(props);
-    let { permissions, groupsEnabled } = props;
 
     this.recordFetchInterval = null;
     this.state = {
       latestRequest: null,
       loading: false,
-      permissions: permissions,
-      groupsEnabled: groupsEnabled,
     };
   }
 
@@ -104,8 +101,8 @@ export class DepositBoxComponent extends React.Component {
   };
 
   render() {
-    const { latestRequest, groupsEnabled, permissions } = this.state;
-    const { record } = this.props;
+    const { latestRequest } = this.state;
+    const { record, permissions, groupsEnabled } = this.props;
 
     return (
       <Card className="access-right">
@@ -167,8 +164,13 @@ DepositBoxComponent.defaultProps = {
   groupsEnabled: false,
 };
 
-const mapStateToProps = (state) => ({
-  record: state.deposit.record,
+// In order to create the rdm-curation request, we need the `record.id` in the `DepositBox`, so we
+// can't wire up the `RequestOrPublishButton` with the Formik state like the `ShareDraftButton` does.
+// However, the `state.deposit.record` coming from Formik may not have the `record.parent` property
+// which is expected by the `ShareDraftButton` (and passed to it as prop from the `DepositBox`).
+// Thus, we merge the incoming record with the one from the original props.
+const mapStateToProps = (state, ownProps) => ({
+  record: { ...ownProps.record, ...state.deposit.record },
 });
 
 export const DepositBox = connect(
