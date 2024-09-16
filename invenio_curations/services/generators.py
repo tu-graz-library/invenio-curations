@@ -8,14 +8,15 @@
 
 """Curations related generators."""
 
+from flask_principal import RoleNeed
 from invenio_access.permissions import system_identity
-from invenio_records_permissions.generators import ConditionalGenerator
+from invenio_records_permissions.generators import ConditionalGenerator, Generator
 
 from ..proxies import current_curations_service
 
 
 class IfRequestTypes(ConditionalGenerator):
-    """Conditional generator for requests of certain types."""
+    """Request-oriented generator checking for requests of certain types."""
 
     def __init__(self, request_types, then_, else_):
         """Constructor."""
@@ -33,7 +34,7 @@ class IfRequestTypes(ConditionalGenerator):
 
 
 class IfCurationRequestAccepted(ConditionalGenerator):
-    """Conditional generator for requests."""
+    """Request-oriented generator checking if a curation request has been accepted."""
 
     def __init__(
         self,
@@ -55,5 +56,28 @@ class IfCurationRequestAccepted(ConditionalGenerator):
                 )
                 is not None
             )
+
+        return False
+
+
+class CurationModerators(Generator):
+    """Permission generator that allows users with the `moderation` role."""
+
+    def needs(self, **kwargs):
+        """Allow access for the moderation role."""
+        return [RoleNeed(current_curations_service.moderation_role_name)]
+
+
+class IfCurationRequestExists(ConditionalGenerator):
+    """Record-oriented generator checking if a curation request exists."""
+
+    def _condition(self, record=None, **kwargs):
+        """Check if the record has a curation request or not."""
+        if record is not None:
+            # We use the system identity here to avoid visibility issues
+            request = current_curations_service.get_review(
+                identity=system_identity, topic=record
+            )
+            return request is not None
 
         return False
