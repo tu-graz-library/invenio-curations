@@ -23,35 +23,56 @@ Invenio-Curations
 .. image:: https://img.shields.io/github/license/tu-graz-library/invenio-curations.svg
         :target: https://github.com/tu-graz-library/invenio-curations/blob/master/LICENSE
 
-Invenio module for generic and customizable curations.
 
-Requires InvenioRDM v12 or higher
+What *is* `Invenio-Curations`?
+******************************
 
-TODO: Please provide feature overview of module
+`Invenio-Curations` is an Invenio package that adds curation reviews to InvenioRDM.
 
-Further documentation is available on
-https://invenio-curations.readthedocs.io/
+The primary purpose of this package is to satisfy the need of some institutions to restrict the possibility for users to self-publish unreviewed records.
+One of the reasons why institutions may want this is if they are pursuing a `Core Trust Seal <https://www.coretrustseal.org/>`_ or similar certification for their (InvenioRDM-based) repository.
+
+
+Aren't there community reviews already?
+---------------------------------------
+
+Out of the box, InvenioRDM already provides reviews for records as part of the submission or inclusion into communities.
+However, there is no requirement per default for records to be part of any community at all.
+Thus, it is generally easy for users to self-publish records in standard InvenioRDM without any further review.
+
+Further, the set of reviewers for community submission/inclusion requests depends on the target community in question.
+In contrast, `Invenio-Curations` defines a fixed group of users to act as reviewers for all records in the system.
+
+
+Requirements
+************
+
+Requires InvenioRDM v12 or higher (``invenio-app-rdm >= 12.0.7``).
+
+
+How to set up
+*************
+
+After the successful installation of `Invenio-Curations`, it still needs to be configured properly to work.
+The following sections should guide you through the required adaptations.
 
 
 Update ``invenio.cfg``
 ----------------------
 
-Add `notification builders` and `entity resolver` for `groups`
+Add `notification builders` for `groups`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Currently, requests can only be sent to a single `receiver`.
 However, curation reviews are typically performed by a `group` of people rather than one single fixed `user`.
 Thus, the curation requests are sent to a `group` rather than a single `user` in the system so that all users with a certain `role` can receive and act on curation requests.
 
-To enable resolution of user groups, an `entity resolver` has to be added to the configuration.
-
 Additionally, notification builders have to be configured so that notifications are sent out to the involved users whenever something's happening in the curation review.
 
 .. code-block:: python
 
-    from invenio_app_rdm.config import NOTIFICATIONS_BUILDERS, NOTIFICATIONS_ENTITY_RESOLVERS
+    from invenio_app_rdm.config import NOTIFICATIONS_BUILDERS
     from invenio_curations.config import CURATIONS_NOTIFICATIONS_BUILDERS
-    from invenio_records_resources.references.entity_resolvers import ServiceResultResolver
 
     # enable sending of notifications when something's happening in the review
     NOTIFICATIONS_BUILDERS = {
@@ -59,11 +80,6 @@ Additionally, notification builders have to be configured so that notifications 
         # Curation request
         **CURATIONS_NOTIFICATIONS_BUILDERS
     }
-
-    # enable requests to target groups of users (i.e. `roles`)
-    NOTIFICATIONS_ENTITY_RESOLVERS = NOTIFICATIONS_ENTITY_RESOLVERS + [
-        ServiceResultResolver(service_id="groups", type_key="group")
-    ]
 
 
 Add service component
@@ -132,8 +148,10 @@ Since we only want to change the behaviour of these community submission request
     from invenio_requests.services.generators import Creator, Receiver, Status
 
     class CurationRDMRequestsPermissionPolicy(RDMRequestsPermissionPolicy):
-        """."""
+        """Customized permission policy for sane handling of curation requests."""
 
+        # Only allow community-submission requests to be accepted after
+        # the rdm-curation request has been accepted
         can_action_accept = [
             IfRequestTypes(
                 request_types=[
@@ -163,6 +181,24 @@ Since we only want to change the behaviour of these community submission request
         can_action_resubmit = RDMRequestsPermissionPolicy.can_action_submit
 
     REQUESTS_PERMISSION_POLICY = CurationRDMRequestsPermissionPolicy
+
+
+Permit the moderators to view the draft under review
+----------------------------------------------------
+
+For curation reviews to make sense, it is of course vital for the moderators to be able to view the drafts in question.
+Per default, `Invenio-Curations` will create access grants for users with the moderation role as part of the curation requests.
+This should work out of the box without any further configuration needed.
+However, it has the downside of creating additional artifacts in the system, and users could accidentally revoke access for moderators by revoking this access grant.
+
+If this is a deal-breaker for you, there is still the alternative of configuring the records permission policy, similar to the requests permission policy above.
+`Invenio-Curations` offers two permission generators that can come in handy for this purpose: ``CurationModerators`` and ``IfCurationRequestExists``.
+The former creates ``RoleNeed`` for the configured ``CURATIONS_MODERATION_ROLE``.
+It is intended to be used together with the latter, which checks if an ``rdm-curation`` request exists for the given record/draft.
+
+Because the second approach makes access grants unnecessary, their creation can be disabled by setting ``CURATIONS_PERMISSIONS_VIA_GRANTS = False``.
+However, please note that overriding the permission policy for records is significantly more complex than overriding the one for requests!
+In fact, it's out of scope for this README.
 
 
 Make the new workflow available through the UI
