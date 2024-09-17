@@ -131,12 +131,15 @@ class CurationDeleteAction(actions.DeleteAction):
 
     # When a user deletes their draft, the request will get deleted. Should be possible from every state.
     status_from = [
-        "created",
-        "submitted",
-        "review",
-        "critiqued",
         "accepted",
         "cancelled",
+        "created",
+        "critiqued",
+        "declined",
+        "expired",
+        "resubmitted",
+        "review",
+        "submitted",
     ]
     status_to = "deleted"
 
