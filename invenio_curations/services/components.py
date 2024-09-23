@@ -68,7 +68,7 @@ class CurationComponent(ServiceComponent, ABC):
         # Delete draft for a published record.
         # Since only one request per record should exist, it is not deleted. Instead, put it back to accepted.
         current_requests_service.execute_action(
-            system_identity, request["id"], "accept"
+            system_identity, request["id"], "cancel"
         )
 
     def update_draft(self, identity, data=None, record=None, errors=None):
