@@ -123,7 +123,18 @@ class CurationCancelAction(actions.CancelAction):
     """Cancel a request."""
 
     # A user might want to cancel their request.
-    status_from = ["submitted", "critiqued", "resubmitted"]
+    # Also done when a draft for an already published record is deleted/discarded
+    status_from = [
+        "accepted",
+        "cancelled",
+        "created",
+        "critiqued",
+        "declined",
+        "expired",
+        "resubmitted",
+        "review",
+        "submitted",
+    ]
 
 
 class CurationExpireAction(actions.ExpireAction):
@@ -136,6 +147,8 @@ class CurationDeleteAction(actions.DeleteAction):
     """Delete a request."""
 
     # When a user deletes their draft, the request will get deleted. Should be possible from every state.
+    # Usually delete is only possible programmatically, as the base permissions allow user driven deletion
+    # only during `created` status
     status_from = [
         "accepted",
         "cancelled",
@@ -147,7 +160,6 @@ class CurationDeleteAction(actions.DeleteAction):
         "review",
         "submitted",
     ]
-    status_to = "deleted"
 
 
 class CurationReviewAction(actions.RequestAction):
