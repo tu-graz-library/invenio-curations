@@ -198,7 +198,23 @@ It is intended to be used together with the latter, which checks if an ``rdm-cur
 
 Because the second approach makes access grants unnecessary, their creation can be disabled by setting ``CURATIONS_PERMISSIONS_VIA_GRANTS = False``.
 However, please note that overriding the permission policy for records is significantly more complex than overriding the one for requests!
-In fact, it's out of scope for this README.
+In fact, it's out of scope for this README - or is it?
+
+
+Set RDM permission policy
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Reasons to not rely on access grants:
+- They can be completely disabled for an instance
+- They can be managed by users which means they can just remove access for the moderators
+
+Thus, we provide a very basic adaptation of the RDM record permission policy used in a vanilla instance. This adapted policy should serve as
+an easy way to test the package as well as provide a starting point to understand which permissions have to be adapted for this module to work as expected.
+
+.. code-block:: python
+
+    from invenio_curations.services.permissions import CurationRDMRecordPermissionPolicy
+    RDM_PERMISSION_POLICY = CurationRDMRecordPermissionPolicy
 
 
 Make the new workflow available through the UI
