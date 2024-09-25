@@ -33,11 +33,6 @@ class CurationRequestService:
         return current_app.config.get("CURATIONS_ALLOW_PUBLISHING_EDITS", False)
 
     @property
-    def moderator_permissions_via_grants(self):
-        """Get the configured value of ``CURATIONS_PERMISSIONS_VIA_GRANTS``."""
-        return current_app.config.get("CURATIONS_PERMISSIONS_VIA_GRANTS", True)
-
-    @property
     def moderation_role_name(self):
         """Get the configured name of the ``CURATIONS_MODERATION_ROLE``."""
         role = current_app.config["CURATIONS_MODERATION_ROLE"]

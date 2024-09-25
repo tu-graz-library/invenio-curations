@@ -187,16 +187,11 @@ Permit the moderators to view the draft under review
 ----------------------------------------------------
 
 For curation reviews to make sense, it is of course vital for the moderators to be able to view the drafts in question.
-Per default, `Invenio-Curations` will create access grants for users with the moderation role as part of the curation requests.
-This should work out of the box without any further configuration needed.
-However, it has the downside of creating additional artifacts in the system, and users could accidentally revoke access for moderators by revoking this access grant.
 
-If this is a deal-breaker for you, there is still the alternative of configuring the records permission policy, similar to the requests permission policy above.
 `Invenio-Curations` offers two permission generators that can come in handy for this purpose: ``CurationModerators`` and ``IfCurationRequestExists``.
 The former creates ``RoleNeed`` for the configured ``CURATIONS_MODERATION_ROLE``.
 It is intended to be used together with the latter, which checks if an ``rdm-curation`` request exists for the given record/draft.
 
-Because the second approach makes access grants unnecessary, their creation can be disabled by setting ``CURATIONS_PERMISSIONS_VIA_GRANTS = False``.
 However, please note that overriding the permission policy for records is significantly more complex than overriding the one for requests!
 In fact, it's out of scope for this README - or is it?
 
