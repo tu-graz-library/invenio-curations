@@ -32,12 +32,6 @@ CURATIONS_FACETS = {
 }
 """Invenio requests facets."""
 
-CURATIONS_PERMISSIONS_VIA_GRANTS = True
-"""Share access to records by creating access grants for records under review.
-
-This eliminates the requirement for overriding the record permission policy,
-but introduces additional artifacts in the system for each record.
-"""
 
 CURATIONS_ALLOW_PUBLISHING_EDITS = False
 """Allow publishing of metadata edits for already published records.
