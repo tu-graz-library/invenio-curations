@@ -15,7 +15,7 @@ from invenio_requests.services.requests.config import RequestSearchOptions
 
 from invenio_curations.services import facets
 
-from .permissions import CurationPermissionPolicy
+from .permissions import CurationRDMRequestPermissionPolicy
 
 
 class CurationsSearchOptions(RequestSearchOptions):
@@ -43,7 +43,7 @@ class CurationsServiceConfig(RecordServiceConfig, ConfiguratorMixin):
 
     # common configuration
     permission_policy_cls = FromConfig(
-        "REQUESTS_PERMISSION_POLICY", default=CurationPermissionPolicy
+        "REQUESTS_PERMISSION_POLICY", default=CurationRDMRequestPermissionPolicy
     )
     # TODO: update search options?
     search = CurationsSearchOptions
