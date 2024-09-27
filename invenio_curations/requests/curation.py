@@ -18,6 +18,7 @@ from invenio_curations.notifications.builders import (
     CurationRequestAcceptNotificationBuilder,
     CurationRequestCritiqueNotificationBuilder,
     CurationRequestResubmitNotificationBuilder,
+    CurationRequestReviewNotificationBuilder,
     CurationRequestSubmitNotificationBuilder,
 )
 
@@ -28,7 +29,7 @@ class CurationCreateAndSubmitAction(actions.CreateAndSubmitAction):
     """Create and submit a request."""
 
     def execute(self, identity, uow):
-        """Execute the create action."""
+        """Execute the create & submit action."""
         receiver = self.request.receiver.resolve()
         record = self.request.topic.resolve()
 
@@ -168,6 +169,18 @@ class CurationReviewAction(actions.RequestAction):
     status_from = ["submitted", "resubmitted"]
     status_to = "review"
 
+    def execute(self, identity, uow):
+        """Execute the review action."""
+        uow.register(
+            NotificationOp(
+                CurationRequestReviewNotificationBuilder.build(
+                    identity=identity, request=self.request
+                )
+            )
+        )
+
+        super().execute(identity, uow)
+
 
 class CurationCritiqueAction(actions.RequestAction):
     """Request changes for request."""
@@ -176,7 +189,7 @@ class CurationCritiqueAction(actions.RequestAction):
     status_to = "critiqued"
 
     def execute(self, identity, uow):
-        """Execute the accept action."""
+        """Execute the critique action."""
         uow.register(
             NotificationOp(
                 CurationRequestCritiqueNotificationBuilder.build(
@@ -195,7 +208,7 @@ class CurationResubmitAction(actions.RequestAction):
     status_to = "resubmitted"
 
     def execute(self, identity, uow):
-        """Execute the submit action."""
+        """Execute the resubmit action."""
         uow.register(
             NotificationOp(
                 CurationRequestResubmitNotificationBuilder.build(

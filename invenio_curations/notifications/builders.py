@@ -72,6 +72,15 @@ class CurationRequestResubmitNotificationBuilder(
     recipients = [GroupMembersRecipient("request.receiver")]
 
 
+class CurationRequestReviewNotificationBuilder(
+    CurationRequestActionNotificationBuilder
+):
+    """Notification builder for review action."""
+
+    type = f"{CurationRequestActionNotificationBuilder.type}.review"
+    recipients = [UserRecipient("request.created_by")]
+
+
 class CurationRequestAcceptNotificationBuilder(
     CurationRequestActionNotificationBuilder
 ):
