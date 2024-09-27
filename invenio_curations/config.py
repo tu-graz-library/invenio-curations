@@ -11,6 +11,7 @@ from invenio_curations.notifications.builders import (
     CurationRequestAcceptNotificationBuilder,
     CurationRequestCritiqueNotificationBuilder,
     CurationRequestResubmitNotificationBuilder,
+    CurationRequestReviewNotificationBuilder,
     CurationRequestSubmitNotificationBuilder,
 )
 from invenio_curations.services import facets
@@ -68,6 +69,7 @@ CURATIONS_NOTIFICATIONS_BUILDERS = {
         CurationRequestAcceptNotificationBuilder,
         CurationRequestCritiqueNotificationBuilder,
         CurationRequestResubmitNotificationBuilder,
+        CurationRequestReviewNotificationBuilder,
         CurationRequestSubmitNotificationBuilder,
     ]
 }
