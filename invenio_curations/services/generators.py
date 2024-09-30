@@ -8,6 +8,8 @@
 
 """Curations related generators."""
 
+from itertools import chain
+
 from flask_principal import RoleNeed
 from invenio_access.permissions import system_identity
 from invenio_records_permissions.generators import ConditionalGenerator, Generator
@@ -58,6 +60,59 @@ class IfCurationRequestAccepted(ConditionalGenerator):
             )
 
         return False
+
+
+class EntityReferenceServicePermission(Generator):
+    """Request-oriented generator accessing a named permission from the entity's service config."""
+
+    entity_field = None
+
+    def __init__(self, permission_name, **kwargs):
+        """Constructor specifying permission_name."""
+        self.permission_name = permission_name
+        assert self.entity_field is not None, "Subclass must define entity_field."
+        super().__init__()
+
+    def _get_permission(self, request):
+        """Get the specified permission from the request entity service config."""
+        entity = getattr(request, self.entity_field)
+        permission_policy_cls = (
+            entity.get_resolver().get_service().config.permission_policy_cls
+        )
+
+        return getattr(permission_policy_cls, self.permission_name)
+
+    def needs(self, request=None, **kwargs):
+        """Set of needs granting permission."""
+        if request is None:
+            return set()
+
+        permission = self._get_permission(request)
+        record = request.topic.resolve()
+        popped_record = kwargs.pop("record")
+        needs = [g.needs(record=record, **kwargs) for g in permission]
+
+        kwargs["record"] = popped_record
+        return set(chain.from_iterable(needs))
+
+    def excludes(self, request=None, **kwargs):
+        """Set of excludes denying permission."""
+        if request is None:
+            return set()
+
+        permission = self._get_permission(request)
+        record = request.topic.resolve()
+        popped_record = kwargs.pop("record")
+        excludes = [g.excludes(record=record, **kwargs) for g in permission]
+
+        kwargs["record"] = popped_record
+        return set(chain.from_iterable(excludes))
+
+
+class TopicPermission(EntityReferenceServicePermission):
+    """Request-oriented generator to get generators of specified permission name from the topic of the request."""
+
+    entity_field = "topic"
 
 
 class CurationModerators(Generator):
