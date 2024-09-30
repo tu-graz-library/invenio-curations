@@ -8,6 +8,7 @@
 """Curation service."""
 
 from flask import current_app
+from invenio_access.permissions import system_identity
 from invenio_accounts.models import Role
 from invenio_accounts.proxies import current_datastore
 from invenio_i18n import gettext as _
@@ -127,7 +128,8 @@ class CurationRequestService:
             ),
         }
 
-        if self.get_review(identity, topic):
+        # using system identity to ensure a request is fetched, if it exists. Even if the user would not have access.
+        if self.get_review(system_identity, topic):
             raise OpenRecordCurationRequestAlreadyExists()
 
         if data:
