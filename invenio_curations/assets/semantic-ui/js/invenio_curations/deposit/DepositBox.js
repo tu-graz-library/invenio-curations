@@ -100,6 +100,24 @@ export class DepositBoxComponent extends React.Component {
     this.loading = false;
   };
 
+  handleSave = () => {
+    this.loading = true;
+    try {
+      // We assume there is exactly one button named `save` which is the save draft button.
+      // Another approach would be to get the redux context from the deposit form and perform the same actions the `SaveButton` performs.
+      // However, the context is not exported from invenio-rdm-records at the moment. This implementation can be adapted if this changes.
+
+      // see
+      //  - SaveButton action: https://github.com/inveniosoftware/invenio-rdm-records/blob/a4fbec8dbde537244a58d905495fb6919029abaa/invenio_rdm_records/assets/semantic-ui/js/invenio_rdm_records/src/deposit/controls/SaveButton/SaveButton.js#L25-L33
+      //  - DepositFormSubmitContext: https://github.com/inveniosoftware/invenio-rdm-records/blob/a4fbec8dbde537244a58d905495fb6919029abaa/invenio_rdm_records/assets/semantic-ui/js/invenio_rdm_records/src/deposit/api/DepositFormSubmitContext.js
+      let saveButton = document.getElementsByName("save")[0];
+      saveButton.click();
+    } catch (error) {
+      console.error("Error when trying to save the draft", error);
+    }
+    this.loading = false;
+  };
+
   render() {
     const { latestRequest } = this.state;
     const { record, permissions, groupsEnabled } = this.props;
@@ -126,11 +144,13 @@ export class DepositBoxComponent extends React.Component {
                   request={latestRequest}
                   record={record}
                   loading={this.loading}
-                  handleCreateRequest={async () => {
+                  handleCreateRequest={async (event) => {
+                    await this.handleSave(event);
                     await this.fetchCurationRequest();
                     await this.createCurationRequest();
                   }}
-                  handleResubmitRequest={async () => {
+                  handleResubmitRequest={async (event) => {
+                    await this.handleSave(event);
                     await this.resubmitCurationRequest();
                   }}
                 />
