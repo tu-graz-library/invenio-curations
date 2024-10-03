@@ -25,15 +25,17 @@ export class DepositBoxComponent extends React.Component {
     this.state = {
       latestRequest: null,
       loading: false,
+      lastFetchedAt: null,
     };
   }
 
   componentDidMount() {
     this.fetchCurationRequest();
+    this._setInterval();
   }
 
   componentWillUnmount() {
-    clearInterval(this.recordFetchInterval);
+    this._clearInterval();
   }
 
   get record() {
@@ -53,7 +55,7 @@ export class DepositBoxComponent extends React.Component {
   // get the (latest) curation request for the current record
   fetchCurationRequest = async () => {
     this.loading = true;
-
+    this.setState({ lastFetchedAt: Date.now() });
     try {
       const request = await http.get("/api/curations", {
         params: { expand: 1, topic: `record:${this.record.id}` },
@@ -84,6 +86,24 @@ export class DepositBoxComponent extends React.Component {
     }
 
     this.loading = false;
+  };
+
+  _clearInterval = () => {
+    this.recordFetchInterval = window.clearInterval(this.recordFetchInterval);
+  };
+
+  _setInterval = () => {
+    // Fetch request every 10 seconds to get updates without manual refresh
+    // make sure to clear old interval
+    this.recordFetchInterval ??= window.setInterval(
+      this.fetchCurationRequest,
+      1000 * 10
+    );
+  };
+
+  resetInterval = () => {
+    this._clearInterval();
+    this._setInterval();
   };
 
   // resubmit the curation request
@@ -118,9 +138,25 @@ export class DepositBoxComponent extends React.Component {
     this.loading = false;
   };
 
+  checkShouldFetchCurationRequest = async () => {
+    // Fetch curation request instantly when record was updated from an external component
+    const { lastFetchedAt } = this.state;
+    const { lastFormikUpdatedAt } = this.props;
+
+    // Checking lastFormikUpdatedAt as `record.updated` is not deserialized from the backend response.
+    // If the relevant PR is merged or this change is added somewhere else, lastFormikUpdatedAt can be removed completely.
+    // PR: https://github.com/inveniosoftware/invenio-rdm-records/pull/1838
+    if (lastFetchedAt < lastFormikUpdatedAt) {
+      this.resetInterval();
+      this.fetchCurationRequest();
+    }
+  };
+
   render() {
     const { latestRequest } = this.state;
     const { record, permissions, groupsEnabled } = this.props;
+
+    this.checkShouldFetchCurationRequest();
 
     return (
       <Card className="access-right">
@@ -145,12 +181,12 @@ export class DepositBoxComponent extends React.Component {
                   record={record}
                   loading={this.loading}
                   handleCreateRequest={async (event) => {
-                    await this.handleSave(event);
+                    this.handleSave(event);
                     await this.fetchCurationRequest();
                     await this.createCurationRequest();
                   }}
                   handleResubmitRequest={async (event) => {
-                    await this.handleSave(event);
+                    this.handleSave(event);
                     await this.resubmitCurationRequest();
                   }}
                 />
@@ -177,11 +213,13 @@ DepositBoxComponent.propTypes = {
   record: PropTypes.object.isRequired,
   permissions: PropTypes.object,
   groupsEnabled: PropTypes.bool,
+  lastFormikUpdatedAt: PropTypes.object,
 };
 
 DepositBoxComponent.defaultProps = {
   permissions: null,
   groupsEnabled: false,
+  lastFormikUpdatedAt: Date.now(),
 };
 
 // In order to create the rdm-curation request, we need the `record.id` in the `DepositBox`, so we
@@ -191,6 +229,7 @@ DepositBoxComponent.defaultProps = {
 // Thus, we merge the incoming record with the one from the original props.
 const mapStateToProps = (state, ownProps) => ({
   record: { ...ownProps.record, ...state.deposit.record },
+  lastFormikUpdatedAt: Date.now(),
 });
 
 export const DepositBox = connect(
