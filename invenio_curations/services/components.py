@@ -71,6 +71,22 @@ class CurationComponent(ServiceComponent, ABC):
             system_identity, request["id"], "cancel"
         )
 
+    def _check_update_request(
+        self, identity, request, data=None, record=None, errors=None
+    ):
+        """Update request title if record title has changed."""
+        updated_draft_title = (data or {}).get("metadata", {}).get("title")
+        current_draft_title = (record or {}).get("metadata", {}).get("title")
+        if current_draft_title != updated_draft_title:
+            request["title"] = "RDM Curation: {title}".format(
+                title=updated_draft_title or record["id"]
+            )
+            # Using system identity, to not have to update the default request can_update permission.
+            # Data will be checked in the requests service.
+            current_requests_service.update(
+                system_identity, request["id"], request, uow=self.uow
+            )
+
     def update_draft(self, identity, data=None, record=None, errors=None):
         """Update draft handler."""
         has_published_record = record is not None and record.is_published
@@ -97,6 +113,14 @@ class CurationComponent(ServiceComponent, ABC):
             )
             return
 
+        current_draft = self.service.draft_cls.pid.resolve(
+            record["id"], registered_only=False
+        )
+
+        self._check_update_request(
+            identity, request, data=data, record=current_draft, errors=errors
+        )
+
         # TODO: Should updates be disallowed if the record/request is currently being reviewed?
         # It could be possible that the record gets updated while a curator performs a review. The curator would be looking at an outdated record and the review might not be correct.
 
@@ -105,9 +129,6 @@ class CurationComponent(ServiceComponent, ABC):
             return
 
         # Compare metadata of current draft and updated draft.
-        current_draft = self.service.draft_cls.pid.resolve(
-            record["id"], registered_only=False
-        )
 
         # Sometimes the metadata differs between the passed `record` and resolved
         # `current_draft` in references (e.g. in the `record` object, the creator's
