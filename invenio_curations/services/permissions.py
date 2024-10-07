@@ -107,6 +107,7 @@ class CurationRDMRequestsPermissionPolicy(RDMRequestsPermissionPolicy):
                 Creator(),
                 Receiver(),
                 TopicPermission(permission_name="can_review"),
+                SystemProcess(),
             ],
             else_=RDMRequestsPermissionPolicy.can_read,
         )

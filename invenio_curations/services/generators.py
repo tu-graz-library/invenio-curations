@@ -12,6 +12,7 @@ from itertools import chain
 
 from flask_principal import RoleNeed
 from invenio_access.permissions import system_identity
+from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_records_permissions.generators import ConditionalGenerator, Generator
 
 from ..proxies import current_curations_service
@@ -73,22 +74,32 @@ class EntityReferenceServicePermission(Generator):
         assert self.entity_field is not None, "Subclass must define entity_field."
         super().__init__()
 
-    def _get_permission(self, request):
+    def _get_permission(self, entity):
         """Get the specified permission from the request entity service config."""
-        entity = getattr(request, self.entity_field)
         permission_policy_cls = (
             entity.get_resolver().get_service().config.permission_policy_cls
         )
 
         return getattr(permission_policy_cls, self.permission_name)
 
+    def _get_entity(self, request):
+        """Get the specified entity of the request."""
+        return getattr(request, self.entity_field)
+
     def needs(self, request=None, **kwargs):
         """Set of needs granting permission."""
         if request is None:
             return set()
 
-        permission = self._get_permission(request)
-        record = request.topic.resolve()
+        entity = self._get_entity(request)
+        permission = self._get_permission(entity)
+        try:
+            record = entity.resolve()
+        except PIDDoesNotExistError:
+            # Could not resolve topic. This may happen when trying to serialize a request and checking its permissions.
+            # The referenced entity could be deleted, which would result in not being able to serialize instead. Instead,
+            # an empty set is returned for this permission.
+            return set()
         popped_record = kwargs.pop("record")
         needs = [g.needs(record=record, **kwargs) for g in permission]
 
@@ -100,8 +111,15 @@ class EntityReferenceServicePermission(Generator):
         if request is None:
             return set()
 
-        permission = self._get_permission(request)
-        record = request.topic.resolve()
+        entity = self._get_entity(request)
+        permission = self._get_permission(entity)
+        try:
+            record = entity.resolve()
+        except PIDDoesNotExistError:
+            # Could not resolve topic. This may happen when trying to serialize a request and checking its permissions.
+            # The referenced entity could be deleted, which would result in not being able to serialize instead. Instead,
+            # an empty set is returned for this permission.
+            return set()
         popped_record = kwargs.pop("record")
         excludes = [g.excludes(record=record, **kwargs) for g in permission]
 
