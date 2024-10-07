@@ -68,7 +68,7 @@ class CurationComponent(ServiceComponent, ABC):
         # Delete draft for a published record.
         # Since only one request per record should exist, it is not deleted. Instead, put it back to accepted.
         current_requests_service.execute_action(
-            system_identity, request["id"], "cancel"
+            system_identity, request["id"], "cancel", uow=self.uow
         )
 
     def _check_update_request(
@@ -161,4 +161,6 @@ class CurationComponent(ServiceComponent, ABC):
 
         # Request is closed but draft was updated with new data. Put back for review
         if diff_list:
-            current_requests_service.execute_action(identity, request["id"], "resubmit")
+            current_requests_service.execute_action(
+                identity, request["id"], "resubmit", uow=self.uow
+            )
