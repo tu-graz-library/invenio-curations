@@ -7,3 +7,7 @@
 
 Changes
 =======
+
+Version 0.1.0 (released 2024-10-17)
+
+- initial release
