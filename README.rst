@@ -7,7 +7,6 @@
     modify it under the terms of the MIT License; see LICENSE file for more
     details.
 
-=================
 Invenio-Curations
 =================
 
@@ -25,7 +24,7 @@ Invenio-Curations
 
 
 What *is* `Invenio-Curations`?
-******************************
+------------------------------
 
 `Invenio-Curations` is an Invenio package that adds curation reviews to InvenioRDM.
 
@@ -34,7 +33,7 @@ One of the reasons why institutions may want this is if they are pursuing a `Cor
 
 
 Aren't there community reviews already?
----------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Out of the box, InvenioRDM already provides reviews for records as part of the submission or inclusion into communities.
 However, there is no requirement per default for records to be part of any community at all.
@@ -45,23 +44,23 @@ In contrast, `Invenio-Curations` defines a fixed group of users to act as review
 
 
 Requirements
-************
+------------
 
 Requires InvenioRDM v12 or higher (``invenio-app-rdm >= 12.0.7``).
 
 
 How to set up
-*************
+-------------
 
 After the successful installation of `Invenio-Curations`, it still needs to be configured properly to work.
 The following sections should guide you through the required adaptations.
 
 
 Update ``invenio.cfg``
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 Add `notification builders` for `groups`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Currently, requests can only be sent to a single `receiver`.
 However, curation reviews are typically performed by a `group` of people rather than one single fixed `user`.
@@ -203,7 +202,7 @@ Since we only want to change the behaviour of these community submission request
 
 
 Permit the moderators to view the draft under review
-----------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For curation reviews to make sense, it is of course vital for the moderators to be able to view the drafts in question.
 
@@ -216,7 +215,7 @@ In fact, it's out of scope for this README - or is it?
 
 
 Set RDM permission policy
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Reasons to not rely on access grants:
 - They can be completely disabled for an instance
@@ -232,7 +231,7 @@ an easy way to test the package as well as provide a starting point to understan
 
 
 Make the new workflow available through the UI
-----------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The changes so far have dealt with setting up the mechanism for the curation workflow in the backend.
 To also make the workflow accessible for users through the UI, some frontend components have to be updated as well.
@@ -257,7 +256,7 @@ The other ``curationComponentOverrides`` provide better rendering for the new el
 
 
 Create curator role
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 The permission to manage curation requests is controlled by a specific role in the system.
 The name of this role can be specified via a configuration variable ``CURATIONS_MODERATION_ROLE``.
