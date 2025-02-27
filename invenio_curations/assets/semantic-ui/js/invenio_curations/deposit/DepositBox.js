@@ -141,12 +141,7 @@ export class DepositBoxComponent extends React.Component {
   checkShouldFetchCurationRequest = async () => {
     // Fetch curation request instantly when record was updated from an external component
     const { lastFetchedAt } = this.state;
-    const { lastFormikUpdatedAt } = this.props;
-
-    // Checking lastFormikUpdatedAt as `record.updated` is not deserialized from the backend response.
-    // If the relevant PR is merged or this change is added somewhere else, lastFormikUpdatedAt can be removed completely.
-    // PR: https://github.com/inveniosoftware/invenio-rdm-records/pull/1838
-    if (lastFetchedAt < lastFormikUpdatedAt) {
+    if (lastFetchedAt < this.record.updated) {
       this.resetInterval();
       this.fetchCurationRequest();
     }
