@@ -208,13 +208,11 @@ DepositBoxComponent.propTypes = {
   record: PropTypes.object.isRequired,
   permissions: PropTypes.object,
   groupsEnabled: PropTypes.bool,
-  lastFormikUpdatedAt: PropTypes.object,
 };
 
 DepositBoxComponent.defaultProps = {
   permissions: null,
   groupsEnabled: false,
-  lastFormikUpdatedAt: Date.now(),
 };
 
 // In order to create the rdm-curation request, we need the `record.id` in the `DepositBox`, so we
@@ -224,7 +222,6 @@ DepositBoxComponent.defaultProps = {
 // Thus, we merge the incoming record with the one from the original props.
 const mapStateToProps = (state, ownProps) => ({
   record: { ...ownProps.record, ...state.deposit.record },
-  lastFormikUpdatedAt: Date.now(),
 });
 
 export const DepositBox = connect(
