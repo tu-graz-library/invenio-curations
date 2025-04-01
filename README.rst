@@ -254,6 +254,75 @@ The ``DepositBox`` overrides the record's lifecycle management box on the deposi
 It takes care of rendering the "publish" button only when appropriate in the curation workflow.
 The other ``curationComponentOverrides`` provide better rendering for the new elements (e.g. event types) in the request page.
 
+Optional UI: Set Curation request custom field
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Because there could be a need to inform the user about the curation workflow, a custom field at the end can be added just to show
+a specific message. In order to set this up, a basic invenio custom field in your instance could be configured.
+
+Create a new javascript file at assets/templates/custom_fields/RdmCuration.js
+
+.. code-block:: javascript
+
+    import React from 'react';
+    import { i18next } from "@translations/invenio_app_rdm/i18next";
+
+    const RdmCuration = () => {
+      return (
+        <div className='ui visible warning message'>
+          <h4> 
+          {i18next.t(
+            "Please create a curation request after saving the \
+            draft by clicking on Start Publication Process")}
+          </h4>
+        </div>
+      );
+    };
+
+    export default RdmCuration;
+
+
+Then add this block to the invenio.cfg to link the component to the actual custom-field.
+
+.. code-block:: python
+
+    from invenio_records_resources.services.custom_fields import BaseListCF
+    from marshmallow_utils.fields import SanitizedUnicode
+
+    class RdmCurationCF(BaseListCF):
+        """Experiments with title and program."""
+    
+        def __init__(self, name, **kwargs):
+            """Constructor."""
+            super().__init__(
+              name,
+              **kwargs
+            )
+    
+        @property
+        def mapping(self):
+            """Return the mapping."""
+            return {"type": "text"}
+
+    RDM_CUSTOM_FIELDS = [
+        RdmCurationCF(
+            name="rdm-curation",
+            field_cls=SanitizedUnicode
+        ),
+    ]
+
+    RDM_CUSTOM_FIELDS_UI = [
+        {
+            "section": _("Curation request"),
+            "fields": [
+                dict(
+                    field="rdm-curation",
+                    ui_widget="RdmCuration",
+                ),
+            ],
+            "hide_from_landing_page": True
+        }
+    ]
+
 
 Create curator role
 ~~~~~~~~~~~~~~~~~~~

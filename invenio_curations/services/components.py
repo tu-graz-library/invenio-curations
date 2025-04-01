@@ -99,18 +99,7 @@ class CurationComponent(ServiceComponent, ABC):
             expand=True,
         )
 
-        # Inform user to create a curation request
         if not request:
-            errors.append(
-                {
-                    "field": "custom_fields.rdm-curation",
-                    "messages": [
-                        _(
-                            "Missing curation request. Please create a curation request, if the record is ready to be published."
-                        )
-                    ],
-                }
-            )
             return
 
         current_draft = self.service.draft_cls.pid.resolve(
