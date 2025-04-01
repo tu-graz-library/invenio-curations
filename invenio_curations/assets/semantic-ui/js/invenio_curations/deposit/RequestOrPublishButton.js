@@ -15,7 +15,7 @@ import { i18next } from "@translations/invenio_curations/i18next";
 export const RequestOrPublishButton = (props) => {
   const { request, record, handleCreateRequest, handleResubmitRequest, loading } =
     props;
-  const recordIdAvailable = record?.id != null;
+  const recordCurateable = record?.id != null && record?.savedSuccessfully;
   let elem = null;
 
   if (request) {
@@ -32,7 +32,7 @@ export const RequestOrPublishButton = (props) => {
             primary
             size="medium"
             type="button"
-            disabled={!recordIdAvailable}
+            disabled={!recordCurateable}
             positive
             icon
             labelPosition="left"
@@ -66,9 +66,9 @@ export const RequestOrPublishButton = (props) => {
   } else {
     elem = (
       <Popup
-        disabled={recordIdAvailable}
+        disabled={recordCurateable}
         content={i18next.t(
-          "Before creating a curation request, the draft has to be saved."
+          "Before creating a curation request, the draft has to be saved without any errors."
         )}
         position="top center"
         trigger={
@@ -79,7 +79,7 @@ export const RequestOrPublishButton = (props) => {
               primary
               size="medium"
               type="button"
-              disabled={!recordIdAvailable}
+              disabled={!recordCurateable}
               positive
               icon
               labelPosition="left"
