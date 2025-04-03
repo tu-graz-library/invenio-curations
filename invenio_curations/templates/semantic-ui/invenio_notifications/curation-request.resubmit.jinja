@@ -3,7 +3,7 @@
 {% set creator = curation_request.created_by %}
 {% set record = curation_request.topic %}
 {% set request_id = curation_request.id %}
-{% set creator_name = creator.username or creator.profile.full_name %}
+{% set creator_name = creator.profile.full_name + " <" + creator.email + ">" %}
 {% set record_title = record.metadata.title %}
 {% set message = notification.context.message | safe if notification.context.message else '' %}
 
