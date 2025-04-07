@@ -22,8 +22,10 @@ from invenio_requests.proxies import current_requests_service
 from invenio_requests.services import RequestsService
 
 from ..proxies import current_curations_service
+from . import CurationRequestService
+from .comment import CommentProcessor
+from .diff import DiffProcessor
 from .errors import CurationRequestNotAcceptedError
-from .service import CurationRequestService
 
 
 def _get_curations_service() -> CurationRequestService:
@@ -105,9 +107,9 @@ class CurationComponent(ServiceComponent, ABC):
         self,
         identity: Identity,  # noqa: ARG002
         request: dict,
-        data: dict[str, Any] | None = None,
+        data: dict | None = None,
         record: RDMDraft | None = None,
-        errors: dict | None = None,  # noqa: ARG002
+        errors: list[dict] | None = None,  # noqa: ARG002
     ) -> None:
         """Update request title if record title has changed."""
         updated_draft_title = (data or {}).get("metadata", {}).get("title")
@@ -126,12 +128,53 @@ class CurationComponent(ServiceComponent, ABC):
                 uow=self.uow,
             )
 
+    def _prepare_data(
+        self,
+        data: dict,
+        current_draft: RDMDraft,
+    ) -> tuple[dict, dict]:
+        """Build and return fresh new maps only with fields that should be compared later in the process.
+
+        Method used in context of comment processing.
+        """
+        supported_fields = ["metadata", "custom_fields"]
+        new_data = {}
+        new_crt_draft = {}
+        for field in supported_fields:
+            new_data[field] = data[field]
+            new_crt_draft[field] = current_draft[field]
+
+        return new_data, new_crt_draft
+
+    def _process_comment(
+        self,
+        data: dict,
+        current_draft: RDMDraft,
+        request: dict,
+        errors: list[dict] | None,
+    ) -> None:
+        """Prepare and call all needed structures in order to successfully create/update a request comment."""
+        prepared_data, prepared_current_draft = self._prepare_data(data, current_draft)
+
+        diff_processor = DiffProcessor(
+            configured_elements=current_curations_service.comments_mapping,
+            comment_template_file=current_curations_service.comment_template_file,
+        )
+        comment_processor = CommentProcessor(system_identity, diff_processor)
+
+        comment_processor.process_comment(
+            request,
+            prepared_data,
+            prepared_current_draft,
+            errors,
+        )
+
     def update_draft(
         self,
         identity: Identity,
-        data: dict[str, Any] | None = None,
+        data: dict | None = None,
         record: RDMDraft | None = None,
-        errors: dict | None = None,
+        errors: list[dict] | None = None,
     ) -> None:
         """Update draft handler."""
         has_published_record = record is not None and record.is_published
@@ -165,6 +208,9 @@ class CurationComponent(ServiceComponent, ABC):
 
         # If a request is open, it still has to be reviewed eventually.
         if request["is_open"]:
+            if current_curations_service.comments_enabled:
+                # prepare and process a comment if config is enabled
+                self._process_comment(data, current_draft, request, errors)  # type: ignore[arg-type]
             return
 
         # Compare metadata of current draft and updated draft.
