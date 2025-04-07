@@ -8,7 +8,6 @@
 
 """Celery tasks for curations."""
 
-
 from celery import shared_task
 from flask import current_app
 from invenio_access.permissions import system_identity
