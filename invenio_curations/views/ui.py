@@ -41,13 +41,10 @@ def curation_requests_overview() -> str:
         "avatar"
     ]
 
-    return cast(
-        str,
-        render_template(
-            "invenio_curations/overview.html",
-            searchbar_config=dict(searchUrl="/"),
-            user_avatar=url,
-        ),
+    return render_template(
+        "invenio_curations/overview.html",
+        searchbar_config=dict(searchUrl="/"),
+        user_avatar=url,
     )
 
 
