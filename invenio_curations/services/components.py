@@ -20,6 +20,7 @@ from invenio_i18n import lazy_gettext as _
 from invenio_pidstore.models import PIDStatus
 from invenio_requests.customizations import CommentEventType
 from invenio_requests.proxies import current_requests_service, current_events_service
+from flask import current_app
 
 from ..proxies import current_curations_service
 from .errors import CurationRequestNotAccepted
@@ -32,17 +33,20 @@ class DiffProcessor:
     """
     _diffs = None
 
-    def __init__(self, diffs):
+    def __init__(self, diffs=None):
         self._diffs = diffs
 
     def from_html(self, html):
-        pass
-
-    def from_invenio_diff_list(self, diff_list):
-        pass
+        return self
 
     def to_html(self):
         pass
+
+    def compare(self, other):
+        return self
+
+    def get_diffs(self):
+        return self._diffs
 
 
 class CurationComponent(ServiceComponent, ABC):
@@ -110,30 +114,59 @@ class CurationComponent(ServiceComponent, ABC):
                 system_identity, request["id"], request, uow=self.uow
             )
 
-    def _pretty_html_diff_view(self, diffs):
-        return "<p> test edi </>"
+    def _prepare_data(self, data, current_draft):
+        supported_fields = ["metadata", "custom_fields"]
+        new_data = {}
+        new_crt_draft = {}
+        for field in supported_fields:
+            new_data[field] = data[field]
+            new_crt_draft[field] = current_draft[field]
 
-    def _diff_crt_comment_new_diffs(self, crt_comment, new_diffs):
-        return "<p> updated changes <p>"
+        return new_data, new_crt_draft
 
-    def _build_and_send_comment(self, request, content, update=False, crt_comment_event=None):
-        if update and crt_comment_event is None:
-            # TODO add error
-            return
+    def _create_new_comment(self, request, content):
 
-        if update:
-            content = self._diff_crt_comment_new_diffs(crt_comment_event.get("payload").get("content"), content)
         payload = {
             "payload": {
                 "content": content
             }
         }
 
-        if update:
+        try:
+            current_events_service.create(system_identity, request["id"], payload, CommentEventType())
+        except Exception:
+            return {
+                "field": "custom_fields.rdm-curation",
+                "messages": [
+                    _(
+                        "Record saved successfully, but request comment failed to create."
+                    )
+                ],
+            }
+
+    def _update_existing_comment(self, new_data, crt_comment_event):
+        if crt_comment_event is None:
+            # TODO add error
+            return
+
+        payload = {
+            "payload": {
+                "content": new_data
+            }
+        }
+
+        try:
             current_events_service.update(system_identity, crt_comment_event.get("id"), payload,
                                           revision_id=crt_comment_event.get("revision_id"))
-        else:
-            current_events_service.create(system_identity, request["id"], payload, CommentEventType())
+        except Exception:
+            return {
+                "field": "custom_fields.rdm-curation",
+                "messages": [
+                    _(
+                        "Record saved successfully, but failed to update request comment."
+                    )
+                ],
+            }
 
     def update_draft(self, identity, data=None, record=None, errors=None):
         """Update draft handler."""
@@ -169,7 +202,8 @@ class CurationComponent(ServiceComponent, ABC):
             identity, request, data=data, record=current_draft, errors=errors
         )
 
-        diff = dictdiffer.diff(current_draft, data)
+        prepared_current_draft, prepared_data = self._prepare_data(data, current_draft)
+        diff = dictdiffer.diff(prepared_current_draft, prepared_data)
         diff_list = list(diff)
         diff_processor = DiffProcessor(diff_list)
 
@@ -203,20 +237,30 @@ class CurationComponent(ServiceComponent, ABC):
             if last_request_log_event in ["resubmitted", "critiqued"] and not last_critiqued_comment_event:
                 # user updates the draft while in resubmission, comment every change detected.
                 # OR happy path: critiqued - resubmitted, no intermediate saves
-                self._build_and_send_comment(request, self._pretty_html_diff_view(diff_list))
+                errors.append(self._create_new_comment(request, diff_processor.to_html()))
             else:
                 # if there were draft saves between critiqued - resubmitted, be sure to capture
                 # the diff between these 2 statuses, not between draft saves.
-                self._build_and_send_comment(
-                    request,
-                    diff_list,
-                    update=True,
-                    crt_comment_event=last_critiqued_comment_event)
+                last_diff = DiffProcessor().from_html(last_critiqued_comment_event.get("payload").get("content"))
+                errors.append(self._update_existing_comment(diff_processor.compare(last_diff).to_html(),
+                                                            last_critiqued_comment_event))
 
             return
 
-        elif request["is_open"] and request["status"] == "critiqued":
+        elif request["is_open"] and request["status"] == "critiqued" and len(diff_processor.get_diffs()) > 0:
+            # update draft while critiqued without resubmitting immediately, create comment and
+            # then update the same comment if new updates of this sort come
+            last_event = list(current_events_service.search(system_identity, request["id"]).hits)[-1]
+
+            if last_event.get("type") == "L":
+                errors.append(self._create_new_comment(request, diff_processor.to_html()))
+            elif last_event.get("type") == "C":
+                last_diff = DiffProcessor().from_html(last_event.get("payload").get("content"))
+                errors.append(self._update_existing_comment(diff_processor.compare(last_diff).to_html(), last_event))
+
             return
+
+        # TODO decide what to do on review status
         elif request["is_open"]:
             return
 
