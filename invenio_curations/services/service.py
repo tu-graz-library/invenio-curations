@@ -6,6 +6,7 @@
 # it under the terms of the MIT License; see LICENSE file for more details.
 
 """Curation service."""
+
 from typing import Any, cast
 
 from flask import current_app
@@ -29,6 +30,7 @@ from werkzeug.datastructures import ImmutableMultiDict
 
 from ..proxies import unproxy
 from ..requests import CurationRequest
+from .diff import DiffElement
 from .errors import OpenRecordCurationRequestAlreadyExistsError, RoleNotFoundError
 
 
@@ -75,6 +77,27 @@ class CurationRequestService:
             type[RequestType],
             self._request_type_registry.lookup(CurationRequest.type_id),
         )
+
+    @property
+    def comments_enabled(self) -> bool:
+        """Get the configured value of ``CURATIONS_ENABLE_REQUEST_COMMENTS``."""
+        return cast(
+            bool,
+            current_app.config.get("CURATIONS_ENABLE_REQUEST_COMMENTS", False),
+        )
+
+    @property
+    def comments_mapping(self) -> list[DiffElement]:
+        """Curations specific comment classes."""
+        return cast(
+            list[DiffElement],
+            current_app.config.get("CURATIONS_COMMENTS_CLASSES"),
+        )
+
+    @property
+    def comment_template_file(self) -> str:
+        """Curations specific comment html template."""
+        return cast(str, current_app.config.get("CURATIONS_COMMENT_TEMPLATE_FILE"))
 
     def get_review(
         self,

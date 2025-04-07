@@ -9,7 +9,10 @@
 """Invenio module for curation support."""
 
 from .ext import InvenioCurations
-from .proxies import current_curations, current_curations_service
+from .proxies import (
+    current_curations,
+    current_curations_service,
+)
 
 __version__ = "0.2.0"
 

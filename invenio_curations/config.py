@@ -7,15 +7,15 @@
 
 """Invenio module for curations."""
 
-from invenio_curations.notifications.builders import (
+from .notifications.builders import (
     CurationRequestAcceptNotificationBuilder,
     CurationRequestCritiqueNotificationBuilder,
     CurationRequestResubmitNotificationBuilder,
     CurationRequestReviewNotificationBuilder,
     CurationRequestSubmitNotificationBuilder,
 )
-
 from .services import facets
+from .services.diff import DiffDescription
 
 CURATIONS_FACETS = {
     "type": {
@@ -69,3 +69,24 @@ CURATIONS_NOTIFICATIONS_BUILDERS = {
     ]
 }
 """Curation related notification builders as map for easy import."""
+
+CURATIONS_ENABLE_REQUEST_COMMENTS = False
+"""Enable or disable the generation of diff comments on ``rdm-curation`` requests.
+
+Set this in order to activate the automatic creation/update of request comments
+based on the difference found between draft states of an unpublished record
+that is in the curation phase.
+"""
+
+CURATIONS_COMMENTS_CLASSES = [DiffDescription]
+"""Extend curations comment classes for more diff customization.
+
+List with all custom classes defined for rendering a change in a draft field.
+"""
+
+CURATIONS_COMMENT_TEMPLATE_FILE = "comment-template.html"
+"""Curation comment template file.
+
+Choose a file from the instance's templates folder to render the request comment.
+More details in README.
+"""
