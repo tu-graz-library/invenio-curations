@@ -11,7 +11,4 @@
 from .config import CurationsServiceConfig
 from .service import CurationRequestService
 
-__all__ = (
-    "CurationsServiceConfig",
-    "CurationRequestService",
-)
+__all__ = ("CurationsServiceConfig", "CurationRequestService")
