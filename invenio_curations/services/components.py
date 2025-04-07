@@ -10,16 +10,39 @@
 """Component for checking curations."""
 
 from abc import ABC
+from threading import Thread
+from time import sleep
 
 import dictdiffer
 from invenio_access.permissions import system_identity
 from invenio_drafts_resources.services.records.components import ServiceComponent
 from invenio_i18n import lazy_gettext as _
 from invenio_pidstore.models import PIDStatus
-from invenio_requests.proxies import current_requests_service
+from invenio_requests.customizations import CommentEventType
+from invenio_requests.proxies import current_requests_service, current_events_service
 
 from ..proxies import current_curations_service
 from .errors import CurationRequestNotAccepted
+
+
+# TODO
+class DiffProcessor:
+    """
+    DiffProcessor class.
+    """
+    _diffs = None
+
+    def __init__(self, diffs):
+        self._diffs = diffs
+
+    def from_html(self, html):
+        pass
+
+    def from_invenio_diff_list(self, diff_list):
+        pass
+
+    def to_html(self):
+        pass
 
 
 class CurationComponent(ServiceComponent, ABC):
@@ -33,7 +56,7 @@ class CurationComponent(ServiceComponent, ABC):
         # Thus, if we spot a discrepancy here we can deduce that this is the first time
         # the record gets published.
         has_been_published = (
-            draft.pid.status == draft["pid"]["status"] == PIDStatus.REGISTERED
+                draft.pid.status == draft["pid"]["status"] == PIDStatus.REGISTERED
         )
         if has_been_published and current_curations_service.allow_publishing_edits:
             return
@@ -72,7 +95,7 @@ class CurationComponent(ServiceComponent, ABC):
         )
 
     def _check_update_request(
-        self, identity, request, data=None, record=None, errors=None
+            self, identity, request, data=None, record=None, errors=None
     ):
         """Update request title if record title has changed."""
         updated_draft_title = (data or {}).get("metadata", {}).get("title")
@@ -86,6 +109,31 @@ class CurationComponent(ServiceComponent, ABC):
             current_requests_service.update(
                 system_identity, request["id"], request, uow=self.uow
             )
+
+    def _pretty_html_diff_view(self, diffs):
+        return "<p> test edi </>"
+
+    def _diff_crt_comment_new_diffs(self, crt_comment, new_diffs):
+        return "<p> updated changes <p>"
+
+    def _build_and_send_comment(self, request, content, update=False, crt_comment_event=None):
+        if update and crt_comment_event is None:
+            # TODO add error
+            return
+
+        if update:
+            content = self._diff_crt_comment_new_diffs(crt_comment_event.get("payload").get("content"), content)
+        payload = {
+            "payload": {
+                "content": content
+            }
+        }
+
+        if update:
+            current_events_service.update(system_identity, crt_comment_event.get("id"), payload,
+                                          revision_id=crt_comment_event.get("revision_id"))
+        else:
+            current_events_service.create(system_identity, request["id"], payload, CommentEventType())
 
     def update_draft(self, identity, data=None, record=None, errors=None):
         """Update draft handler."""
@@ -121,11 +169,55 @@ class CurationComponent(ServiceComponent, ABC):
             identity, request, data=data, record=current_draft, errors=errors
         )
 
+        diff = dictdiffer.diff(current_draft, data)
+        diff_list = list(diff)
+        diff_processor = DiffProcessor(diff_list)
+
         # TODO: Should updates be disallowed if the record/request is currently being reviewed?
         # It could be possible that the record gets updated while a curator performs a review. The curator would be looking at an outdated record and the review might not be correct.
 
         # If a request is open, it still has to be reviewed eventually.
-        if request["is_open"]:
+
+        if request["is_open"] and request["status"] == "resubmitted":
+            # if the user resubmits the record for review, we should add a comment that describes
+            # what was changed from the previous attempt (creation/other resubmission)
+
+            # TODO add extra comment validation for auto-generated
+            last_request_log_event = None
+            crt_critiqued = False
+            last_critiqued_comment_event = None
+            for hit in list(current_events_service.search(system_identity, request["id"]).hits)[:-1]:
+                if crt_critiqued and hit.get("type") == "C":
+                    # saved record while critiqued, store this
+                    last_critiqued_comment_event = hit
+                    continue
+
+                if hit.get("type") == "L":
+                    last_request_log_event = hit.get("payload").get("event")
+
+                if last_request_log_event == "critiqued":
+                    crt_critiqued = True
+                else:
+                    crt_critiqued = False
+
+            if last_request_log_event in ["resubmitted", "critiqued"] and not last_critiqued_comment_event:
+                # user updates the draft while in resubmission, comment every change detected.
+                # OR happy path: critiqued - resubmitted, no intermediate saves
+                self._build_and_send_comment(request, self._pretty_html_diff_view(diff_list))
+            else:
+                # if there were draft saves between critiqued - resubmitted, be sure to capture
+                # the diff between these 2 statuses, not between draft saves.
+                self._build_and_send_comment(
+                    request,
+                    diff_list,
+                    update=True,
+                    crt_comment_event=last_critiqued_comment_event)
+
+            return
+
+        elif request["is_open"] and request["status"] == "critiqued":
+            return
+        elif request["is_open"]:
             return
 
         # Compare metadata of current draft and updated draft.
