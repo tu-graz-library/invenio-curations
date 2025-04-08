@@ -30,7 +30,7 @@ from ..proxies import current_curations_service
 from .errors import CurationRequestNotAccepted
 
 
-class MLStripper(HTMLParser):
+class TagStripper(HTMLParser):
     def __init__(self):
         super().__init__()
         self.reset()
@@ -50,9 +50,11 @@ class DiffProcessor:
     DiffProcessor class.
     """
     _diffs = None
-    _known_actions = {"resubmit": "Record was resubmitted for review with the following changes:",
-                      "save_while_critiqued": "Record started being updated, work in progress...",
-                      "default": "Action triggered comment update"}
+    _known_actions = {
+        "resubmit": "Record was resubmitted for review with the following changes:",
+        "update_while_critiqued": "Record started being updated, work in progress...",
+        "default": "Action triggered comment update"
+    }
     _added = "Added:"
     _changed = "Changed:"
     _removed = "Removed:"
@@ -63,7 +65,7 @@ class DiffProcessor:
     def from_html(self, html):
         # parse html into a DiffProcessor object
         # beware: tightly coupled with to_html() method!!
-        s = MLStripper()
+        s = TagStripper()
         s.feed(html)
         list_of_updates = [st.strip() for st in s.get_data().split("\n") if len(st.strip()) > 0]
 
@@ -141,6 +143,7 @@ class DiffProcessor:
         changes = []
         removes = []
 
+        print(self._diffs)
         for update, key, result in self._diffs:
             if update.lower() == "add":
                 result = {" ".join(key.split(".")): result}
@@ -156,7 +159,69 @@ class DiffProcessor:
         return Template(template_string).render(adds=adds, changes=changes, removes=removes,
                                                 header=self._known_actions[action])
 
+    def _get_joined_update(self, update):
+        update_name, update_key, result = update
+
+        return "|".join([str(update_name), str(update_key), str(result)])
+
     def compare(self, other):
+        # the purpose of this comparing method is to modify this instance's diff list
+        # taking the received object as a base of comparing
+        to_add = set()
+        to_remove = set()
+        skip_second_loop = set()
+        idx = 0
+        for update_this, key_this, result_this in self._diffs:
+            for update_other, key_other, result_other in other.get_diffs():
+                if (key_this == key_other
+                        and result_this == result_other
+                        and update_this != update_other
+                        and update_this.lower() != "change"
+                        and update_other.lower() != "change"):
+                    # something was reverted
+                    to_remove.add(self._get_joined_update((update_this, key_this, result_this)))
+                    skip_second_loop.add(self._get_joined_update((update_other, key_other, result_other)))
+                    break
+
+                elif (update_this.lower() == "change"
+                      and update_other.lower() == "change"
+                      and key_this == key_other):
+                    # make sure to set the 'old' values from other
+                    old_other, _ = result_other
+                    _, new_this = result_this
+
+                    if old_other == new_this:
+                        to_remove.add(self._get_joined_update((update_this, key_this, result_this)))
+                        skip_second_loop.add(self._get_joined_update((update_other, key_other, result_other)))
+                        break
+                    result_this = (old_other, new_this)
+                    skip_second_loop.add(self._get_joined_update((update_other, key_other, result_other)))
+                    self._diffs[idx] = (update_this, key_this, result_this)
+            idx += 1
+
+        for update_other, key_other, result_other in other.get_diffs():
+            if (update_other.lower() != "change"
+                    and self._get_joined_update((update_other, key_other, result_other)) not in to_remove
+                    and self._get_joined_update((update_other, key_other, result_other)) not in skip_second_loop):
+                # bring all add/remove that were not reverted
+                to_add.add(self._get_joined_update((update_other, key_other, result_other)))
+
+            elif (update_other.lower() == "change" and
+                  self._get_joined_update((update_other, key_other, result_other)) not in to_remove and
+                  self._get_joined_update((update_other, key_other, result_other)) not in skip_second_loop):
+                to_add.add(self._get_joined_update((update_other, key_other, result_other)))
+
+        for update in to_add:
+            update_split = update.split("|")
+            update_name, update_key = update_split[0], update_split[1]
+            update_dict = ast.literal_eval(update_split[2])
+            self._diffs.append((update_name, update_key, update_dict))
+        for update in to_remove:
+            update_split = update.split("|")
+            update_name, update_key = update_split[0], update_split[1]
+            update_dict = ast.literal_eval(update_split[2])
+            self._diffs.remove((update_name, update_key, update_dict))
+
         return self
 
     def get_diffs(self):
