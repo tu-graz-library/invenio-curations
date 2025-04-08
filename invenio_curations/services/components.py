@@ -8,12 +8,13 @@
 # details.
 
 """Component for checking curations."""
-
+import json
+import re
 from abc import ABC
-from threading import Thread
-from time import sleep
 
 import dictdiffer
+import pprint
+import ast
 from invenio_access.permissions import system_identity
 from invenio_drafts_resources.services.records.components import ServiceComponent
 from invenio_i18n import lazy_gettext as _
@@ -21,26 +22,139 @@ from invenio_pidstore.models import PIDStatus
 from invenio_requests.customizations import CommentEventType
 from invenio_requests.proxies import current_requests_service, current_events_service
 from flask import current_app
+from jinja2 import Template
+from io import StringIO
+from html.parser import HTMLParser
 
 from ..proxies import current_curations_service
 from .errors import CurationRequestNotAccepted
 
 
-# TODO
+class MLStripper(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.reset()
+        self.strict = False
+        self.convert_charrefs = True
+        self.text = StringIO()
+
+    def handle_data(self, d):
+        self.text.write(d)
+
+    def get_data(self):
+        return self.text.getvalue()
+
+
 class DiffProcessor:
     """
     DiffProcessor class.
     """
     _diffs = None
+    _known_actions = {"resubmit": "Record was resubmitted for review with the following changes:",
+                      "save_while_critiqued": "Record started being updated, work in progress...",
+                      "default": "Action triggered comment update"}
+    _added = "Added:"
+    _changed = "Changed:"
+    _removed = "Removed:"
 
     def __init__(self, diffs=None):
         self._diffs = diffs
 
     def from_html(self, html):
-        return self
+        # parse html into a DiffProcessor object
+        # beware: tightly coupled with to_html() method!!
+        s = MLStripper()
+        s.feed(html)
+        list_of_updates = [st.strip() for st in s.get_data().split("\n") if len(st.strip()) > 0]
 
-    def to_html(self):
-        pass
+        added_zone, change_zone, remove_zone = False, False, False
+        result_diffs = []
+        for update in list_of_updates:
+            if update == self._added:
+                added_zone = True
+                change_zone = False
+                remove_zone = False
+                continue
+            if update == self._changed:
+                change_zone = True
+                added_zone = False
+                remove_zone = False
+                continue
+            if update == self._removed:
+                remove_zone = True
+                change_zone = False
+                added_zone = False
+                continue
+
+            if change_zone:
+                d = ast.literal_eval(update)
+                for key in d:
+                    new_key = ".".join(key.split(" "))
+                    old, new = d[key]["old"], d[key]["new"]
+                    result_diffs.append(('change', new_key, (old, new)))
+
+            if added_zone or remove_zone:
+                d = ast.literal_eval(update)
+                for key in d:
+                    new_key = ".".join(key.split(" "))
+                    result_diffs.append(('add' if added_zone else 'remove', new_key, d[key]))
+
+        return DiffProcessor(result_diffs)
+
+    def to_html(self, action):
+        if action not in self._known_actions:
+            action = "default"
+        template_string = """
+<body>
+    <h3> {{header}} </h3>
+
+    {% if adds|length > 0 %}
+    <h3>Added:</h3>
+    <ul>
+    {% for add in adds %}
+        <li>{{add}}</li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if changes|length > 0 %}
+    <h3>Changed:</h3>
+    <ul>
+    {% for change in changes %}
+        <li>{{change}}</li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if removes|length > 0 %}
+    <h3>Removed:</h3>
+    <ul>
+    {% for remove in removes %}
+        <li>{{remove}}</li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+</body>
+        """
+
+        adds = []
+        changes = []
+        removes = []
+
+        for update, key, result in self._diffs:
+            if update.lower() == "add":
+                result = {" ".join(key.split(".")): result}
+                adds.append(str(result))
+            elif update.lower() == "change":
+                old, new = result
+                result = {" ".join(key.split(".")): {"old": old, "new": new}}
+                changes.append(str(result))
+            elif update.lower() == "remove":
+                result = {" ".join(key.split(".")): result}
+                removes.append(str(result))
+
+        return Template(template_string).render(adds=adds, changes=changes, removes=removes,
+                                                header=self._known_actions[action])
 
     def compare(self, other):
         return self
@@ -203,7 +317,7 @@ class CurationComponent(ServiceComponent, ABC):
         )
 
         prepared_current_draft, prepared_data = self._prepare_data(data, current_draft)
-        diff = dictdiffer.diff(prepared_current_draft, prepared_data)
+        diff = dictdiffer.diff(prepared_data, prepared_current_draft)
         diff_list = list(diff)
         diff_processor = DiffProcessor(diff_list)
 
@@ -218,32 +332,26 @@ class CurationComponent(ServiceComponent, ABC):
 
             # TODO add extra comment validation for auto-generated
             last_request_log_event = None
-            crt_critiqued = False
-            last_critiqued_comment_event = None
-            for hit in list(current_events_service.search(system_identity, request["id"]).hits)[:-1]:
-                if crt_critiqued and hit.get("type") == "C":
+            last_created_comment = None
+            for hit in list(current_events_service.search(system_identity, request["id"]).hits):
+                if hit.get("type") == "C":
                     # saved record while critiqued, store this
-                    last_critiqued_comment_event = hit
+                    last_created_comment = hit
                     continue
 
                 if hit.get("type") == "L":
                     last_request_log_event = hit.get("payload").get("event")
 
-                if last_request_log_event == "critiqued":
-                    crt_critiqued = True
-                else:
-                    crt_critiqued = False
-
-            if last_request_log_event in ["resubmitted", "critiqued"] and not last_critiqued_comment_event:
-                # user updates the draft while in resubmission, comment every change detected.
-                # OR happy path: critiqued - resubmitted, no intermediate saves
-                errors.append(self._create_new_comment(request, diff_processor.to_html()))
+            if (last_request_log_event in ["resubmitted", "critiqued"] and
+                    last_created_comment is None):
+                # happy path: critiqued - resubmitted, no intermediate saves
+                errors.append(self._create_new_comment(request, diff_processor.to_html("resubmit")))
             else:
                 # if there were draft saves between critiqued - resubmitted, be sure to capture
                 # the diff between these 2 statuses, not between draft saves.
-                last_diff = DiffProcessor().from_html(last_critiqued_comment_event.get("payload").get("content"))
-                errors.append(self._update_existing_comment(diff_processor.compare(last_diff).to_html(),
-                                                            last_critiqued_comment_event))
+                last_diff = DiffProcessor().from_html(last_created_comment.get("payload").get("content"))
+                errors.append(self._update_existing_comment(diff_processor.compare(last_diff).to_html("resubmit"),
+                                                            last_created_comment))
 
             return
 
@@ -253,10 +361,12 @@ class CurationComponent(ServiceComponent, ABC):
             last_event = list(current_events_service.search(system_identity, request["id"]).hits)[-1]
 
             if last_event.get("type") == "L":
-                errors.append(self._create_new_comment(request, diff_processor.to_html()))
+                errors.append(self._create_new_comment(request, diff_processor.to_html("update_while_critiqued")))
             elif last_event.get("type") == "C":
                 last_diff = DiffProcessor().from_html(last_event.get("payload").get("content"))
-                errors.append(self._update_existing_comment(diff_processor.compare(last_diff).to_html(), last_event))
+                errors.append(
+                    self._update_existing_comment(diff_processor.compare(last_diff).to_html("update_while_critiqued"),
+                                                  last_event))
 
             return
 
