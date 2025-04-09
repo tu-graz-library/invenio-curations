@@ -21,9 +21,8 @@ from invenio_requests.customizations import CommentEventType
 from invenio_requests.proxies import current_requests_service, current_events_service
 from flask import current_app
 
-from .diff import DiffProcessor
+from .diff import DiffProcessor, DiffElement
 from .comment import CommentProcessor
-from .utils import standardize_diff
 
 from ..proxies import current_curations_service
 from .errors import CurationRequestNotAccepted
@@ -104,6 +103,17 @@ class CurationComponent(ServiceComponent, ABC):
         
         return new_data, new_crt_draft
 
+    def _process_comment(self, data, current_draft, request, errors):
+        prepared_current_draft, prepared_data = self._prepare_data(data, current_draft)
+        diff = dictdiffer.diff(prepared_data, prepared_current_draft)
+
+        diff_processor = DiffProcessor(configured_elements=current_curations_service.comments_mapping)
+        diff_processor.map_and_build_diffs(list(diff))
+
+        comment_processor = CommentProcessor(system_identity, diff_processor)
+
+        comment_processor.process_comment(request, errors)
+
     def update_draft(self, identity, data=None, record=None, errors=None):
         """Update draft handler."""
         has_published_record = record is not None and record.is_published
@@ -143,13 +153,12 @@ class CurationComponent(ServiceComponent, ABC):
 
         # If a request is open, it still has to be reviewed eventually.
 
-        if request["is_open"]:
-            # prepare and process a comment if necessary
-            prepared_current_draft, prepared_data = self._prepare_data(data, current_draft)
-            diff = dictdiffer.diff(prepared_data, prepared_current_draft)
-            diff_processor = DiffProcessor(list(diff))
-            comment_processor = CommentProcessor(system_identity, diff_processor)
-            comment_processor.process_comment(request, errors)
+        is_request_open = request["is_open"]
+        if is_request_open and current_curations_service.comments_enabled:
+            # prepare and process a comment if config is enabled
+            self._process_comment(data, current_draft, request, errors)
+            return
+        elif is_request_open:
             return
 
         # Compare metadata of current draft and updated draft.

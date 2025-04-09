@@ -1,58 +1,204 @@
+import json
+from abc import abstractmethod
+from typing import ClassVar
+
 from jinja2 import Template
 
-from .utils import TagStripper, standardize_diff
+from .utils import TagStripper, cleanup_html_tags, HTMLParseException
 import ast
 
-class DiffProcessor:
+class DiffBase:
+
+    @abstractmethod
+    def validate_and_cleanup(self):...
+
+    @abstractmethod
+    def compare(self, other):...
+
+    @abstractmethod
+    def from_html(self, *args):...
+
+    @abstractmethod
+    def to_html(self, *args):...
+
+
+class DiffElement(DiffBase):
+
+    def __init__(self, diff=None):
+        self._diff = diff
+
+    def __eq__(self, other):
+        if not isinstance(other, DiffElement):
+            return False
+        update_this, key_this, result_this = self._diff
+        update_other, key_other, result_other = other.get_diff()
+
+        return (update_this == update_other and
+                key_this == key_other and
+                set(json.dumps(result_this)) == set(json.dumps(result_other)))
+
+    def get_diff(self):
+        return self._diff
+
+    def build_diff(self, df):
+        update, key, result = df
+        if update == "change":
+            old, new = result["old"], result["new"]
+            self._diff = update, key, (old, new)
+        else:
+            self._diff = update, key, result
+        return self
+
+    def match_diff_key(self, diff):
+        return True
+
+    def compare(self, other):
+        """
+            Compare method used to compare 2 diffs used to keep the old reference.
+        """
+        update_this, key_this, result_this = self._diff
+        update_other, key_other, result_other = other.get_diff()
+
+        if key_this != key_other:
+            return None
+
+        if (set(json.dumps(result_this)) == set(json.dumps(result_other))
+                and update_this != update_other
+                and update_this.lower() != "change"
+                and update_other.lower() != "change"):
+
+            # something was reverted
+            return False
+
+        elif (update_this.lower() == "change"
+              and update_other.lower() == "change"
+              and key_this == key_other):
+            # make sure to set the 'old' values from other
+            old_other, _ = result_other
+            _, new_this = result_this
+
+            if old_other == new_this:
+                # field back to original value, remove from comment
+                return False
+
+            result_this = (old_other, new_this)
+            self._diff = (update_this, key_this, result_this)
+            return True
+
+        elif self._diff == other:
+           return False
+
+        else:
+            return True
+
+    def from_html(self, text):
+        return ast.literal_eval(text)
+
+    def to_html(self):
+        update, key, result = self._diff
+        if update != "change":
+            return str({" ".join(key.split(".")): result})
+        else:
+            old, new = result
+            return str({" ".join(key.split(".")): {"old": old, "new": new}})
+
+    def validate_and_cleanup(self):
+        _, key, result = self._diff
+
+        return (isinstance(key, str) and
+                ((isinstance(result, list) and len(result) == 1) or isinstance(result, tuple)))
+
+
+class DiffDescription(DiffElement):
+
+    _name = "metadata.description"
+
+    def match_diff_key(self, diff):
+        _, key, result = diff
+        if isinstance(key, str) and key == self._name:
+            return True
+        elif (isinstance(key, str) and
+              isinstance(result, list) and
+              len(result) == 1 and
+              isinstance(result[0], dict)
+        ):
+            return key + "." + result[0].keys().next() == self._name
+
+    def validate_and_cleanup(self):
+        update, key, result = self._diff
+        try:
+            if isinstance(result, list) and len(result) == 1:
+                field, val = result[0]
+                new_val = cleanup_html_tags(val).strip()
+                self._diff = (update, key, [(field, new_val)])
+                return True
+
+            elif isinstance(result, tuple):
+                old, new = result
+                new_old = cleanup_html_tags(old).strip()
+                new_new = cleanup_html_tags(new).strip()
+                self._diff = (update, key, (new_old, new_new))
+                return True
+            else:
+                # not supported yet, don't publish in the comment
+                # to not interfere with future diffs
+                return False
+        except HTMLParseException:
+            return False
+
+
+class DiffProcessor(DiffBase):
     """
     DiffProcessor class.
     """
     _diffs = None
+    _configured_elements = None
+
     _known_actions = {
         "resubmit": "Record was resubmitted for review with the following changes:",
         "update_while_critiqued": "Record started being updated, work in progress...",
-        "default": "Action triggered comment update"
+        "update_while_review": "Record was updated! Please check the latest changes.",
+        "default": "Action triggered comment update",
     }
     _added = "Added:"
     _changed = "Changed:"
     _removed = "Removed:"
 
-    def __init__(self, diffs=None):
+    def __init__(self, diffs=None, configured_elements=None):
         self._diffs = diffs
+        self._configured_elements = configured_elements
 
-    def _cleanup_html_tags(self):
-        idx = 0
-        for update, key, result in self._diffs:
-            s = TagStripper()
-            if isinstance(result, list) and len(result) == 1:
-                field, val = result[0]
-                if "<" in val:
-                    s.feed(val)
-                    self._diffs[idx] =(update, key, [(field, s.get_data().strip())])
-            elif isinstance(result, tuple):
-                old, new = result
-                s.feed(old)
-                new_old = s.get_data().strip()
+    def _map_one_diff(self, raw_diff):
+        for element in self._configured_elements:
+            if element().match_diff_key(raw_diff):
+                return element
 
-                s_new = TagStripper()
-                s_new.feed(new)
-                new_new = s_new.get_data().strip()
-                self._diffs[idx] =(update, key, (new_old, new_new))
-            else:
-                # not supported yet
-                continue
-            idx += 1
+        return DiffElement
+
+    def map_and_build_diffs(self, raw_diffs):
+        self._diffs = []
+        for raw_diff in raw_diffs:
+            self._diffs.append(self._map_one_diff(raw_diff)(raw_diff))
+
+    def validate_and_cleanup(self):
+        to_remove = []
+
+        for diff in self._diffs:
+            if not diff.validate_and_cleanup():
+                to_remove.append(diff)
+
+        for remove in to_remove:
+            self._diffs.remove(remove)
 
     def from_html(self, html):
         # parse html into a DiffProcessor object
         # beware: tightly coupled with to_html() method!!
-        s = TagStripper()
-        s.feed(html)
-        list_of_updates = [st.strip() for st in s.get_data().split("\n") if len(st.strip()) > 0]
+        html_free_text = cleanup_html_tags(html)
+        list_of_updates = [st.strip() for st in html_free_text.split("\n") if len(st.strip()) > 0]
 
         added_zone, change_zone, remove_zone = False, False, False
         result_diffs = []
-        for update in list_of_updates:
+        for update in list_of_updates[1:]:
             if update == self._added:
                 added_zone = True
                 change_zone = False
@@ -69,20 +215,30 @@ class DiffProcessor:
                 added_zone = False
                 continue
 
+            d = {}
+            for element in self._configured_elements:
+                try:
+                    d = element().from_html(update)
+                    break
+                except Exception:
+                    continue
+
+            if len(d.keys()) == 0:
+                raise HTMLParseException()
+
             if change_zone:
-                d = ast.literal_eval(update)
                 for key in d:
                     new_key = ".".join(key.split(" "))
-                    old, new = d[key]["old"], d[key]["new"]
-                    result_diffs.append(('change', new_key, (old, new)))
+                    df = ("change", new_key, d[key])
+                    result_diffs.append(self._map_one_diff(df)().build_diff(df))
 
             if added_zone or remove_zone:
-                d = ast.literal_eval(update)
                 for key in d:
                     new_key = ".".join(key.split(" "))
-                    result_diffs.append(('add' if added_zone else 'remove', new_key, d[key]))
+                    df = ("add" if added_zone else "remove", new_key, d[key])
+                    result_diffs.append(self._map_one_diff(df)().build_diff(df))
 
-        return DiffProcessor(result_diffs)
+        return DiffProcessor(result_diffs, self._configured_elements)
 
     def to_html(self, action):
         if action not in self._known_actions:
@@ -124,18 +280,15 @@ class DiffProcessor:
         changes = []
         removes = []
 
-        self._cleanup_html_tags()
-        for update, key, result in self._diffs:
-            if update.lower() == "add":
-                result = {" ".join(key.split(".")): result}
-                adds.append(str(result))
-            elif update.lower() == "change":
-                old, new = result
-                result = {" ".join(key.split(".")): {"old": old, "new": new}}
-                changes.append(str(result))
-            elif update.lower() == "remove":
-                result = {" ".join(key.split(".")): result}
-                removes.append(str(result))
+        self.validate_and_cleanup()
+        for diff in self._diffs:
+            update, _, _ = diff.get_diff()
+            if update == "add":
+                adds.append(diff.to_html())
+            elif update == "change":
+                changes.append(diff.to_html())
+            elif update == "remove":
+                removes.append(diff.to_html())
 
         return Template(template_string).render(
             adds=adds,
@@ -148,7 +301,7 @@ class DiffProcessor:
         )
 
     def _get_joined_update(self, update):
-        update_name, update_key, result = update
+        update_name, update_key, result = update.get_diff()
 
         return "|".join([str(update_name), str(update_key), str(result)])
 
@@ -157,7 +310,7 @@ class DiffProcessor:
         update_name, update_key = update_split[0], update_split[1]
         update_dict = ast.literal_eval(update_split[2])
 
-        return update_name, update_key, update_dict
+        return DiffElement((update_name, update_key, update_dict))
 
     def compare(self, other):
         # the purpose of this comparing method is to modify this instance's diff list
@@ -165,52 +318,21 @@ class DiffProcessor:
         to_add = set()
         to_remove = set()
         skip_second_loop = set()
-        idx = 0
 
-        self._cleanup_html_tags()
-        for update_this, key_this, result_this in self._diffs:
-            for update_other, key_other, result_other in other.get_diffs():
-                if (key_this == key_other
-                        and set(result_this) == set(result_other)
-                        and update_this != update_other
-                        and update_this.lower() != "change"
-                        and update_other.lower() != "change"):
+        self.validate_and_cleanup()
+        for diff_this in self._diffs:
+            for other_diff in other.get_diffs():
+                result = diff_this.compare(other_diff)
+                if result is None:
+                    continue
+                elif not result:
+                    to_remove.add(self._get_joined_update(diff_this))
+                skip_second_loop.add(self._get_joined_update(other_diff))
 
-                    # something was reverted
-                    to_remove.add(self._get_joined_update((update_this, key_this, result_this)))
-                    skip_second_loop.add(self._get_joined_update((update_other, key_other, result_other)))
-                    break
-
-                elif (update_this.lower() == "change"
-                      and update_other.lower() == "change"
-                      and key_this == key_other):
-                    # make sure to set the 'old' values from other
-                    old_other, _ = result_other
-                    _, new_this = result_this
-
-                    if old_other == new_this:
-                        # field back to original value, remove from comment
-                        to_remove.add(self._get_joined_update((update_this, key_this, result_this)))
-                        skip_second_loop.add(self._get_joined_update((update_other, key_other, result_other)))
-                        break
-
-                    result_this = (old_other, new_this)
-                    skip_second_loop.add(self._get_joined_update((update_other, key_other, result_other)))
-                    self._diffs[idx] = (update_this, key_this, result_this)
-                    break
-
-                elif (update_this.lower() == update_other.lower()
-                      and key_this == key_other
-                    and result_this == result_other):
-                    skip_second_loop.add(self._get_joined_update((update_other, key_other, result_other)))
-                    pass
-            idx += 1
-
-        for update_other, key_other, result_other in other.get_diffs():
-            if (update_other.lower() != "change"
-                    and self._get_joined_update((update_other, key_other, result_other)) not in skip_second_loop):
+        for other_diff in other.get_diffs():
+            if self._get_joined_update(other_diff) not in skip_second_loop:
                 # keep all operations that were not touched in the previous loop
-                to_add.add(self._get_joined_update((update_other, key_other, result_other)))
+                to_add.add(self._get_joined_update(other_diff))
 
         for update in to_add:
             self._diffs.append(self._get_split_update(update))
