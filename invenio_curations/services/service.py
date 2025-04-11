@@ -64,6 +64,10 @@ class CurationRequestService:
     def comments_mapping(self):
         return current_app.config.get("CURATIONS_COMMENTS_CLASSES")
 
+    @property
+    def comment_event_type(self):
+        return current_app.config.get("CURATIONS_COMMENT_EVENT_TYPE")
+
     def get_review(self, identity, topic, **kwargs):
         """Get the curation review for a topic."""
         topic_reference = ResolverRegistry.reference_entity(topic)

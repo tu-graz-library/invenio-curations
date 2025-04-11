@@ -10,8 +10,10 @@
 
 from .config import CurationsServiceConfig
 from .service import CurationRequestService
+from .events import CurationsEventsService
 
 __all__ = (
     "CurationsServiceConfig",
     "CurationRequestService",
+    "CurationsEventsService"
 )

@@ -15,3 +15,6 @@ current_curations = LocalProxy(lambda: current_app.extensions["invenio-curations
 
 current_curations_service = LocalProxy(lambda: current_curations.curations_service)
 """Proxy to the instantiated curations service."""
+
+current_events_service = LocalProxy(lambda: current_curations.events_service)
+"""Proxy to the instantiated curations events service."""

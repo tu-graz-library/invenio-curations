@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2025 Graz University of Technology.
+#
+# Invenio-Curations is free software; you can redistribute it and/or
+# modify it under the terms of the MIT License; see LICENSE file for more
+# details.
+
 import json
 from abc import abstractmethod
 from typing import ClassVar
@@ -16,7 +24,10 @@ class DiffBase:
     def compare(self, other):...
 
     @abstractmethod
-    def from_html(self, *args):...
+    def from_base_content_object(self, *args):...
+
+    @abstractmethod
+    def get_base_content_object(self, *args):...
 
     @abstractmethod
     def to_html(self, *args):...
@@ -91,8 +102,11 @@ class DiffElement(DiffBase):
         else:
             return True
 
-    def from_html(self, text):
+    def from_base_content_object(self, text):
         return ast.literal_eval(text)
+
+    def get_base_content_object(self):
+        return str(self.get_diff())
 
     def to_html(self):
         update, key, result = self._diff
@@ -117,12 +131,15 @@ class DiffDescription(DiffElement):
         _, key, result = diff
         if isinstance(key, str) and key == self._name:
             return True
-        elif (isinstance(key, str) and
-              isinstance(result, list) and
-              len(result) == 1 and
-              isinstance(result[0], dict)
+        elif (
+            isinstance(key, str) and
+            isinstance(result, list) and
+            len(result) == 1 and
+            isinstance(result[0], tuple)
+
         ):
-            return key + "." + result[0].keys().next() == self._name
+            name, _ = result[0]
+            return key + "." + str(name) == self._name
 
     def validate_and_cleanup(self):
         update, key, result = self._diff
@@ -190,55 +207,27 @@ class DiffProcessor(DiffBase):
         for remove in to_remove:
             self._diffs.remove(remove)
 
-    def from_html(self, html):
-        # parse html into a DiffProcessor object
-        # beware: tightly coupled with to_html() method!!
-        html_free_text = cleanup_html_tags(html)
-        list_of_updates = [st.strip() for st in html_free_text.split("\n") if len(st.strip()) > 0]
-
-        added_zone, change_zone, remove_zone = False, False, False
+    def from_base_content_object(self, base_content_objects):
         result_diffs = []
-        for update in list_of_updates[1:]:
-            if update == self._added:
-                added_zone = True
-                change_zone = False
-                remove_zone = False
-                continue
-            if update == self._changed:
-                change_zone = True
-                added_zone = False
-                remove_zone = False
-                continue
-            if update == self._removed:
-                remove_zone = True
-                change_zone = False
-                added_zone = False
-                continue
-
-            d = {}
+        parsed_objects_list = ast.literal_eval(base_content_objects)
+        for update in parsed_objects_list:
+            df = None
             for element in self._configured_elements:
                 try:
-                    d = element().from_html(update)
+                    df = element().from_base_content_object(update)
                     break
                 except Exception:
                     continue
 
-            if len(d.keys()) == 0:
-                raise HTMLParseException()
-
-            if change_zone:
-                for key in d:
-                    new_key = ".".join(key.split(" "))
-                    df = ("change", new_key, d[key])
-                    result_diffs.append(self._map_one_diff(df)().build_diff(df))
-
-            if added_zone or remove_zone:
-                for key in d:
-                    new_key = ".".join(key.split(" "))
-                    df = ("add" if added_zone else "remove", new_key, d[key])
-                    result_diffs.append(self._map_one_diff(df)().build_diff(df))
+            result_diffs.append(self._map_one_diff(df)(df))
 
         return DiffProcessor(result_diffs, self._configured_elements)
+
+    def get_base_content_object(self):
+        result = []
+        for diff in self._diffs:
+            result.append(diff.get_base_content_object())
+        return str(result)
 
     def to_html(self, action):
         if action not in self._known_actions:
