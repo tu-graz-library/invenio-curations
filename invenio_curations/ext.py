@@ -15,7 +15,11 @@ from invenio_requests.proxies import current_requests_service
 
 from . import config
 from .resources import CurationsResource, CurationsResourceConfig
-from .services import CurationRequestService, CurationsServiceConfig
+from .services import (
+    CurationRequestService,
+    CurationsEventsService,
+    CurationsServiceConfig,
+)
 from .views.ui import user_has_curations_management_role
 
 
@@ -40,6 +44,7 @@ class InvenioCurations(object):
 
     def __init__(self, app=None):
         """Extension initialization."""
+        self.events_service = None
         self.curations_service = None
         self.curations_resource = None
         if app:
@@ -73,6 +78,12 @@ class InvenioCurations(object):
         self.curations_service = CurationRequestService(
             config=service_configs.curations,
             requests_service=current_requests_service,
+        )
+
+        from invenio_requests.services.events import RequestEventsServiceConfig
+
+        self.events_service = CurationsEventsService(
+            config=RequestEventsServiceConfig.build(app)
         )
 
     def init_resources(self, app):

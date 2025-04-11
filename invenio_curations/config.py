@@ -14,7 +14,8 @@ from invenio_curations.notifications.builders import (
     CurationRequestReviewNotificationBuilder,
     CurationRequestSubmitNotificationBuilder,
 )
-from invenio_curations.services import facets
+from invenio_curations.services import diff, facets
+from invenio_curations.services.diff import DiffDescription
 
 CURATIONS_FACETS = {
     "type": {
@@ -68,3 +69,7 @@ CURATIONS_NOTIFICATIONS_BUILDERS = {
     ]
 }
 """Curation related notification builders as map for easy import."""
+
+CURATIONS_ENABLE_REQUEST_COMMENTS = False
+
+CURATIONS_COMMENTS_CLASSES = [DiffDescription]

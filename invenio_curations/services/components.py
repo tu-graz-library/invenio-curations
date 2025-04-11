@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2024 Graz University of Technology.
+# Copyright (C) 2024-2025 Graz University of Technology.
 # Copyright (C) 2024 TU Wien.
 #
 # Invenio-Curations is free software; you can redistribute it and/or
@@ -8,7 +8,6 @@
 # details.
 
 """Component for checking curations."""
-
 from abc import ABC
 
 import dictdiffer
@@ -16,9 +15,12 @@ from invenio_access.permissions import system_identity
 from invenio_drafts_resources.services.records.components import ServiceComponent
 from invenio_i18n import lazy_gettext as _
 from invenio_pidstore.models import PIDStatus
-from invenio_requests.proxies import current_requests_service
+from invenio_requests.customizations import CommentEventType
+from invenio_requests.proxies import current_events_service, current_requests_service
 
 from ..proxies import current_curations_service
+from .comment import CommentProcessor
+from .diff import DiffProcessor
 from .errors import CurationRequestNotAccepted
 
 
@@ -87,6 +89,29 @@ class CurationComponent(ServiceComponent, ABC):
                 system_identity, request["id"], request, uow=self.uow
             )
 
+    def _prepare_data(self, data, current_draft):
+        supported_fields = ["metadata", "custom_fields"]
+        new_data = {}
+        new_crt_draft = {}
+        for field in supported_fields:
+            new_data[field] = data[field]
+            new_crt_draft[field] = current_draft[field]
+
+        return new_data, new_crt_draft
+
+    def _process_comment(self, data, current_draft, request, errors):
+        prepared_current_draft, prepared_data = self._prepare_data(data, current_draft)
+        diff = dictdiffer.diff(prepared_data, prepared_current_draft)
+
+        diff_processor = DiffProcessor(
+            configured_elements=current_curations_service.comments_mapping
+        )
+        diff_processor.map_and_build_diffs(list(diff))
+
+        comment_processor = CommentProcessor(system_identity, diff_processor)
+
+        comment_processor.process_comment(request, errors)
+
     def update_draft(self, identity, data=None, record=None, errors=None):
         """Update draft handler."""
         has_published_record = record is not None and record.is_published
@@ -125,7 +150,13 @@ class CurationComponent(ServiceComponent, ABC):
         # It could be possible that the record gets updated while a curator performs a review. The curator would be looking at an outdated record and the review might not be correct.
 
         # If a request is open, it still has to be reviewed eventually.
-        if request["is_open"]:
+
+        is_request_open = request["is_open"]
+        if is_request_open and current_curations_service.comments_enabled:
+            # prepare and process a comment if config is enabled
+            self._process_comment(data, current_draft, request, errors)
+            return
+        elif is_request_open:
             return
 
         # Compare metadata of current draft and updated draft.

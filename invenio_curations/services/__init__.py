@@ -9,9 +9,7 @@
 """Resources module."""
 
 from .config import CurationsServiceConfig
+from .events import CurationsEventsService
 from .service import CurationRequestService
 
-__all__ = (
-    "CurationsServiceConfig",
-    "CurationRequestService",
-)
+__all__ = ("CurationsServiceConfig", "CurationRequestService", "CurationsEventsService")
