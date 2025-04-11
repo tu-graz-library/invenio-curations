@@ -12,7 +12,7 @@ from .ext import InvenioCurations
 from .proxies import (
     current_curations,
     current_curations_service,
-    current_events_service
+    current_events_service,
 )
 
 __version__ = "0.1.0"

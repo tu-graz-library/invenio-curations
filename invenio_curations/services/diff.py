@@ -6,30 +6,36 @@
 # modify it under the terms of the MIT License; see LICENSE file for more
 # details.
 
+import ast
 import json
 from abc import abstractmethod
+
 from invenio_i18n import lazy_gettext as _
 from jinja2 import Template
 
-from .utils import TagStripper, cleanup_html_tags, HTMLParseException
-import ast
+from .utils import HTMLParseException, cleanup_html_tags
+
+
+class DiffException(Exception):
+    pass
+
 
 class DiffBase:
 
     @abstractmethod
-    def validate_and_cleanup(self):...
+    def validate_and_cleanup(self): ...
 
     @abstractmethod
-    def compare(self, other):...
+    def compare(self, other): ...
 
     @abstractmethod
-    def from_base_content_object(self, *args):...
+    def from_base_content_object(self, *args): ...
 
     @abstractmethod
-    def get_base_content_object(self, *args):...
+    def get_base_content_object(self, *args): ...
 
     @abstractmethod
-    def to_html(self, *args):...
+    def to_html(self, *args): ...
 
 
 class DiffElement(DiffBase):
@@ -43,37 +49,52 @@ class DiffElement(DiffBase):
         update_this, key_this, result_this = self._diff
         update_other, key_other, result_other = other.get_diff()
 
-        return (update_this == update_other and
-                key_this == key_other and
-                set(json.dumps(result_this)) == set(json.dumps(result_other)))
+        return (
+            update_this == update_other
+            and key_this == key_other
+            and set(json.dumps(result_this)) == set(json.dumps(result_other))
+        )
 
     def get_diff(self):
         return self._diff
 
     def match_diff_key(self, diff):
-        return True
+        return isinstance(diff, tuple)
 
     def compare(self, other):
         """
-            Compare method used to compare 2 diffs used to keep the old reference.
+        Compare method used to compare 2 diffs used to return the difference between the
+        state of current instance and the reference represented by other.
+
+        return: False if this instance should be removed from the final list
+                True if otherwise
+                None if other instance should be added to the final list
         """
+
+        if not isinstance(other, DiffElement):
+            return False
+
         update_this, key_this, result_this = self._diff
         update_other, key_other, result_other = other.get_diff()
 
         if key_this != key_other:
             return None
 
-        if (set(json.dumps(result_this)) == set(json.dumps(result_other))
-                and update_this != update_other
-                and update_this.lower() != "change"
-                and update_other.lower() != "change"):
+        if (
+            set(json.dumps(result_this)) == set(json.dumps(result_other))
+            and update_this != update_other
+            and update_this.lower() != "change"
+            and update_other.lower() != "change"
+        ):
 
             # something was reverted
             return False
 
-        elif (update_this.lower() == "change"
-              and update_other.lower() == "change"
-              and key_this == key_other):
+        elif (
+            update_this.lower() == "change"
+            and update_other.lower() == "change"
+            and key_this == key_other
+        ):
             # make sure to set the 'old' values from other
             old_other, _ = result_other
             _, new_this = result_this
@@ -87,7 +108,7 @@ class DiffElement(DiffBase):
             return True
 
         elif self._diff == other:
-           return False
+            return False
 
         else:
             return True
@@ -104,13 +125,14 @@ class DiffElement(DiffBase):
             return str({" ".join(key.split(".")): result})
         else:
             old, new = result
-            return str({" ".join(key.split(".")): {_("old"): old, _("new"): new}})
+            return str({" ".join(key.split(".")): {"old": old, "new": new}})
 
     def validate_and_cleanup(self):
         _, key, result = self._diff
 
-        return (isinstance(key, str) and
-                ((isinstance(result, list) and len(result) == 1) or isinstance(result, tuple)))
+        return isinstance(key, str) and (
+            (isinstance(result, list) and len(result) == 1) or isinstance(result, tuple)
+        )
 
 
 class DiffDescription(DiffElement):
@@ -118,15 +140,16 @@ class DiffDescription(DiffElement):
     _name = "metadata.description"
 
     def match_diff_key(self, diff):
+        if not super().match_diff_key(diff):
+            return False
         _, key, result = diff
         if isinstance(key, str) and key == self._name:
             return True
         elif (
-            isinstance(key, str) and
-            isinstance(result, list) and
-            len(result) == 1 and
-            isinstance(result[0], tuple)
-
+            isinstance(key, str)
+            and isinstance(result, list)
+            and len(result) == 1
+            and isinstance(result[0], tuple)
         ):
             name, _ = result[0]
             return key + "." + str(name) == self._name
@@ -156,15 +179,21 @@ class DiffDescription(DiffElement):
 
 class DiffProcessor(DiffBase):
     """
-    DiffProcessor class.
+    DiffProcessor class. Used to process a list of diffs with the custom implemented behaviour.
+    Each diff is an instance of a specific wrapper, defined in _configured_elements.
     """
+
     _diffs = None
     _configured_elements = None
 
     _known_actions = {
         "resubmit": _("Record was resubmitted for review with the following changes:"),
-        "update_while_critiqued": _("Record started being updated, work in progress..."),
-        "update_while_review": _("Record was updated! Please check the latest changes."),
+        "update_while_critiqued": _(
+            "Record started being updated, work in progress..."
+        ),
+        "update_while_review": _(
+            "Record was updated! Please check the latest changes."
+        ),
         "default": _("Action triggered comment update"),
     }
     _added = _("Added:")
@@ -183,6 +212,9 @@ class DiffProcessor(DiffBase):
         return DiffElement
 
     def map_and_build_diffs(self, raw_diffs):
+        if not isinstance(raw_diffs, list):
+            return
+
         self._diffs = []
         for raw_diff in raw_diffs:
             self._diffs.append(self._map_one_diff(raw_diff)(raw_diff))
@@ -292,8 +324,9 @@ class DiffProcessor(DiffBase):
         return DiffElement((update_name, update_key, update_dict))
 
     def compare(self, other):
-        # the purpose of this comparing method is to modify this instance's diff list
-        # by keeping the received object as a base of comparing
+        if not isinstance(other, DiffProcessor):
+            raise DiffException()
+
         to_add = set()
         to_remove = set()
         skip_second_loop = set()

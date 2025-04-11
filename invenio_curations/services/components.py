@@ -16,12 +16,11 @@ from invenio_drafts_resources.services.records.components import ServiceComponen
 from invenio_i18n import lazy_gettext as _
 from invenio_pidstore.models import PIDStatus
 from invenio_requests.customizations import CommentEventType
-from invenio_requests.proxies import current_requests_service, current_events_service
-
-from .diff import DiffProcessor
-from .comment import CommentProcessor
+from invenio_requests.proxies import current_events_service, current_requests_service
 
 from ..proxies import current_curations_service
+from .comment import CommentProcessor
+from .diff import DiffProcessor
 from .errors import CurationRequestNotAccepted
 
 
@@ -104,7 +103,9 @@ class CurationComponent(ServiceComponent, ABC):
         prepared_current_draft, prepared_data = self._prepare_data(data, current_draft)
         diff = dictdiffer.diff(prepared_data, prepared_current_draft)
 
-        diff_processor = DiffProcessor(configured_elements=current_curations_service.comments_mapping)
+        diff_processor = DiffProcessor(
+            configured_elements=current_curations_service.comments_mapping
+        )
         diff_processor.map_and_build_diffs(list(diff))
 
         comment_processor = CommentProcessor(system_identity, diff_processor)

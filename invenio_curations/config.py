@@ -14,8 +14,7 @@ from invenio_curations.notifications.builders import (
     CurationRequestReviewNotificationBuilder,
     CurationRequestSubmitNotificationBuilder,
 )
-from invenio_curations.services import facets
-from invenio_curations.services import diff
+from invenio_curations.services import diff, facets
 from invenio_curations.services.diff import DiffDescription
 
 CURATIONS_FACETS = {

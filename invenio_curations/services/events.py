@@ -6,16 +6,16 @@
 # modify it under the terms of the MIT License; see LICENSE file for more
 # details.
 
-from invenio_requests.services import RequestEventsService
+import marshmallow as ma
 from invenio_records_resources.services.uow import (
     RecordCommitOp,
     unit_of_work,
 )
-
 from invenio_requests.customizations.event_types import CommentEventType
-import marshmallow as ma
+from invenio_requests.services import RequestEventsService
 from marshmallow import RAISE, fields, validate
 from marshmallow_utils import fields as utils_fields
+
 
 class CurationCommentEventType(CommentEventType):
     """Comment event type."""
@@ -39,6 +39,7 @@ class CurationCommentEventType(CommentEventType):
         )
 
     payload_required = True
+
 
 class CurationsEventsService(RequestEventsService):
 

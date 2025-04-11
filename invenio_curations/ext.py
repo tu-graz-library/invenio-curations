@@ -15,7 +15,11 @@ from invenio_requests.proxies import current_requests_service
 
 from . import config
 from .resources import CurationsResource, CurationsResourceConfig
-from .services import CurationRequestService, CurationsServiceConfig, CurationsEventsService
+from .services import (
+    CurationRequestService,
+    CurationsEventsService,
+    CurationsServiceConfig,
+)
 from .views.ui import user_has_curations_management_role
 
 
@@ -77,6 +81,7 @@ class InvenioCurations(object):
         )
 
         from invenio_requests.services.events import RequestEventsServiceConfig
+
         self.events_service = CurationsEventsService(
             config=RequestEventsServiceConfig.build(app)
         )

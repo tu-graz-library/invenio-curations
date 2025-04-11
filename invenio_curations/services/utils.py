@@ -1,5 +1,6 @@
-from io import StringIO
 from html.parser import HTMLParser
+from io import StringIO
+
 
 class HTMLParseException(Exception):
     pass
@@ -18,6 +19,7 @@ class TagStripper(HTMLParser):
 
     def get_data(self):
         return self.text.getvalue()
+
 
 def cleanup_html_tags(text):
     if not isinstance(text, str):
