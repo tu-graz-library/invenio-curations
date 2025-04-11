@@ -8,8 +8,7 @@
 
 import json
 from abc import abstractmethod
-from typing import ClassVar
-
+from invenio_i18n import lazy_gettext as _
 from jinja2 import Template
 
 from .utils import TagStripper, cleanup_html_tags, HTMLParseException
@@ -50,15 +49,6 @@ class DiffElement(DiffBase):
 
     def get_diff(self):
         return self._diff
-
-    def build_diff(self, df):
-        update, key, result = df
-        if update == "change":
-            old, new = result["old"], result["new"]
-            self._diff = update, key, (old, new)
-        else:
-            self._diff = update, key, result
-        return self
 
     def match_diff_key(self, diff):
         return True
@@ -114,7 +104,7 @@ class DiffElement(DiffBase):
             return str({" ".join(key.split(".")): result})
         else:
             old, new = result
-            return str({" ".join(key.split(".")): {"old": old, "new": new}})
+            return str({" ".join(key.split(".")): {_("old"): old, _("new"): new}})
 
     def validate_and_cleanup(self):
         _, key, result = self._diff
@@ -172,14 +162,14 @@ class DiffProcessor(DiffBase):
     _configured_elements = None
 
     _known_actions = {
-        "resubmit": "Record was resubmitted for review with the following changes:",
-        "update_while_critiqued": "Record started being updated, work in progress...",
-        "update_while_review": "Record was updated! Please check the latest changes.",
-        "default": "Action triggered comment update",
+        "resubmit": _("Record was resubmitted for review with the following changes:"),
+        "update_while_critiqued": _("Record started being updated, work in progress..."),
+        "update_while_review": _("Record was updated! Please check the latest changes."),
+        "default": _("Action triggered comment update"),
     }
-    _added = "Added:"
-    _changed = "Changed:"
-    _removed = "Removed:"
+    _added = _("Added:")
+    _changed = _("Changed:")
+    _removed = _("Removed:")
 
     def __init__(self, diffs=None, configured_elements=None):
         self._diffs = diffs

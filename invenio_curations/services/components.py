@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2024 Graz University of Technology.
+# Copyright (C) 2024-2025 Graz University of Technology.
 # Copyright (C) 2024 TU Wien.
 #
 # Invenio-Curations is free software; you can redistribute it and/or
@@ -8,8 +8,6 @@
 # details.
 
 """Component for checking curations."""
-import json
-import re
 from abc import ABC
 
 import dictdiffer
@@ -19,9 +17,8 @@ from invenio_i18n import lazy_gettext as _
 from invenio_pidstore.models import PIDStatus
 from invenio_requests.customizations import CommentEventType
 from invenio_requests.proxies import current_requests_service, current_events_service
-from flask import current_app
 
-from .diff import DiffProcessor, DiffElement
+from .diff import DiffProcessor
 from .comment import CommentProcessor
 
 from ..proxies import current_curations_service
@@ -100,7 +97,7 @@ class CurationComponent(ServiceComponent, ABC):
         for field in supported_fields:
             new_data[field] = data[field]
             new_crt_draft[field] = current_draft[field]
-        
+
         return new_data, new_crt_draft
 
     def _process_comment(self, data, current_draft, request, errors):
@@ -147,7 +144,7 @@ class CurationComponent(ServiceComponent, ABC):
         self._check_update_request(
             identity, request, data=data, record=current_draft, errors=errors
         )
-        
+
         # TODO: Should updates be disallowed if the record/request is currently being reviewed?
         # It could be possible that the record gets updated while a curator performs a review. The curator would be looking at an outdated record and the review might not be correct.
 
