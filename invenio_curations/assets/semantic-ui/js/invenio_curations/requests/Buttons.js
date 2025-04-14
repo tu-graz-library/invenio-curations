@@ -1,10 +1,11 @@
 // This file is part of InvenioRDM
 // Copyright (C) 2024 TU Wien.
-// Copyright (C) 2024 Graz University of Technology.
+// Copyright (C) 2024-2025 Graz University of Technology.
 //
 // Invenio-Curations is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
 
+import PropTypes from "prop-types";
 import { i18next } from "@translations/invenio_curations/i18next";
 import React from "react";
 import { Button } from "semantic-ui-react";
@@ -63,4 +64,22 @@ export const RequestReviewButton = (props) => {
       {...props}
     />
   );
+};
+
+RequestBaseButton.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  content: PropTypes.string.isRequired,
+  icon: PropTypes.string.isRequired,
+  color: PropTypes.string.isRequired,
+  ariaAttributes: PropTypes.object,
+  loading: PropTypes.bool,
+  size: PropTypes.string,
+  className: PropTypes.string,
+};
+
+RequestBaseButton.defaultProps = {
+  ariaAttributes: {},
+  loading: false,
+  size: "mini",
+  className: "ml-5",
 };
