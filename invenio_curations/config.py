@@ -14,7 +14,8 @@ from invenio_curations.notifications.builders import (
     CurationRequestReviewNotificationBuilder,
     CurationRequestSubmitNotificationBuilder,
 )
-from invenio_curations.services import facets
+from invenio_curations.services import diff, facets
+from invenio_curations.services.diff import DiffDescription
 
 CURATIONS_FACETS = {
     "type": {
@@ -68,3 +69,24 @@ CURATIONS_NOTIFICATIONS_BUILDERS = {
     ]
 }
 """Curation related notification builders as map for easy import."""
+
+CURATIONS_ENABLE_REQUEST_COMMENTS = False
+"""Curation request comments flag.
+
+Set this in order to activate the automatic creation/update of request comments
+based on the difference found between draft states of an unpublished record
+that is in the curation phase.
+"""
+
+CURATIONS_COMMENTS_CLASSES = [DiffDescription]
+"""Curation comment classes.
+
+List with all custom classes defined for rendering a change in a draft field.
+"""
+
+CURATIONS_COMMENT_TEMPLATE_FILE = "comment-template.html"
+"""Curation comment template file.
+
+Choose a file from the instance's templates folder to render the request comment.
+More details in README.
+"""
