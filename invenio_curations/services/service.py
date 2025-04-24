@@ -55,6 +55,21 @@ class CurationRequestService:
         """Curation request type."""
         return current_request_type_registry.lookup(CurationRequest.type_id)
 
+    @property
+    def comments_enabled(self):
+        """Get the configured value of ``CURATIONS_ENABLE_REQUEST_COMMENTS``."""
+        return current_app.config.get("CURATIONS_ENABLE_REQUEST_COMMENTS", False)
+
+    @property
+    def comments_mapping(self):
+        """Curations specific comment classes."""
+        return current_app.config.get("CURATIONS_COMMENTS_CLASSES")
+
+    @property
+    def comment_template_file(self):
+        """Curations specific comment html template."""
+        return current_app.config.get("CURATIONS_COMMENT_TEMPLATE_FILE")
+
     def get_review(self, identity, topic, **kwargs):
         """Get the curation review for a topic."""
         topic_reference = ResolverRegistry.reference_entity(topic)

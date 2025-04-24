@@ -254,6 +254,79 @@ The ``DepositBox`` overrides the record's lifecycle management box on the deposi
 It takes care of rendering the "publish" button only when appropriate in the curation workflow.
 The other ``curationComponentOverrides`` provide better rendering for the new elements (e.g. event types) in the request page.
 
+Option: Activate automatically generated request comments.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This feature enables the creation and update of custom request comments (i.e events) that should track the differences between metadata states of a draft found in the curation phase.
+How to enable it:
+
+1. Make sure to set the ``CURATIONS_ENABLE_REQUEST_COMMENTS`` variable
+
+.. code-block:: python
+
+    CURATIONS_ENABLE_REQUEST_COMMENTS = True
+
+
+2. Setup the jinja template for the comment in the running instance's **./templates** folder. This is the the basic template and of course can be changed.
+   The actual updates should be kept in whatever template is eventually used. Variables for those are: **adds**, **changes**, **removes**.
+
+.. code-block:: html
+
+    <!DOCTYPE html>
+    <html>
+        <body>
+            <h3>{{header}}</h3>
+
+            {% if adds|length > 0 %}
+                <h3>
+                    {{ _("Added") }}
+                </h3>
+                <ul>
+                {% for add in adds %}
+                    <li>{{add}}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+
+            {% if changes|length > 0 %}
+                <h3>
+                    {{ _("Changed") }}
+                </h3>
+                <ul>
+                {% for change in changes %}
+                    <li>{{change}}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+
+            {% if removes|length > 0 %}
+                <h3>
+                    {{ _("Removed") }}
+                </h3>
+                <ul>
+                {% for remove in removes %}
+                    <li>{{remove}}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        </body>
+    </html>
+
+3. Optional: Configure the template file.
+
+.. code-block:: python
+
+    # default value
+    CURATIONS_COMMENT_TEMPLATE_FILE = "comment-template.html"
+
+
+4. Optional: Extend or replace field rendering classes.
+
+.. code-block:: python
+
+    from invenio_curations.services import DiffDescription
+    CURATIONS_COMMENTS_CLASSES = [DiffDescription] # + MyCustomClass
+
 
 Create curator role
 ~~~~~~~~~~~~~~~~~~~
