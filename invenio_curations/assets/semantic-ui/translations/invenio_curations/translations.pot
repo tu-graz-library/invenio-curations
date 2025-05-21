@@ -71,3 +71,33 @@ msgstr "started a review"
 
 msgid "Curation review"
 msgstr "Curation review"
+
+msgid "Anonymous user"
+msgstr "Anonymous user"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Group"
+msgstr "Group"
+
+msgid "Creator"
+msgstr "Creator"
+
+msgid "Receiver"
+msgstr "Receiver"
+
+msgid "Request type"
+msgstr "Request type"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Created"
+msgstr "Created"
+
+msgid "Expires"
+msgstr "Expires"
+
+msgid "Record"
+msgstr "Record"

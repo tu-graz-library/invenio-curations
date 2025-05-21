@@ -19,5 +19,15 @@
   "requested changes": "requested changes",
   "resubmitted the record for review": "resubmitted the record for review",
   "started a review": "started a review",
-  "Curation review": "Curation review"
+  "Curation review": "Curation review",
+  "Anonymous user": "Anonymous user",
+  "Email": "Email",
+  "Group": "Group",
+  "Creator": "Creator",
+  "Receiver": "Receiver",
+  "Request type": "Request type",
+  "Status": "Status",
+  "Created": "Created",
+  "Expires": "Expires",
+  "Record": "Record"
 }
