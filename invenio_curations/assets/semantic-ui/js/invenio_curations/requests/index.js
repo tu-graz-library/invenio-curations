@@ -1,6 +1,6 @@
 // This file is part of InvenioRDM
 // Copyright (C) 2024 TU Wien.
-// Copyright (C) 2024 Graz University of Technology.
+// Copyright (C) 2024-2025 Graz University of Technology.
 //
 // Invenio-Curations is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
@@ -30,6 +30,7 @@ import {
   TimelineResubmitEvent,
   TimelineReviewEvent,
 } from "./timelineActionEvents.js";
+import { RequestMetadata } from "./RequestMetadataLayout.js";
 
 export const curationComponentOverrides = {
   ...defaultContribComponents,
@@ -39,6 +40,8 @@ export const curationComponentOverrides = {
 
   // icon for the request in the search
   "InvenioRequests.RequestTypeIcon.layout.rdm-curation": RDMCurationIcon,
+
+  "InvenioRequest.RequestMetadata.Layout": RequestMetadata,
 
   // labels for the request status
   "RequestStatusLabel.layout.critiqued": LabelStatusCritique,
