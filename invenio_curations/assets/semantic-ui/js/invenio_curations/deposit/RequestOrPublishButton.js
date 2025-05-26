@@ -21,7 +21,7 @@ export const RequestOrPublishButton = (props) => {
   if (request) {
     switch (request.status) {
       case "accepted":
-        elem = <PublishButton fluid />;
+        elem = <PublishButton fluid record={record} />;
         break;
 
       case "critiqued":
