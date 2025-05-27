@@ -107,3 +107,62 @@ msgstr ""
 msgid "Record"
 msgstr ""
 
+#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:28
+msgid "Draft"
+msgstr ""
+
+#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:30
+msgid "Please fill in all required fields before submitting for review."
+msgstr ""
+
+#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:31
+msgid "Once your upload is complete, you can submit it for review to the global repository curators."
+msgstr ""
+
+#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:37
+msgid "Published"
+msgstr ""
+
+#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:38
+msgid "This record is published."
+msgstr ""
+
+#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:47
+msgid "Ready for Review"
+msgstr ""
+
+#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:48
+msgid "Your record is ready to be submitted for review."
+msgstr ""
+
+#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:55
+msgid "Under Review"
+msgstr ""
+
+#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:56
+msgid "This record is being reviewed by curators."
+msgstr ""
+
+#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:63
+msgid "Ready to Publish"
+msgstr ""
+
+#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:64
+msgid "Once accepted, you can publish the record yourself."
+msgstr ""
+
+#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:71
+msgid "Declined"
+msgstr ""
+
+#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:72
+msgid "This record has been declined. Please check the curation request for details."
+msgstr ""
+
+#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:79
+msgid "Needs revision"
+msgstr ""
+
+#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:80
+msgid "This record needs revision. Please check the curation request for details."
+msgstr ""

@@ -5,15 +5,17 @@
 // Invenio-Curations is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
 
-import React from "react";
-import { http } from "react-invenio-forms";
 import { Card, Form, Grid } from "semantic-ui-react";
+import { PreviewButton, SaveButton } from "@js/invenio_rdm_records";
+
+import { CustomDepositStatusBox } from "./CustomDepositStatusBox";
 import PropTypes from "prop-types";
-import { DepositStatusBox, SaveButton, PreviewButton } from "@js/invenio_rdm_records";
-import { ShareDraftButton } from "@js/invenio_app_rdm/deposit/ShareDraftButton";
+import React from "react";
 import { RequestOrPublishButton } from "./RequestOrPublishButton";
+import { ShareDraftButton } from "@js/invenio_app_rdm/deposit/ShareDraftButton";
 import { connect } from "react-redux";
 import { connect as connectFormik } from "formik";
+import { http } from "react-invenio-forms";
 
 // this component overrides the deposit status box from Invenio-App-RDM v12:
 // https://github.com/inveniosoftware/invenio-app-rdm/blob/maint-v12.x/invenio_app_rdm/theme/assets/semantic-ui/js/invenio_app_rdm/deposit/RDMDepositForm.js#L607-L651
@@ -157,7 +159,9 @@ export class DepositBoxComponent extends React.Component {
       <Card className="access-right">
         <Form.Field required>
           <Card.Content>
-            <DepositStatusBox />
+            <CustomDepositStatusBox record={record} request={latestRequest}
+              key={`status-${record?.id}-${latestRequest?.id}`}
+            />
           </Card.Content>
 
           <Card.Content>
