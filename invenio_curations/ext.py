@@ -15,7 +15,10 @@ from invenio_requests.proxies import current_requests_service
 
 from . import config
 from .resources import CurationsResource, CurationsResourceConfig
-from .services import CurationRequestService, CurationsServiceConfig
+from .services import (
+    CurationRequestService,
+    CurationsServiceConfig,
+)
 from .views.ui import user_has_curations_management_role
 
 
