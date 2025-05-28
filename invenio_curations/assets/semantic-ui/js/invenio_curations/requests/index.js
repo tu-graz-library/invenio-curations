@@ -30,6 +30,7 @@ import {
   TimelineResubmitEvent,
   TimelineReviewEvent,
 } from "./timelineActionEvents.js";
+import { RequestMetadata } from "./RequestMetadataLayout.js";
 
 export const curationComponentOverrides = {
   ...defaultContribComponents,
@@ -39,6 +40,8 @@ export const curationComponentOverrides = {
 
   // icon for the request in the search
   "InvenioRequests.RequestTypeIcon.layout.rdm-curation": RDMCurationIcon,
+
+  "InvenioRequest.RequestMetadata.Layout": RequestMetadata,
 
   // labels for the request status
   "RequestStatusLabel.layout.critiqued": LabelStatusCritique,
