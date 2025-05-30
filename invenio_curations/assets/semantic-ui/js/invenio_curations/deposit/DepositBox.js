@@ -149,12 +149,24 @@ export class DepositBoxComponent extends React.Component {
     }
   };
 
+  setGreenLightForCurationRequest = () => {
+    // TODO: For now this workaround assumes the deposit-form has a feedback banner triggered
+    // to show by the save button.
+    // Possible solutions to avoid this naive approach would be to explore how make use of
+    // invenio-checks (https://github.com/inveniosoftware/invenio-checks) in this module.
+    let positiveFeedback = document.getElementById("positive-feedback-div") != null;
+    let infoFeedback = document.getElementById("info-feedback-div") != null;
+    
+    return positiveFeedback || infoFeedback;
+  };
+
   render() {
     const { latestRequest } = this.state;
     const { record, permissions, groupsEnabled } = this.props;
 
     this.checkShouldFetchCurationRequest();
-
+    record.savedSuccessfully = this.setGreenLightForCurationRequest();
+    
     return (
       <Card className="access-right">
         <Form.Field required>
