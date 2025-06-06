@@ -7,8 +7,10 @@
 
 """View functions for curations."""
 
+from flask import Blueprint, Flask
 
-def create_curations_bp(app):
+
+def create_curations_bp(app: Flask) -> Blueprint:
     """Create curations blueprint."""
     ext = app.extensions["invenio-curations"]
     return ext.curations_resource.as_blueprint()

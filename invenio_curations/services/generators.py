@@ -9,24 +9,35 @@
 """Curations related generators."""
 
 from itertools import chain
+from typing import Any, Callable
 
-from flask_principal import RoleNeed
-from invenio_access.permissions import system_identity
+from flask_principal import Need, RoleNeed
+from invenio_access.permissions import Permission, system_identity
 from invenio_pidstore.errors import PIDDoesNotExistError
+from invenio_rdm_records.records.api import RDMDraft
+from invenio_rdm_records.requests.entity_resolvers import RDMRecordProxy
 from invenio_records_permissions.generators import ConditionalGenerator, Generator
+from invenio_requests.customizations.request_types import RequestType
+from invenio_requests.records.api import Request
 
-from ..proxies import current_curations_service
+from ..proxies import current_curations_service, unproxy
+from .service import CurationRequestService
 
 
 class IfRequestTypes(ConditionalGenerator):
     """Request-oriented generator checking for requests of certain types."""
 
-    def __init__(self, request_types, then_, else_):
+    def __init__(
+        self,
+        request_types: list[type[RequestType]],
+        then_: list[Generator],
+        else_: list[Generator],
+    ) -> None:
         """Constructor."""
         self.request_types = set(request_types)
         super().__init__(then_, else_)
 
-    def _condition(self, request=None, **kwargs):
+    def _condition(self, request: Request | None = None, **kwargs: Any) -> bool:
         """Check if the request type matches a configured type."""
         if request is not None:
             for request_type in self.request_types:
@@ -39,22 +50,26 @@ class IfRequestTypes(ConditionalGenerator):
 class IfCurationRequestAccepted(ConditionalGenerator):
     """Request-oriented generator checking if a curation request has been accepted."""
 
+    _curations_service: CurationRequestService = unproxy(current_curations_service)
+
     def __init__(
         self,
-        record_access_func=lambda request: request.topic.resolve(),
-        then_=None,
-        else_=None,
-    ):
+        record_access_func: Callable[
+            [Request], RDMDraft
+        ] = lambda request: request.topic.resolve(),
+        then_: list[Generator] | None = None,
+        else_: list[Generator] | None = None,
+    ) -> None:
         """Constructor."""
         self.record_access_func = record_access_func
         super().__init__(then_ or [], else_ or [])
 
-    def _condition(self, request=None, **kwargs):
+    def _condition(self, request: Request | None = None, **kwargs: Any) -> bool:
         """Check if the curation request for the record has been accepted."""
         if request is not None:
             record_to_curate = self.record_access_func(request)
             return (
-                current_curations_service.accepted_record(
+                self._curations_service.accepted_record(
                     system_identity, record_to_curate
                 )
                 is not None
@@ -66,15 +81,15 @@ class IfCurationRequestAccepted(ConditionalGenerator):
 class EntityReferenceServicePermission(Generator):
     """Request-oriented generator accessing a named permission from the entity's service config."""
 
-    entity_field = None
+    entity_field: str | None = None
 
-    def __init__(self, permission_name, **kwargs):
+    def __init__(self, permission_name: str, **kwargs: Any) -> None:
         """Constructor specifying permission_name."""
         self.permission_name = permission_name
         assert self.entity_field is not None, "Subclass must define entity_field."
         super().__init__()
 
-    def _get_permission(self, entity):
+    def _get_permission(self, entity: RDMRecordProxy) -> list[Permission]:
         """Get the specified permission from the request entity service config."""
         permission_policy_cls = (
             entity.get_resolver().get_service().config.permission_policy_cls
@@ -82,11 +97,11 @@ class EntityReferenceServicePermission(Generator):
 
         return getattr(permission_policy_cls, self.permission_name)
 
-    def _get_entity(self, request):
+    def _get_entity(self, request: Request) -> RDMRecordProxy:
         """Get the specified entity of the request."""
-        return getattr(request, self.entity_field)
+        return getattr(request, self.entity_field)  # type: ignore[arg-type]
 
-    def needs(self, request=None, **kwargs):
+    def needs(self, request: Request | None = None, **kwargs: Any) -> set[Need]:
         """Set of needs granting permission."""
         if request is None:
             return set()
@@ -106,7 +121,7 @@ class EntityReferenceServicePermission(Generator):
         kwargs["record"] = popped_record
         return set(chain.from_iterable(needs))
 
-    def excludes(self, request=None, **kwargs):
+    def excludes(self, request: Request | None = None, **kwargs: Any) -> set[Need]:
         """Set of excludes denying permission."""
         if request is None:
             return set()
@@ -130,25 +145,29 @@ class EntityReferenceServicePermission(Generator):
 class TopicPermission(EntityReferenceServicePermission):
     """Request-oriented generator to get generators of specified permission name from the topic of the request."""
 
-    entity_field = "topic"
+    entity_field: str = "topic"
 
 
 class CurationModerators(Generator):
     """Permission generator that allows users with the `moderation` role."""
 
-    def needs(self, **kwargs):
+    _curations_service: CurationRequestService = unproxy(current_curations_service)
+
+    def needs(self, **kwargs: Any) -> list[Need]:
         """Allow access for the moderation role."""
-        return [RoleNeed(current_curations_service.moderation_role_name)]
+        return [RoleNeed(self._curations_service.moderation_role_name)]
 
 
 class IfCurationRequestExists(ConditionalGenerator):
     """Record-oriented generator checking if a curation request exists."""
 
-    def _condition(self, record=None, **kwargs):
+    _curations_service: CurationRequestService = unproxy(current_curations_service)
+
+    def _condition(self, record: RDMDraft | None = None, **kwargs: Any) -> bool:
         """Check if the record has a curation request or not."""
         if record is not None:
             # We use the system identity here to avoid visibility issues
-            request = current_curations_service.get_review(
+            request = self._curations_service.get_review(
                 identity=system_identity, topic=record
             )
             return request is not None

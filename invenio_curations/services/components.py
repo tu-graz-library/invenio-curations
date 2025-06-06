@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2024 Graz University of Technology.
+# Copyright (C) 2024-2025 Graz University of Technology.
 # Copyright (C) 2024 TU Wien.
 #
 # Invenio-Curations is free software; you can redistribute it and/or
@@ -10,35 +10,56 @@
 """Component for checking curations."""
 
 from abc import ABC
+from typing import Any
 
 import dictdiffer
+from flask_principal import Identity
 from invenio_access.permissions import system_identity
 from invenio_drafts_resources.services.records.components import ServiceComponent
-from invenio_i18n import lazy_gettext as _
 from invenio_pidstore.models import PIDStatus
+from invenio_rdm_records.records.api import RDMDraft, RDMRecord
 from invenio_requests.proxies import current_requests_service
+from invenio_requests.services import RequestsService
 
-from ..proxies import current_curations_service
+from ..proxies import current_curations_service, unproxy
+from . import CurationRequestService
 from .errors import CurationRequestNotAccepted
+
+
+def _get_curations_service() -> CurationRequestService:
+    return unproxy(current_curations_service)
+
+
+def _get_requests_service() -> RequestsService:
+    return unproxy(current_requests_service)
 
 
 class CurationComponent(ServiceComponent, ABC):
     """Service component for access integration."""
 
-    def publish(self, identity, draft=None, record=None, **kwargs):
+    def publish(
+        self,
+        identity: Identity,
+        draft: RDMDraft | None = None,
+        record: RDMRecord | None = None,
+        **kwargs: Any
+    ) -> None:
         """Check if record curation request has been accepted."""
         # The `PIDComponent` takes care of calling `record.register()` which sets the
         # status for `record.pid.status` to "R", but the draft's dictionary data
         # only gets updated via `record.commit()` (which is performed by the `uow`).
         # Thus, if we spot a discrepancy here we can deduce that this is the first time
         # the record gets published.
+        if draft is None:
+            raise RuntimeError("Unexpected publish action with undefined draft.")
+
         has_been_published = (
-            draft.pid.status == draft["pid"]["status"] == PIDStatus.REGISTERED
+            draft.pid.status == draft["pid"]["status"] == PIDStatus.REGISTERED  # type: ignore
         )
-        if has_been_published and current_curations_service.allow_publishing_edits:
+        if has_been_published and _get_curations_service().allow_publishing_edits:
             return
 
-        review_accepted = current_curations_service.accepted_record(
+        review_accepted = _get_curations_service().accepted_record(
             system_identity,
             draft,
         )
@@ -46,11 +67,17 @@ class CurationComponent(ServiceComponent, ABC):
         if not review_accepted:
             raise CurationRequestNotAccepted()
 
-    def delete_draft(self, identity, draft=None, record=None, force=False):
+    def delete_draft(
+        self,
+        identity: Identity,
+        draft: RDMDraft | None = None,
+        record: RDMRecord | None = None,
+        force: bool = False,
+    ) -> None:
         """Delete a draft."""
-        request = current_curations_service.get_review(
+        request = _get_curations_service().get_review(
             system_identity,
-            draft,
+            draft,  # type: ignore[arg-type]
             expand=True,
         )
 
@@ -60,50 +87,59 @@ class CurationComponent(ServiceComponent, ABC):
 
         # New record or new version -> request can be removed.
         if record is None:
-            current_requests_service.delete(
-                system_identity, request["id"], uow=self.uow
-            )
+            _get_requests_service().delete(system_identity, request["id"], uow=self.uow)
             return
 
         # Delete draft for a published record.
         # Since only one request per record should exist, it is not deleted. Instead, put it back to accepted.
-        current_requests_service.execute_action(
+        _get_requests_service().execute_action(
             system_identity, request["id"], "cancel", uow=self.uow
         )
 
     def _check_update_request(
-        self, identity, request, data=None, record=None, errors=None
-    ):
+        self,
+        identity: Identity,
+        request,
+        data: dict[str, Any] | None = None,
+        record: RDMDraft | None = None,
+        errors=None,
+    ) -> None:
         """Update request title if record title has changed."""
         updated_draft_title = (data or {}).get("metadata", {}).get("title")
         current_draft_title = (record or {}).get("metadata", {}).get("title")
         if current_draft_title != updated_draft_title:
             request["title"] = "RDM Curation: {title}".format(
-                title=updated_draft_title or record["id"]
+                title=updated_draft_title or record["id"]  # type: ignore[index]
             )
             # Using system identity, to not have to update the default request can_update permission.
             # Data will be checked in the requests service.
-            current_requests_service.update(
+            _get_requests_service().update(
                 system_identity, request["id"], request, uow=self.uow
             )
 
-    def update_draft(self, identity, data=None, record=None, errors=None):
+    def update_draft(
+        self,
+        identity: Identity,
+        data: dict[str, Any] | None = None,
+        record: RDMDraft | None = None,
+        errors=None,
+    ) -> None:
         """Update draft handler."""
         has_published_record = record is not None and record.is_published
-        if has_published_record and current_curations_service.allow_publishing_edits:
+        if has_published_record and _get_curations_service().allow_publishing_edits:
             return
 
-        request = current_curations_service.get_review(
+        request = _get_curations_service().get_review(
             system_identity,
-            record,
+            record,  # type: ignore[arg-type]
             expand=True,
         )
 
         if not request:
             return
 
-        current_draft = self.service.draft_cls.pid.resolve(
-            record["id"], registered_only=False
+        current_draft: RDMDraft = self.service.draft_cls.pid.resolve(
+            record["id"], registered_only=False  # type: ignore[index]
         )
 
         self._check_update_request(
@@ -124,7 +160,7 @@ class CurationComponent(ServiceComponent, ABC):
         # affiliation has an ID & name, but in the `current_draft` it's only the ID)
         # this discrepancy can be removed by resolving or cleaning the relations
         current_draft.relations.clean()
-        record.relations.clean()
+        record.relations.clean()  # type: ignore[union-attr]
 
         current_data = self.service.schema.dump(
             current_draft,
@@ -139,7 +175,7 @@ class CurationComponent(ServiceComponent, ABC):
             record,
             context=dict(
                 identity=identity,
-                pid=record.pid,
+                pid=record.pid,  # type: ignore[union-attr]
                 record=record,
             ),
         )
@@ -150,6 +186,6 @@ class CurationComponent(ServiceComponent, ABC):
 
         # Request is closed but draft was updated with new data. Put back for review
         if diff_list:
-            current_requests_service.execute_action(
+            _get_requests_service().execute_action(
                 identity, request["id"], "resubmit", uow=self.uow
             )
