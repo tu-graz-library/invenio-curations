@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2024 Graz University of Technology.
+# Copyright (C) 2024-2025 Graz University of Technology.
 #
 # Invenio-Curations is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
@@ -23,7 +23,7 @@ class CurationRequestNotAccepted(Exception):
 class RoleNotFound(Exception):
     """The role does not exist."""
 
-    def __init__(self, role_name):
+    def __init__(self, role_name: str) -> None:
         """Initialise error."""
         super().__init__(
             _("A role with name '{name}' does not exist.".format(name=role_name))

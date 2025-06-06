@@ -39,7 +39,7 @@ class CurationsServiceConfig(RecordServiceConfig, ConfiguratorMixin):
     """Curations service configuration."""
 
     # will use requests service for most calls.
-    service_id = "curations"
+    service_id = "curations"  # type: ignore[assignment]
 
     # common configuration
     permission_policy_cls = FromConfig(

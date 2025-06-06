@@ -64,8 +64,9 @@ request_error_handlers = {
 class CurationsResourceConfig(RecordResourceConfig, ConfiguratorMixin):
     """Requests resource configuration."""
 
-    blueprint_name = "curations"
-    url_prefix = "/curations"
+    # types differ from superclass
+    blueprint_name = "curations"  # type: ignore[assignment]
+    url_prefix = "/curations"  # type: ignore[assignment]
     routes = {
         "list": "/",
     }
@@ -75,10 +76,11 @@ class CurationsResourceConfig(RecordResourceConfig, ConfiguratorMixin):
         "reference_id": ma.fields.Str(),
     }
 
+    # types differ from superclass
     request_extra_args = {
         **RecordResourceConfig.request_extra_args,
-        "reference_type": ma.fields.Str(),
-        "reference_id": ma.fields.Str(),
+        "reference_type": ma.fields.Str(),  # type: ignore[dict-item]
+        "reference_id": ma.fields.Str(),  # type: ignore[dict-item]
     }
     request_search_args = CurationsSearchRequestArgsSchema
 

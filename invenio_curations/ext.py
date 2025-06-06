@@ -6,27 +6,46 @@
 # under the terms of the MIT License; see LICENSE file for more details.
 
 """Invenio module for generic and customizable curations."""
+from typing import Any
 
-
-from flask import g
+from flask import Flask, g
 from flask_menu import current_menu
 from invenio_i18n import lazy_gettext as _
 from invenio_requests.proxies import current_requests_service
+from invenio_requests.services import RequestsService
 
 from . import config
+from .proxies import unproxy
 from .resources import CurationsResource, CurationsResourceConfig
 from .services import CurationRequestService, CurationsServiceConfig
 from .views.ui import user_has_curations_management_role
 
 
-def finalize_app(app):
+def _get_requests_service() -> RequestsService:
+    return unproxy(current_requests_service)
+
+
+class ServiceConfigs:
+    """Customized service configs."""
+
+    def __init__(self, app: Flask):
+        """Constructs."""
+        self._curations = CurationsServiceConfig.build(app)
+
+    @property
+    def curations(self) -> CurationRequestService:
+        """The curation service."""
+        return self._curations
+
+
+def finalize_app(app: Flask) -> None:
     """Finalize app."""
     init_menu(app)
 
 
-def init_menu(app):
+def init_menu(app: Flask) -> None:
     """Initialize flask menu."""
-    user_dashboard = current_menu.submenu("dashboard")
+    user_dashboard = current_menu.submenu("dashboard")  # type: ignore[attr-defined]
     user_dashboard.submenu("curation-overview").register(
         "invenio_curations.curation_requests_overview",
         text=_("Curation Requests"),
@@ -38,46 +57,42 @@ def init_menu(app):
 class InvenioCurations(object):
     """Invenio-Curations extension."""
 
-    def __init__(self, app=None):
+    def __init__(self, app: Flask | None = None) -> None:
         """Extension initialization."""
         self.curations_service = None
         self.curations_resource = None
         if app:
             self.init_app(app)
 
-    def init_app(self, app):
+    def init_app(self, app: Flask) -> None:
         """Flask application initialization."""
         self.init_config(app)
         self.init_services(app)
         self.init_resources(app)
         app.extensions["invenio-curations"] = self
 
-    def init_config(self, app):
+    def init_config(self, app: Flask) -> None:
         """Initialize configuration."""
         for k in dir(config):
             if k.startswith("CURATIONS_"):
                 app.config.setdefault(k, getattr(config, k))
 
-    def service_configs(self, app):
+    def service_configs(self, app: Flask) -> ServiceConfigs:
         """Customized service configs."""
+        return ServiceConfigs(app)
 
-        class ServiceConfigs:
-            curations = CurationsServiceConfig.build(app)
-
-        return ServiceConfigs
-
-    def init_services(self, app):
+    def init_services(self, app: Flask) -> None:
         """Initialize the service and resource for curations."""
         service_configs = self.service_configs(app)
 
-        self.curations_service = CurationRequestService(
+        self.curations_service = CurationRequestService(  # type: ignore[assignment]
             config=service_configs.curations,
-            requests_service=current_requests_service,
+            requests_service=_get_requests_service(),
         )
 
-    def init_resources(self, app):
+    def init_resources(self, app: Flask) -> None:
         """Init resources."""
-        self.curations_resource = CurationsResource(
+        self.curations_resource = CurationsResource(  # type: ignore[assignment]
             service=self.curations_service,
             config=CurationsResourceConfig.build(app),
         )

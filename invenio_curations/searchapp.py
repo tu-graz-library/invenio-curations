@@ -8,12 +8,13 @@
 """Configuration helper for React-SearchKit."""
 
 from functools import partial
+from typing import Any, Callable
 
 from flask import current_app
 from invenio_search_ui.searchconfig import search_app_config
 
 
-def search_app_context():
+def search_app_context() -> dict[str, Callable[..., dict[str, Any]]]:
     """Search app context processor."""
     return {
         "search_app_curations_requests_config": partial(
