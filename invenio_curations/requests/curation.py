@@ -7,9 +7,16 @@
 
 """Curation request type."""
 
+from __future__ import annotations
+
+from typing import Any, ClassVar
+
+from flask_principal import Identity
 from invenio_i18n import lazy_gettext as _
 from invenio_notifications.services.uow import NotificationOp
+from invenio_records_resources.services.uow import UnitOfWork
 from invenio_requests.customizations import RequestState, RequestType, actions
+from invenio_requests.customizations.actions import RequestAction
 
 from invenio_curations.notifications.builders import (
     CurationRequestAcceptNotificationBuilder,
@@ -23,7 +30,7 @@ from invenio_curations.notifications.builders import (
 class CurationCreateAndSubmitAction(actions.CreateAndSubmitAction):
     """Create and submit a request."""
 
-    def execute(self, identity, uow):
+    def execute(self, identity: Identity, uow: UnitOfWork) -> None:
         """Execute the create & submit action."""
         uow.register(
             NotificationOp(
@@ -39,10 +46,10 @@ class CurationCreateAndSubmitAction(actions.CreateAndSubmitAction):
 class CurationSubmitAction(actions.SubmitAction):
     """Submit action for user access requests."""
 
-    # submit can only happen once.
-    status_from = ["created"]
+    # list of statuses this action can be performed from
+    status_from: ClassVar[list[str]] = ["created"]
 
-    def execute(self, identity, uow):
+    def execute(self, identity: Identity, uow: UnitOfWork) -> None:
         """Execute the submit action."""
         uow.register(
             NotificationOp(
@@ -58,9 +65,9 @@ class CurationAcceptAction(actions.AcceptAction):
     """Accept a request."""
 
     # Require to go through review before accepting.
-    status_from = ["review"]
+    status_from: ClassVar[list[str]] = ["review"]
 
-    def execute(self, identity, uow):
+    def execute(self, identity: Identity, uow: UnitOfWork) -> None:
         """Execute the accept action."""
         uow.register(
             NotificationOp(
@@ -77,7 +84,7 @@ class CurationDeclineAction(actions.DeclineAction):
     """Decline a request."""
 
     # Instead of declining, the record should be critiqued.
-    status_from = []
+    status_from: ClassVar[list[str]] = []
 
 
 class CurationCancelAction(actions.CancelAction):
@@ -85,7 +92,7 @@ class CurationCancelAction(actions.CancelAction):
 
     # A user might want to cancel their request.
     # Also done when a draft for an already published record is deleted/discarded
-    status_from = [
+    status_from: ClassVar[list[str]] = [
         "accepted",
         "cancelled",
         "created",
@@ -101,7 +108,7 @@ class CurationCancelAction(actions.CancelAction):
 class CurationExpireAction(actions.ExpireAction):
     """Expire a request."""
 
-    status_from = ["submitted", "critiqued", "resubmitted"]
+    status_from: ClassVar[list[str]] = ["submitted", "critiqued", "resubmitted"]
 
 
 class CurationDeleteAction(actions.DeleteAction):
@@ -110,7 +117,7 @@ class CurationDeleteAction(actions.DeleteAction):
     # When a user deletes their draft, the request will get deleted. Should be possible from every state.
     # Usually delete is only possible programmatically, as the base permissions allow user driven deletion
     # only during `created` status
-    status_from = [
+    status_from: ClassVar[list[str]] = [
         "accepted",
         "cancelled",
         "created",
@@ -126,10 +133,10 @@ class CurationDeleteAction(actions.DeleteAction):
 class CurationReviewAction(actions.RequestAction):
     """Mark request as review."""
 
-    status_from = ["submitted", "resubmitted"]
-    status_to = "review"
+    status_from: ClassVar[list[str]] = ["submitted", "resubmitted"]
+    status_to: ClassVar[str] = "review"
 
-    def execute(self, identity, uow):
+    def execute(self, identity: Identity, uow: UnitOfWork) -> None:
         """Execute the review action."""
         uow.register(
             NotificationOp(
@@ -145,10 +152,10 @@ class CurationReviewAction(actions.RequestAction):
 class CurationCritiqueAction(actions.RequestAction):
     """Request changes for request."""
 
-    status_from = ["review"]
-    status_to = "critiqued"
+    status_from: ClassVar[list[str]] = ["review"]
+    status_to: ClassVar[str] = "critiqued"
 
-    def execute(self, identity, uow):
+    def execute(self, identity: Identity, uow: UnitOfWork) -> None:
         """Execute the critique action."""
         uow.register(
             NotificationOp(
@@ -164,10 +171,15 @@ class CurationCritiqueAction(actions.RequestAction):
 class CurationResubmitAction(actions.RequestAction):
     """Mark request as ready for review."""
 
-    status_from = ["critiqued", "accepted", "cancelled", "declined"]
-    status_to = "resubmitted"
+    status_from: ClassVar[list[str]] = [
+        "critiqued",
+        "accepted",
+        "cancelled",
+        "declined",
+    ]
+    status_to: ClassVar[str] = "resubmitted"
 
-    def execute(self, identity, uow):
+    def execute(self, identity: Identity, uow: UnitOfWork) -> None:
         """Execute the resubmit action."""
         uow.register(
             NotificationOp(
@@ -185,11 +197,11 @@ class CurationResubmitAction(actions.RequestAction):
 class CurationRequest(RequestType):
     """Curation request type."""
 
-    type_id = "rdm-curation"
-    name = _("Curation")
+    type_id: ClassVar[str] = "rdm-curation"
+    name: ClassVar[str] = _("Curation")
 
-    create_action = "create"
-    available_actions = {
+    # Dict mapping action names to action classes
+    available_actions: ClassVar[dict[str, type[RequestAction]]] = {
         **RequestType.available_actions,
         "create": CurationCreateAndSubmitAction,
         "submit": CurationSubmitAction,
@@ -203,7 +215,8 @@ class CurationRequest(RequestType):
         "resubmit": CurationResubmitAction,
     }
 
-    available_statuses = {
+    # Dict mapping status names to RequestState values
+    available_statuses: ClassVar[dict[str, RequestState]] = {
         **RequestType.available_statuses,
         "review": RequestState.OPEN,
         "critiqued": RequestState.OPEN,
@@ -216,14 +229,14 @@ class CurationRequest(RequestType):
     or undefined.
     """
 
-    create_action = "create"
+    create_action: ClassVar[str] = "create"
     """Defines the action that's able to create this request.
 
     This must be set to one of the available actions for the custom request type.
     """
 
-    creator_can_be_none = False
-    topic_can_be_none = False
-    allowed_creator_ref_types = ["user", "community"]
-    allowed_receiver_ref_types = ["group"]
-    allowed_topic_ref_types = ["record"]
+    creator_can_be_none: ClassVar[bool] = False
+    topic_can_be_none: ClassVar[bool] = False
+    allowed_creator_ref_types: ClassVar[list[str]] = ["user", "community"]
+    allowed_receiver_ref_types: ClassVar[list[str]] = ["group"]
+    allowed_topic_ref_types: ClassVar[list[str]] = ["record"]

@@ -7,11 +7,24 @@
 
 """Notification related utils for notifications."""
 
+from __future__ import annotations
+
+from typing import Any, ClassVar
+
+from flask_principal import Identity
 from invenio_notifications.models import Notification
 from invenio_notifications.registry import EntityResolverRegistry
 from invenio_notifications.services.builders import NotificationBuilder
-from invenio_notifications.services.generators import EntityResolve, UserEmailBackend
+from invenio_notifications.services.filters import RecipientFilter
+from invenio_notifications.services.generators import (
+    ContextGenerator,
+    EntityResolve,
+    RecipientBackendGenerator,
+    RecipientGenerator,
+    UserEmailBackend,
+)
 from invenio_requests.notifications.filters import UserRecipientFilter
+from invenio_requests.records.api import Request
 from invenio_users_resources.notifications.filters import UserPreferencesRecipientFilter
 from invenio_users_resources.notifications.generators import UserRecipient
 
@@ -21,11 +34,40 @@ from invenio_curations.notifications.generators import GroupMembersRecipient
 class CurationRequestActionNotificationBuilder(NotificationBuilder):
     """Notification builder for curation actions."""
 
-    type = "curation-request"
+    type: ClassVar[str] = "curation-request"
+
+    context: ClassVar[list[ContextGenerator]] = [
+        EntityResolve(key="request"),
+        EntityResolve(key="request.created_by"),
+        EntityResolve(key="request.topic"),
+        EntityResolve(key="request.receiver"),
+        EntityResolve(key="executing_user"),
+    ]
+
+    # recipientGenerator: class for all recipient finder classes
+    # (e.g., UserRecipient, GroupMembersRecipient) - defines who gets notifications
+    recipients: ClassVar[list[RecipientGenerator]] = []
+
+    recipient_filters: ClassVar[list[RecipientFilter]] = [
+        UserPreferencesRecipientFilter(),
+        UserRecipientFilter("executing_user"),
+    ]
+
+    recipient_backends: ClassVar[list[UserEmailBackend]] = [
+        UserEmailBackend(),
+    ]
 
     @classmethod
-    def build(cls, identity, request):
-        """Build notification with request context."""
+    def build(cls, identity: Identity, request: Request) -> Notification:
+        """Build notification with request context.
+
+        Args:
+            identity: The identity performing the action
+            request: The curation request
+
+        Returns:
+            Notification object with proper context
+        """
         return Notification(
             type=cls.type,
             context={
@@ -34,33 +76,16 @@ class CurationRequestActionNotificationBuilder(NotificationBuilder):
             },
         )
 
-    context = [
-        EntityResolve(key="request"),
-        EntityResolve(key="request.created_by"),
-        EntityResolve(key="request.topic"),
-        EntityResolve(key="request.receiver"),
-        EntityResolve(key="executing_user"),
-    ]
-
-    recipients = []
-
-    recipient_filters = [
-        UserPreferencesRecipientFilter(),
-        UserRecipientFilter("executing_user"),
-    ]
-
-    recipient_backends = [
-        UserEmailBackend(),
-    ]
-
 
 class CurationRequestSubmitNotificationBuilder(
     CurationRequestActionNotificationBuilder
 ):
     """Notification builder for submit action."""
 
-    type = f"{CurationRequestActionNotificationBuilder.type}.submit"
-    recipients = [GroupMembersRecipient("request.receiver")]
+    type: ClassVar[str] = f"{CurationRequestActionNotificationBuilder.type}.submit"
+    recipients: ClassVar[list[RecipientGenerator]] = [
+        GroupMembersRecipient("request.receiver")
+    ]
 
 
 class CurationRequestResubmitNotificationBuilder(
@@ -68,8 +93,10 @@ class CurationRequestResubmitNotificationBuilder(
 ):
     """Notification builder for resubmit action."""
 
-    type = f"{CurationRequestActionNotificationBuilder.type}.resubmit"
-    recipients = [GroupMembersRecipient("request.receiver")]
+    type: ClassVar[str] = f"{CurationRequestActionNotificationBuilder.type}.resubmit"
+    recipients: ClassVar[list[RecipientGenerator]] = [
+        GroupMembersRecipient("request.receiver")
+    ]
 
 
 class CurationRequestReviewNotificationBuilder(
@@ -77,8 +104,10 @@ class CurationRequestReviewNotificationBuilder(
 ):
     """Notification builder for review action."""
 
-    type = f"{CurationRequestActionNotificationBuilder.type}.review"
-    recipients = [UserRecipient("request.created_by")]
+    type: ClassVar[str] = f"{CurationRequestActionNotificationBuilder.type}.review"
+    recipients: ClassVar[list[RecipientGenerator]] = [
+        UserRecipient("request.created_by")
+    ]
 
 
 class CurationRequestAcceptNotificationBuilder(
@@ -86,8 +115,10 @@ class CurationRequestAcceptNotificationBuilder(
 ):
     """Notification builder for accept action."""
 
-    type = f"{CurationRequestActionNotificationBuilder.type}.accept"
-    recipients = [UserRecipient("request.created_by")]
+    type: ClassVar[str] = f"{CurationRequestActionNotificationBuilder.type}.accept"
+    recipients: ClassVar[list[RecipientGenerator]] = [
+        UserRecipient("request.created_by")
+    ]
 
 
 class CurationRequestCritiqueNotificationBuilder(
@@ -95,5 +126,7 @@ class CurationRequestCritiqueNotificationBuilder(
 ):
     """Notification builder for critique action."""
 
-    type = f"{CurationRequestActionNotificationBuilder.type}.critique"
-    recipients = [UserRecipient("request.created_by")]
+    type: ClassVar[str] = f"{CurationRequestActionNotificationBuilder.type}.critique"
+    recipients: ClassVar[list[RecipientGenerator]] = [
+        UserRecipient("request.created_by")
+    ]
