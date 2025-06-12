@@ -10,7 +10,7 @@
 """Component for checking curations."""
 
 from abc import ABC
-from typing import Any
+from typing import Any, cast
 
 import dictdiffer
 from flask_principal import Identity
@@ -21,17 +21,17 @@ from invenio_rdm_records.records.api import RDMDraft, RDMRecord
 from invenio_requests.proxies import current_requests_service
 from invenio_requests.services import RequestsService
 
-from ..proxies import current_curations_service, unproxy
-from . import CurationRequestService
+from ..proxies import current_curations_service
 from .errors import CurationRequestNotAccepted
+from .service import CurationRequestService
 
 
 def _get_curations_service() -> CurationRequestService:
-    return unproxy(current_curations_service)
+    return cast(CurationRequestService, current_curations_service)
 
 
 def _get_requests_service() -> RequestsService:
-    return unproxy(current_requests_service)
+    return cast(RequestsService, current_requests_service)
 
 
 class CurationComponent(ServiceComponent, ABC):
@@ -42,7 +42,7 @@ class CurationComponent(ServiceComponent, ABC):
         identity: Identity,
         draft: RDMDraft | None = None,
         record: RDMRecord | None = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         """Check if record curation request has been accepted."""
         # The `PIDComponent` takes care of calling `record.register()` which sets the
@@ -54,7 +54,7 @@ class CurationComponent(ServiceComponent, ABC):
             raise RuntimeError("Unexpected publish action with undefined draft.")
 
         has_been_published = (
-            draft.pid.status == draft["pid"]["status"] == PIDStatus.REGISTERED  # type: ignore
+            draft.pid.status == draft["pid"]["status"] == PIDStatus.REGISTERED
         )
         if has_been_published and _get_curations_service().allow_publishing_edits:
             return
@@ -72,12 +72,13 @@ class CurationComponent(ServiceComponent, ABC):
         identity: Identity,
         draft: RDMDraft | None = None,
         record: RDMRecord | None = None,
+        *,
         force: bool = False,
     ) -> None:
         """Delete a draft."""
         request = _get_curations_service().get_review(
             system_identity,
-            draft,  # type: ignore[arg-type]
+            draft,
             expand=True,
         )
 
@@ -99,10 +100,10 @@ class CurationComponent(ServiceComponent, ABC):
     def _check_update_request(
         self,
         identity: Identity,
-        request,
+        request: dict,
         data: dict[str, Any] | None = None,
         record: RDMDraft | None = None,
-        errors=None,
+        errors: dict | None = None,
     ) -> None:
         """Update request title if record title has changed."""
         updated_draft_title = (data or {}).get("metadata", {}).get("title")
@@ -122,7 +123,7 @@ class CurationComponent(ServiceComponent, ABC):
         identity: Identity,
         data: dict[str, Any] | None = None,
         record: RDMDraft | None = None,
-        errors=None,
+        errors: dict | None = None,
     ) -> None:
         """Update draft handler."""
         has_published_record = record is not None and record.is_published
@@ -131,7 +132,7 @@ class CurationComponent(ServiceComponent, ABC):
 
         request = _get_curations_service().get_review(
             system_identity,
-            record,  # type: ignore[arg-type]
+            record,
             expand=True,
         )
 

@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2024 Graz University of Technology.
+# Copyright (C) 2024-2025 Graz University of Technology.
 #
 # Invenio-Curations is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 
 """Curations ui views module."""
+
+from typing import cast
 
 from flask import Blueprint, Flask, abort, g, render_template
 from flask_login import current_user
@@ -25,7 +27,7 @@ def user_has_curations_management_role(identity: Identity) -> bool:
     role = _curations_service.moderation_role
     if not role:
         return False
-    return identity.user.has_role(role)  # type: ignore[attr-defined]
+    return cast(bool, identity.user.has_role(role))
 
 
 def curation_requests_overview() -> str:
@@ -33,7 +35,9 @@ def curation_requests_overview() -> str:
     if not user_has_curations_management_role(g.identity):
         abort(403)
 
-    user_service_unproxied: RecordService = unproxy(current_user_resources.users_service)  # type: ignore[attr-defined]
+    user_service_unproxied: RecordService = unproxy(
+        current_user_resources.users_service
+    )
     url = user_service_unproxied.links_item_tpl.expand(g.identity, current_user)[
         "avatar"
     ]

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2024 Graz University of Technology.
+# Copyright (C) 2024-2025 Graz University of Technology.
 #
 # Invenio-Curations is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
 
 """Curation service."""
-from typing import Any
+from typing import Any, cast
 
 from flask import current_app
 from flask_principal import Identity
@@ -45,7 +45,10 @@ class CurationRequestService:
     @property
     def allow_publishing_edits(self) -> bool:
         """Get the configured value of ``CURATIONS_ALLOW_PUBLISHING_EDITS``."""
-        return current_app.config.get("CURATIONS_ALLOW_PUBLISHING_EDITS", False)
+        return cast(
+            bool,
+            current_app.config.get("CURATIONS_ALLOW_PUBLISHING_EDITS", False),
+        )
 
     @property
     def moderation_role_name(self) -> str:
@@ -54,20 +57,24 @@ class CurationRequestService:
 
         if isinstance(role, Role):
             # As of InvenioRDM v12, the role's name and ID should be the same anyway
-            return role.name or role.id
+            name: str = role.name or role.id
+            return name
 
         # If it's not a role, we assume it's a string
-        return role
+        return cast(str, role)
 
     @property
     def moderation_role(self) -> str:
         """Get the configured ``CURATIONS_MODERATION_ROLE`` role."""
-        return self._datastore.find_role(self.moderation_role_name)
+        return cast(str, self._datastore.find_role(self.moderation_role_name))
 
     @property
     def request_type_cls(self) -> type[RequestType]:
         """Curation request type."""
-        return self._request_type_registry.lookup(CurationRequest.type_id)
+        return cast(
+            type[RequestType],
+            self._request_type_registry.lookup(CurationRequest.type_id),
+        )
 
     def get_review(
         self, identity: Identity, topic: RDMDraft, **kwargs: Any
@@ -92,7 +99,7 @@ class CurationRequestService:
         if results.total == 0:
             return None
 
-        return next(results.hits)
+        return cast(dict[str, Any], next(results.hits))
 
     def accepted_record(
         self, identity: Identity, record: RDMDraft

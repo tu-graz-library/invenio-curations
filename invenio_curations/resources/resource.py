@@ -2,13 +2,14 @@
 #
 # Copyright (C) 2021-2022 CERN.
 # Copyright (C) 2021-2022 TU Wien.
+# Copyright (C) 2025 Graz University of Technology.
 #
 # Invenio-Curations is free software; you can redistribute it and/or
 # modify it under the terms of the MIT License; see LICENSE file for more
 # details.
 
 """Requests resource."""
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from flask import Blueprint, g
 from flask_resources import resource_requestctx, response_handler, route
@@ -36,14 +37,14 @@ class CurationsResource(RecordResource):
         # add the prefix manually to each route (which is anyway what Flask
         # does in the end)
         options["url_prefix"] = ""
-        return super().create_blueprint(**options)
+        return cast(Blueprint, super().create_blueprint(**options))
 
     def as_blueprint(self, **options: Any) -> Blueprint:
         """Creating the blueprint and registering error handlers on the application.
 
         This is required, as the CurationComponent will throw inside another blueprint.
         """
-        blueprint = super().as_blueprint(**options)
+        blueprint = cast(Blueprint, super().as_blueprint(**options))
 
         for exc_or_code, error_handler in self.create_error_handlers():
             blueprint.record_once(
@@ -58,7 +59,7 @@ class CurationsResource(RecordResource):
 
     def create_url_rules(
         self,
-    ) -> list[Callable[[str, Callable, Callable], dict[str, Callable]]]:
+    ) -> list[dict]:
         """Create the URL rules for the record resource."""
         routes = self.config.routes
 
@@ -83,9 +84,9 @@ class CurationsResource(RecordResource):
         """Perform a search over the items."""
         hits: RecordList = self.service.search(
             identity=g.identity,
-            params=resource_requestctx.args,  # type: ignore[attr-defined]
+            params=resource_requestctx.args,
             search_preference=search_preference(),
-            expand=resource_requestctx.args.get("expand", False),  # type: ignore[attr-defined]
+            expand=resource_requestctx.args.get("expand", False),
         )
         return hits.to_dict(), 200
 
@@ -96,7 +97,7 @@ class CurationsResource(RecordResource):
         """Create an item."""
         item: RecordItem = self.service.create(
             g.identity,
-            resource_requestctx.data or {},  # type: ignore[attr-defined]
-            expand=resource_requestctx.args.get("expand", True),  # type: ignore[attr-defined]
+            resource_requestctx.data or {},
+            expand=resource_requestctx.args.get("expand", True),
         )
         return item.to_dict(), 201

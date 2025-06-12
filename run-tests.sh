@@ -56,7 +56,7 @@ fi
 # black --check --diff invenio_requests tests
 python -m check_manifest
 python -m sphinx.cmd.build -qnN docs docs/_build/html
-python -m mypy --follow-imports=skip invenio_curations
+python -m mypy invenio_curations
 eval "$(docker-services-cli up --db ${DB:-postgresql} --search ${SEARCH:-opensearch} --cache ${CACHE:-redis} --env)"
 # Note: expansion of pytest_args looks like below to not cause an unbound
 # variable error when 1) "nounset" and 2) the array is empty.
