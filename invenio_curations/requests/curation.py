@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2024 Graz University of Technology.
+# Copyright (C) 2024-2025 Graz University of Technology.
 #
 # Invenio-Curation is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
@@ -9,7 +9,7 @@
 
 from __future__ import annotations
 
-from typing import Any, ClassVar
+from typing import ClassVar
 
 from flask_principal import Identity
 from invenio_i18n import lazy_gettext as _
@@ -35,9 +35,10 @@ class CurationCreateAndSubmitAction(actions.CreateAndSubmitAction):
         uow.register(
             NotificationOp(
                 CurationRequestSubmitNotificationBuilder.build(
-                    identity=identity, request=self.request
-                )
-            )
+                    identity=identity,
+                    request=self.request,
+                ),
+            ),
         )
 
         super().execute(identity, uow)
@@ -54,9 +55,10 @@ class CurationSubmitAction(actions.SubmitAction):
         uow.register(
             NotificationOp(
                 CurationRequestSubmitNotificationBuilder.build(
-                    identity=identity, request=self.request
-                )
-            )
+                    identity=identity,
+                    request=self.request,
+                ),
+            ),
         )
         super().execute(identity, uow)
 
@@ -72,9 +74,10 @@ class CurationAcceptAction(actions.AcceptAction):
         uow.register(
             NotificationOp(
                 CurationRequestAcceptNotificationBuilder.build(
-                    identity=identity, request=self.request
-                )
-            )
+                    identity=identity,
+                    request=self.request,
+                ),
+            ),
         )
 
         super().execute(identity, uow)
@@ -141,9 +144,10 @@ class CurationReviewAction(actions.RequestAction):
         uow.register(
             NotificationOp(
                 CurationRequestReviewNotificationBuilder.build(
-                    identity=identity, request=self.request
-                )
-            )
+                    identity=identity,
+                    request=self.request,
+                ),
+            ),
         )
 
         super().execute(identity, uow)
@@ -160,9 +164,10 @@ class CurationCritiqueAction(actions.RequestAction):
         uow.register(
             NotificationOp(
                 CurationRequestCritiqueNotificationBuilder.build(
-                    identity=identity, request=self.request
-                )
-            )
+                    identity=identity,
+                    request=self.request,
+                ),
+            ),
         )
 
         super().execute(identity, uow)
@@ -184,9 +189,10 @@ class CurationResubmitAction(actions.RequestAction):
         uow.register(
             NotificationOp(
                 CurationRequestResubmitNotificationBuilder.build(
-                    identity=identity, request=self.request
-                )
-            )
+                    identity=identity,
+                    request=self.request,
+                ),
+            ),
         )
         super().execute(identity, uow)
 

@@ -9,6 +9,7 @@
 
 """Requests resource config."""
 
+from typing import Final
 
 import marshmallow as ma
 from flask_resources import HTTPJSONException, create_error_handler
@@ -16,10 +17,10 @@ from invenio_records_resources.resources import RecordResourceConfig
 from invenio_records_resources.services.base.config import ConfiguratorMixin, FromConfig
 from invenio_requests.resources.requests.config import RequestSearchRequestArgsSchema
 
-from invenio_curations.services.errors import (
-    CurationRequestNotAccepted,
-    OpenRecordCurationRequestAlreadyExists,
-    RoleNotFound,
+from ..services.errors import (
+    CurationRequestNotAcceptedError,
+    OpenRecordCurationRequestAlreadyExistsError,
+    RoleNotFoundError,
 )
 
 
@@ -31,13 +32,13 @@ class CurationsSearchRequestArgsSchema(RequestSearchRequestArgsSchema):
 
 
 request_error_handlers = {
-    OpenRecordCurationRequestAlreadyExists: create_error_handler(
+    OpenRecordCurationRequestAlreadyExistsError: create_error_handler(
         lambda e: HTTPJSONException(
             code=400,
             description=str(e),
-        )
+        ),
     ),
-    CurationRequestNotAccepted: create_error_handler(
+    CurationRequestNotAcceptedError: create_error_handler(
         lambda e: HTTPJSONException(
             code=400,
             description=str(e),
@@ -45,15 +46,15 @@ request_error_handlers = {
                 {
                     "field": "metadata.title",
                     "messages": ["."],
-                }
+                },
             ],
-        )
+        ),
     ),
-    RoleNotFound: create_error_handler(
+    RoleNotFoundError: create_error_handler(
         lambda e: HTTPJSONException(
             code=404,
             description=str(e),
-        )
+        ),
     ),
 }
 
@@ -67,17 +68,17 @@ class CurationsResourceConfig(RecordResourceConfig, ConfiguratorMixin):
     # types differ from superclass
     blueprint_name = "curations"
     url_prefix = "/curations"
-    routes = {
+    routes: Final = {
         "list": "/",
     }
 
-    request_view_args = {
+    request_view_args: Final = {
         "reference_type": ma.fields.Str(),
         "reference_id": ma.fields.Str(),
     }
 
     # types differ from superclass
-    request_extra_args = {
+    request_extra_args: Final = {
         **RecordResourceConfig.request_extra_args,
         "reference_type": ma.fields.Str(),
         "reference_id": ma.fields.Str(),
@@ -85,10 +86,11 @@ class CurationsResourceConfig(RecordResourceConfig, ConfiguratorMixin):
     request_search_args = CurationsSearchRequestArgsSchema
 
     error_handlers = FromConfig(
-        "CURATIONS_ERROR_HANDLERS", default=request_error_handlers
+        "CURATIONS_ERROR_HANDLERS",
+        default=request_error_handlers,
     )
 
-    response_handlers = {
+    response_handlers: Final = {
         "application/vnd.inveniordm.v1+json": RecordResourceConfig.response_handlers[
             "application/json"
         ],

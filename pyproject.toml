@@ -3,10 +3,41 @@
 requires = ["setuptools", "wheel", "babel>2.8"]
 build-backend = "setuptools.build_meta"
 
+[tool.ruff]
+exclude = ["docs"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+  "ANN401",
+  "C408",
+  "D203", "D211", "D212", "D213", "D401",
+  "E501",
+  "FA100", "FA102",
+  "FIX002",
+  "INP001",
+  "N999",
+  "PERF203",
+  "PIE804",
+  "PLR0913",
+  "RUF005",
+  "S101",
+  "TC001", "TC002", "TC006",
+  "TD002", "TD003",
+  "TID252",
+  "UP009",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**.py" = [
+  "ANN001", "ANN201",
+  "ARG001",
+]
+
 [tool.mypy]
 strict = true
 python_version = "3.12"
-follow_imports = skip
+follow_imports = "skip"
 ignore_missing_imports = true
 allow_subclassing_any = true
 disable_error_code = ["type-arg", "misc"]

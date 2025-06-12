@@ -9,7 +9,8 @@
 # details.
 
 """Requests resource."""
-from typing import Any, Callable, cast
+
+from typing import Any, cast
 
 from flask import Blueprint, g
 from flask_resources import resource_requestctx, response_handler, route
@@ -49,10 +50,10 @@ class CurationsResource(RecordResource):
         for exc_or_code, error_handler in self.create_error_handlers():
             blueprint.record_once(
                 lambda s, exc_or_code=exc_or_code, error_handler=error_handler: s.app.errorhandler(
-                    exc_or_code
+                    exc_or_code,
                 )(
-                    error_handler
-                )
+                    error_handler,
+                ),
             )
 
         return blueprint
