@@ -11,12 +11,13 @@
 from typing import Final
 
 from invenio_rdm_records.requests import CommunitySubmission
-from invenio_rdm_records.services.generators import IfFileIsLocal
 from invenio_rdm_records.services.permissions import (
     RDMRecordPermissionPolicy,
     RDMRequestsPermissionPolicy,
 )
 from invenio_records_permissions.generators import SystemProcess
+from invenio_records_resources.services.files.generators import IfTransferType
+from invenio_records_resources.services.files.transfer import LOCAL_TRANSFER_TYPE
 from invenio_requests.services.generators import Creator, Receiver
 
 from ..requests.curation import CurationRequest
@@ -47,7 +48,8 @@ class CurationRDMRecordPermissionPolicy(RDMRecordPermissionPolicy):
 
     # in order to get all base permissions in, we just add ours instead of adapting the then_ clause of the base permission
     can_get_content_files = RDMRecordPermissionPolicy.can_get_content_files + [
-        IfFileIsLocal(then_=can_read_files, else_=[SystemProcess()]),
+        IfTransferType(LOCAL_TRANSFER_TYPE, can_read_files),
+        SystemProcess(),
     ]
 
     can_read_draft = RDMRecordPermissionPolicy.can_read_draft + [
@@ -60,13 +62,19 @@ class CurationRDMRecordPermissionPolicy(RDMRecordPermissionPolicy):
     # in order to get all base permissions in, we just add ours instead of adapting the then_ clause of the base permission
     can_draft_get_content_files = (
         RDMRecordPermissionPolicy.can_draft_get_content_files
-        + [IfFileIsLocal(then_=can_draft_read_files, else_=[SystemProcess()])]
+        + [
+            IfTransferType(LOCAL_TRANSFER_TYPE, can_draft_read_files),
+            SystemProcess(),
+        ]
     )
 
     # in order to get all base permissions in, we just add ours instead of adapting the then_ clause of the base permission
     can_draft_media_get_content_files = (
         RDMRecordPermissionPolicy.can_draft_media_get_content_files
-        + [IfFileIsLocal(then_=can_preview, else_=[SystemProcess()])]
+        + [
+            IfTransferType(LOCAL_TRANSFER_TYPE, can_preview),
+            SystemProcess(),
+        ]
     )
 
     can_media_read_files = RDMRecordPermissionPolicy.can_media_read_files + [
@@ -74,7 +82,10 @@ class CurationRDMRecordPermissionPolicy(RDMRecordPermissionPolicy):
     ]
     can_media_get_content_files = (
         RDMRecordPermissionPolicy.can_media_get_content_files
-        + [IfFileIsLocal(then_=can_read, else_=[SystemProcess()])]
+        + [
+            IfTransferType(LOCAL_TRANSFER_TYPE, can_read),
+            SystemProcess(),
+        ]
     )
 
 
