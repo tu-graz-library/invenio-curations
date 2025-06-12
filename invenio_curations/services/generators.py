@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2024 Graz University of Technology.
+# Copyright (C) 2024-2025 Graz University of Technology.
 #
 # Invenio-Curations is free software; you can redistribute it and/or
 # modify it under the terms of the MIT License; see LICENSE file for more
@@ -9,7 +9,7 @@
 """Curations related generators."""
 
 from itertools import chain
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from flask_principal import Need, RoleNeed
 from invenio_access.permissions import Permission, system_identity
@@ -95,7 +95,10 @@ class EntityReferenceServicePermission(Generator):
             entity.get_resolver().get_service().config.permission_policy_cls
         )
 
-        return getattr(permission_policy_cls, self.permission_name)
+        return cast(
+            list[Permission],
+            getattr(permission_policy_cls, self.permission_name),
+        )
 
     def _get_entity(self, request: Request) -> RDMRecordProxy:
         """Get the specified entity of the request."""

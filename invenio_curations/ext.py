@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2024 Graz University of Technology.
+# Copyright (C) 2024-2025 Graz University of Technology.
 #
 # Invenio-Curations is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -30,7 +30,7 @@ class ServiceConfigs:
 
     def __init__(self, app: Flask):
         """Constructs."""
-        self._curations = CurationsServiceConfig.build(app)
+        self._curations: CurationsServiceConfig = CurationsServiceConfig.build(app)
 
     @property
     def curations(self) -> CurationRequestService:
@@ -45,7 +45,7 @@ def finalize_app(app: Flask) -> None:
 
 def init_menu(app: Flask) -> None:
     """Initialize flask menu."""
-    user_dashboard = current_menu.submenu("dashboard")  # type: ignore[attr-defined]
+    user_dashboard = current_menu.submenu("dashboard")
     user_dashboard.submenu("curation-overview").register(
         "invenio_curations.curation_requests_overview",
         text=_("Curation Requests"),
@@ -59,8 +59,8 @@ class InvenioCurations(object):
 
     def __init__(self, app: Flask | None = None) -> None:
         """Extension initialization."""
-        self.curations_service = None
-        self.curations_resource = None
+        self.curations_service: CurationRequestService | None = None
+        self.curations_resource: CurationsResource | None = None
         if app:
             self.init_app(app)
 
@@ -85,14 +85,14 @@ class InvenioCurations(object):
         """Initialize the service and resource for curations."""
         service_configs = self.service_configs(app)
 
-        self.curations_service = CurationRequestService(  # type: ignore[assignment]
+        self.curations_service = CurationRequestService(
             config=service_configs.curations,
             requests_service=_get_requests_service(),
         )
 
     def init_resources(self, app: Flask) -> None:
         """Init resources."""
-        self.curations_resource = CurationsResource(  # type: ignore[assignment]
+        self.curations_resource = CurationsResource(
             service=self.curations_service,
             config=CurationsResourceConfig.build(app),
         )

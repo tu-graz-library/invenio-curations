@@ -4,5 +4,15 @@ requires = ["setuptools", "wheel", "babel>2.8"]
 build-backend = "setuptools.build_meta"
 
 [tool.mypy]
+strict = true
 python_version = "3.12"
+follow_imports = skip
 ignore_missing_imports = true
+allow_subclassing_any = true
+disable_error_code = ["type-arg", "misc"]
+
+[[tool.mypy.overrides]] # Overrides for currently untyped modules
+module = [
+    "tests.*",
+]
+ignore_errors = true
