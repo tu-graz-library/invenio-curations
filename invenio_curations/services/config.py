@@ -9,27 +9,20 @@
 
 """Curations service configuration."""
 
+from typing import Final
+
 from invenio_records_resources.services import RecordServiceConfig
 from invenio_records_resources.services.base.config import ConfiguratorMixin, FromConfig
 from invenio_requests.services.requests.config import RequestSearchOptions
 
-from invenio_curations.services import facets
-
+from . import facets
 from .permissions import CurationRDMRequestsPermissionPolicy
 
 
 class CurationsSearchOptions(RequestSearchOptions):
     """Search options."""
 
-    # TODO: update with own additional params?
-    # params_interpreters_cls = SearchOptions.params_interpreters_cls + [
-    #     ReferenceFilterParam.factory(param="created_by", field="created_by"),
-    #     ReferenceFilterParam.factory(param="receiver", field="receiver"),
-    #     ReferenceFilterParam.factory(param="topic", field="topic"),
-    #     IsOpenParam.factory("is_open"),
-    # ]
-
-    facets = {
+    facets: Final = {
         "type": facets.type,
         "status": facets.status,
     }
@@ -43,7 +36,8 @@ class CurationsServiceConfig(RecordServiceConfig, ConfiguratorMixin):
 
     # common configuration
     permission_policy_cls = FromConfig(
-        "REQUESTS_PERMISSION_POLICY", default=CurationRDMRequestsPermissionPolicy
+        "REQUESTS_PERMISSION_POLICY",
+        default=CurationRDMRequestsPermissionPolicy,
     )
     # TODO: update search options?
     search = CurationsSearchOptions

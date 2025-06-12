@@ -29,7 +29,7 @@ from werkzeug.datastructures import ImmutableMultiDict
 
 from ..proxies import unproxy
 from ..requests import CurationRequest
-from .errors import OpenRecordCurationRequestAlreadyExists, RoleNotFound
+from .errors import OpenRecordCurationRequestAlreadyExistsError, RoleNotFoundError
 
 
 class CurationRequestService:
@@ -38,7 +38,7 @@ class CurationRequestService:
     _request_type_registry: TypeRegistry = unproxy(current_request_type_registry)
     _datastore: SQLAlchemyUserDatastore = unproxy(current_datastore)
 
-    def __init__(self, requests_service: RequestsService, **kwargs: Any) -> None:
+    def __init__(self, requests_service: RequestsService, **__: Any) -> None:
         """Service initialisation as a sub-service of requests."""
         self.requests_service = requests_service
 
@@ -77,7 +77,10 @@ class CurationRequestService:
         )
 
     def get_review(
-        self, identity: Identity, topic: RDMDraft, **kwargs: Any
+        self,
+        identity: Identity,
+        topic: RDMDraft,
+        **kwargs: Any,
     ) -> dict[str, Any] | None:
         """Get the curation review for a topic."""
         topic_reference: dict = ResolverRegistry.reference_entity(topic)
@@ -90,7 +93,7 @@ class CurationRequestService:
                 "must",
                 must=[
                     dsl.Q("term", **{"type": self.request_type_cls.type_id}),
-                    dsl.Q("term", **{"topic.{}".format(topic_key): topic_value}),
+                    dsl.Q("term", **{f"topic.{topic_key}": topic_value}),
                 ],
             ),
             **kwargs,
@@ -102,7 +105,9 @@ class CurationRequestService:
         return cast(dict[str, Any], next(results.hits))
 
     def accepted_record(
-        self, identity: Identity, record: RDMDraft
+        self,
+        identity: Identity,
+        record: RDMDraft,
     ) -> dict[str, Any] | None:
         """Check if current version of record has been accepted."""
         topic_reference = ResolverRegistry.reference_entity(record)
@@ -115,7 +120,7 @@ class CurationRequestService:
                 "must",
                 must=[
                     dsl.Q("term", **{"type": self.request_type_cls.type_id}),
-                    dsl.Q("term", **{"topic.{}".format(topic_key): topic_value}),
+                    dsl.Q("term", **{f"topic.{topic_key}": topic_value}),
                     dsl.Q("term", **{"is_open": False}),
                     dsl.Q("term", **{"status": "accepted"}),
                 ],
@@ -129,14 +134,14 @@ class CurationRequestService:
         identity: Identity,
         data: dict[str, Any] | None = None,
         uow: UnitOfWork | None = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> RecordItem:
         """Create a RDMCuration request and submit it."""
         role = self.moderation_role
         if not role:
-            raise RoleNotFound(self.moderation_role_name)
+            raise RoleNotFoundError(self.moderation_role_name)
         assert role, _(
-            "Curation request moderation role must exist to enable record curation requests."
+            "Curation request moderation role must exist to enable record curation requests.",
         )
 
         # Allowed entities for the request type will be checked in the request service
@@ -155,13 +160,13 @@ class CurationRequestService:
 
         default_data = {
             "title": "RDM Curation: {title}".format(
-                title=topic.metadata.get("title", topic["id"])
+                title=topic.metadata.get("title", topic["id"]),
             ),
         }
 
         # using system identity to ensure a request is fetched, if it exists. Even if the user would not have access.
         if self.get_review(system_identity, topic):
-            raise OpenRecordCurationRequestAlreadyExists()
+            raise OpenRecordCurationRequestAlreadyExistsError
 
         if data:
             default_data.update(data)
@@ -182,8 +187,9 @@ class CurationRequestService:
         identity: Identity,
         params: ImmutableMultiDict | None = None,
         search_preference: str | None = None,
+        *,
         expand: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> RecordList:
         """Search for curation requests."""
         return self.requests_service.search(

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2024 Graz University of Technology
+# Copyright (C) 2024-2025 Graz University of Technology.
 #
 # Invenio-Curations is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -28,6 +28,7 @@ class GroupMembersRecipient(RecipientGenerator):
 
         Args:
             key: The context key to look up the group/role information
+
         """
         self.key = key
 
@@ -44,15 +45,14 @@ class GroupMembersRecipient(RecipientGenerator):
 
         Returns:
             Updated recipients dictionary with group members added
+
         """
         group: dict[str, Any] = dict_lookup(notification.context, self.key)
 
         # Group service does not contain information about users.
         role: Role = Role.query.filter(Role.id == group["id"]).one()
 
-        user_ids: list[str] = []
-        for u in role.users:
-            user_ids.append(str(u.id))
+        user_ids: list[str] = [str(u.id) for u in role.users]
 
         if not user_ids:
             return recipients

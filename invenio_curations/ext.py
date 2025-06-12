@@ -6,7 +6,6 @@
 # under the terms of the MIT License; see LICENSE file for more details.
 
 """Invenio module for generic and customizable curations."""
-from typing import Any
 
 from flask import Flask, g
 from flask_menu import current_menu
@@ -28,7 +27,7 @@ def _get_requests_service() -> RequestsService:
 class ServiceConfigs:
     """Customized service configs."""
 
-    def __init__(self, app: Flask):
+    def __init__(self, app: Flask) -> None:
         """Constructs."""
         self._curations: CurationsServiceConfig = CurationsServiceConfig.build(app)
 
@@ -43,7 +42,7 @@ def finalize_app(app: Flask) -> None:
     init_menu(app)
 
 
-def init_menu(app: Flask) -> None:
+def init_menu(app: Flask) -> None:  # noqa: ARG001
     """Initialize flask menu."""
     user_dashboard = current_menu.submenu("dashboard")
     user_dashboard.submenu("curation-overview").register(
@@ -54,7 +53,7 @@ def init_menu(app: Flask) -> None:
     )
 
 
-class InvenioCurations(object):
+class InvenioCurations:
     """Invenio-Curations extension."""
 
     def __init__(self, app: Flask | None = None) -> None:

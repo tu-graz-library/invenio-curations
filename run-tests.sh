@@ -52,14 +52,14 @@ if [[ ${keep_services} -eq 0 ]]; then
 	trap cleanup EXIT
 fi
 
-# not related to the work at hand and different from other repos so commenting for now
-# black --check --diff invenio_requests tests
+ruff check .
+
 python -m check_manifest
 python -m sphinx.cmd.build -qnN docs docs/_build/html
 python -m mypy invenio_curations
+
 eval "$(docker-services-cli up --db ${DB:-postgresql} --search ${SEARCH:-opensearch} --cache ${CACHE:-redis} --env)"
+
 # Note: expansion of pytest_args looks like below to not cause an unbound
 # variable error when 1) "nounset" and 2) the array is empty.
 python -m pytest ${pytest_args[@]+"${pytest_args[@]}"}
-tests_exit_code=$?
-exit "$tests_exit_code"
