@@ -9,13 +9,11 @@
 
 from flask import Flask
 
-from invenio_curations import InvenioCurations
+from invenio_curations import InvenioCurations, __version__
 
 
 def test_version() -> None:
     """Test version import."""
-    from invenio_curations import __version__
-
     assert __version__
 
 
