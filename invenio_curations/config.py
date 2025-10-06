@@ -90,3 +90,13 @@ CURATIONS_COMMENT_TEMPLATE_FILE = "comment-template.html"
 Choose a file from the instance's templates folder to render the request comment.
 More details in README.
 """
+
+CURATIONS_PRIVILEGED_ROLES = ["administration"]
+"""Curation privileged roles.
+
+Users or processes with these roles can bypass curation checks.
+Note: this does not apply for community curations. This config should be used just
+to allow admins to publish records without having to perform the extra steps necessary
+for approval.
+Also used for creating rdm-records demo records in testing.
+"""

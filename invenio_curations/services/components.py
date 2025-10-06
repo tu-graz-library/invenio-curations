@@ -15,6 +15,7 @@ from typing import Any, cast
 import dictdiffer
 from flask_principal import Identity
 from invenio_access.permissions import system_identity
+from invenio_accounts.models import User
 from invenio_drafts_resources.services.records.components import ServiceComponent
 from invenio_pidstore.models import PIDStatus
 from invenio_rdm_records.records.api import RDMDraft, RDMRecord
@@ -36,12 +37,27 @@ def _get_requests_service() -> RequestsService:
     return cast(RequestsService, current_requests_service)
 
 
+def _skip_curations_flow(privileged_roles: list[str], identity: Identity) -> bool:
+    """Admins and system can bypass curations workflow.
+
+    Check for actual user roles because identity can be incomplete
+    (e.g. see https://github.com/inveniosoftware/invenio-rdm-records/blob/7c47cdcb133b3b88228d5157687514f0ec7eecc4/invenio_rdm_records/fixtures/tasks.py#L41)
+    """
+    if identity == system_identity:
+        return True
+
+    user_id = identity.id
+    user = User.query.get(user_id)
+
+    return any(role in privileged_roles for role in user.roles)
+
+
 class CurationComponent(ServiceComponent, ABC):
     """Service component for access integration."""
 
     def publish(
         self,
-        identity: Identity,  # noqa: ARG002
+        identity: Identity,
         draft: RDMDraft | None = None,
         record: RDMRecord | None = None,  # noqa: ARG002
         **kwargs: Any,  # noqa: ARG002
@@ -55,6 +71,10 @@ class CurationComponent(ServiceComponent, ABC):
         if draft is None:
             msg = "Unexpected publish action with undefined draft."
             raise RuntimeError(msg)
+
+        if _skip_curations_flow(_get_curations_service().privileged_roles, identity):
+            # configured roles can publish without curation workflow
+            return
 
         has_been_published = (
             draft.pid.status == draft["pid"]["status"] == PIDStatus.REGISTERED
@@ -179,6 +199,9 @@ class CurationComponent(ServiceComponent, ABC):
         """Update draft handler."""
         has_published_record = record is not None and record.is_published
         if has_published_record and _get_curations_service().allow_publishing_edits:
+            return
+
+        if _skip_curations_flow(_get_curations_service().privileged_roles, identity):
             return
 
         request = _get_curations_service().get_review(
