@@ -99,6 +99,11 @@ class CurationRequestService:
         """Curations specific comment html template."""
         return cast(str, current_app.config.get("CURATIONS_COMMENT_TEMPLATE_FILE"))
 
+    @property
+    def privileged_roles(self) -> list[str]:
+        """Curations roles that can bypass the curation approvals."""
+        return cast(list[str], current_app.config.get("CURATIONS_PRIVILEGED_ROLES"))
+
     def get_review(
         self,
         identity: Identity,
