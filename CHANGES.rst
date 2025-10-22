@@ -8,6 +8,13 @@
 Changes
 =======
 
+Version v0.3.0 (release 2025-10-22)
+
+- fix: ruff
+- global: admins to bypass curation workflow
+- feature: create and update comments in curation requests
+
+
 Version v0.2.0 (release 2025-07-28)
 
 - fix: ruff PLC0415
