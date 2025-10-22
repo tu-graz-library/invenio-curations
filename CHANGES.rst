@@ -8,6 +8,11 @@
 Changes
 =======
 
+Version v0.3.1 (release 2025-10-22)
+
+- fix: readme markup
+
+
 Version v0.3.0 (release 2025-10-22)
 
 - fix: ruff
