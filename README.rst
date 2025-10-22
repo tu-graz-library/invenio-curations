@@ -1,6 +1,6 @@
 ..
     Copyright (C) 2021 CERN.
-    Copyright (C) 2024 Graz University of Technology.
+    Copyright (C) 2024-2025 Graz University of Technology.
     Copyright (C) 2024 TU Wien.
 
     Invenio-Curations is free software; you can redistribute it and/or
@@ -326,7 +326,7 @@ Then add this block to the invenio.cfg to link the component to the actual custo
 
 
 Option: Activate automatically generated request comments.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This feature enables the creation and update of custom request comments (i.e events) that should track the differences between metadata states of a draft found in the curation phase.
 How to enable it:
