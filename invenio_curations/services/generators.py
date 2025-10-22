@@ -8,8 +8,9 @@
 
 """Curations related generators."""
 
+from collections.abc import Callable
 from itertools import chain
-from typing import Any, Callable, cast
+from typing import Any, cast
 
 from flask_principal import Need, RoleNeed
 from invenio_access.permissions import Permission, system_identity

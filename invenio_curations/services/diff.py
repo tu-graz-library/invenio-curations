@@ -133,7 +133,7 @@ class DiffDescription(DiffElement):
 
     def validate(self) -> bool:
         """Validate the description diff for expected structure."""
-        update, key, result = self._diff
+        _, _, result = self._diff
         return (isinstance(result, list) and len(result) == 1) or isinstance(
             result,
             tuple,
