@@ -1,5 +1,6 @@
 // This file is part of InvenioRDM
 // Copyright (C) 2024 TU Wien.
+// Copyright (C) 2025 Graz University of Technology.
 //
 // Invenio-Curations is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
@@ -38,38 +39,51 @@ const RequestBaseModalTrigger = (props) => {
 };
 
 export const RequestCritiqueModalTrigger = (props) => {
+  const { onClick } = props;
   return (
-    <RequestBaseModalTrigger {...props} button=<RequestCritiqueButton {...props} /> />
+    <RequestBaseModalTrigger
+      onClick={onClick}
+      button={<RequestCritiqueButton {...props} />}
+    />
   );
 };
 
 export const RequestResubmitModalTrigger = (props) => {
+  const { onClick } = props;
   return (
-    <RequestBaseModalTrigger {...props} button=<RequestResubmitButton {...props} /> />
+    <RequestBaseModalTrigger
+      onClick={onClick}
+      button={<RequestResubmitButton {...props} />}
+    />
   );
 };
 
 export const RequestReviewModalTrigger = (props) => {
+  const { onClick } = props;
   return (
-    <RequestBaseModalTrigger {...props} button=<RequestReviewButton {...props} /> />
+    <RequestBaseModalTrigger
+      onClick={onClick}
+      button={<RequestReviewButton {...props} />}
+    />
   );
 };
 
-for (const component of [
-  RequestCritiqueModalTrigger,
-  RequestResubmitModalTrigger,
-  RequestReviewModalTrigger,
-]) {
-  component.propTypes = {
-    onClick: PropTypes.func.isRequired,
-    loading: PropTypes.bool,
-    ariaAttributes: PropTypes.object,
-    size: PropTypes.string,
-    className: PropTypes.string,
-  };
+RequestBaseModalTrigger.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  button: PropTypes.func.isRequired,
+};
 
-  component.defaultProps = {
-    size: "mini",
-    className: "ml-5",
-  };
-}
+RequestCritiqueModalTrigger.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  button: PropTypes.func.isRequired,
+};
+
+RequestResubmitModalTrigger.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  button: PropTypes.func.isRequired,
+};
+
+RequestReviewModalTrigger.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  button: PropTypes.func.isRequired,
+};

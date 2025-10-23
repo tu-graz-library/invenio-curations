@@ -20,3 +20,8 @@ on:
 jobs:
   tests:
     uses: tu-graz-library/.github/.github/workflows/tests.yml@main
+  JS:
+    uses: inveniosoftware/workflows/.github/workflows/tests-js.yml@master
+    with:
+      js-working-directory: ./invenio_curations/assets/semantic-ui/js/invenio_curations
+      translations-working-directory: ./invenio_curations/assets/semantic-ui/translations/invenio_curations
