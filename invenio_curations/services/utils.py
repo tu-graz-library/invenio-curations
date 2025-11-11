@@ -9,6 +9,9 @@
 """Utils module."""
 
 import nh3
+from flask_principal import Identity
+from invenio_accounts.models import User
+from invenio_db import db
 
 
 class HTMLParseError(Exception):
@@ -24,3 +27,10 @@ def cleanup_html_tags(text: str) -> str:
     except Exception as e:
         msg = "Could not parse html input"
         raise HTMLParseError(msg) from e
+
+
+def is_identity_privileged(privileged_roles: list[str], identity: Identity) -> bool:
+    """Check if given identity is privileged in curation context."""
+    user = db.session.get(User, identity.id)
+
+    return any(role in privileged_roles for role in user.roles)

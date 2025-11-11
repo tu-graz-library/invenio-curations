@@ -15,7 +15,6 @@ from typing import Any, cast
 import dictdiffer
 from flask_principal import Identity
 from invenio_access.permissions import system_identity
-from invenio_accounts.models import User
 from invenio_drafts_resources.services.records.components import ServiceComponent
 from invenio_pidstore.models import PIDStatus
 from invenio_rdm_records.records.api import RDMDraft, RDMRecord
@@ -27,6 +26,7 @@ from . import CurationRequestService
 from .comment import CommentProcessor
 from .diff import DiffProcessor
 from .errors import CurationRequestNotAcceptedError
+from .utils import is_identity_privileged
 
 
 def _get_curations_service() -> CurationRequestService:
@@ -46,10 +46,7 @@ def _skip_curations_flow(privileged_roles: list[str], identity: Identity) -> boo
     if identity == system_identity:
         return True
 
-    user_id = identity.id
-    user = User.query.get(user_id)
-
-    return any(role in privileged_roles for role in user.roles)
+    return is_identity_privileged(privileged_roles, identity)
 
 
 class CurationComponent(ServiceComponent, ABC):
@@ -236,7 +233,7 @@ class CurationComponent(ServiceComponent, ABC):
                 self._process_comment(data, current_draft, request, errors)  # type: ignore[arg-type]
             return
 
-        # Compare metadata of current draft and updated draft.
+            # Compare metadata of current draft and updated draft.
 
         # Sometimes the metadata differs between the passed `record` and resolved
         # `current_draft` in references (e.g. in the `record` object, the creator's
