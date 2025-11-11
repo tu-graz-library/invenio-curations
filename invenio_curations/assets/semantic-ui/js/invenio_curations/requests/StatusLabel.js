@@ -1,6 +1,6 @@
 // This file is part of InvenioRDM
 // Copyright (C) 2024 TU Wien.
-// Copyright (C) 2024 Graz University of Technology.
+// Copyright (C) 2024-2025 Graz University of Technology.
 //
 // Invenio-Curations is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
@@ -32,6 +32,15 @@ export const LabelStatusReview = () => {
     <Label horizontal className="review" size="small">
       <Icon name="eye" />
       {i18next.t("In review")}
+    </Label>
+  );
+};
+
+export const LabelStatusPendingResubmission = () => {
+  return (
+    <Label horizontal className="accepted" size="small">
+      <Icon name="eye" />
+      {i18next.t("Pending resubmission")}
     </Label>
   );
 };

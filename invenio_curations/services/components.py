@@ -264,11 +264,11 @@ class CurationComponent(ServiceComponent, ABC):
         diff = dictdiffer.diff(current_data, updated_data)
         diff_list = list(diff)
 
-        # Request is closed but draft was updated with new data. Put back for review
-        if diff_list:
+        # Request is closed but draft was updated with new data. Flag that as a pending resubmission.
+        if diff_list and request["status"] != "pending_resubmission":
             _get_requests_service().execute_action(
                 identity,
                 request["id"],
-                "resubmit",
+                "pending_resubmission",
                 uow=self.uow,
             )

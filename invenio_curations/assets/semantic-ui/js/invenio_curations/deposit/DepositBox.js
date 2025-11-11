@@ -28,11 +28,14 @@ export class DepositBoxComponent extends React.Component {
       latestRequest: null,
       loading: false,
       lastFetchedAt: null,
+      publishingData: null,
+      fetchCurationWhenSaveSuccess: false,
     };
   }
 
   componentDidMount() {
     this.fetchCurationRequest();
+    this.fetchPublishingData();
     this._setInterval();
   }
 
@@ -65,6 +68,20 @@ export class DepositBoxComponent extends React.Component {
 
       const hits = request.data.hits;
       this.setState({ latestRequest: hits.total > 0 ? hits.hits[0] : null });
+    } catch (e) {
+      console.error(e);
+    }
+
+    this.loading = false;
+  };
+
+  // get all the information necessary for Publishing button
+  fetchPublishingData = async () => {
+    this.loading = true;
+    try {
+      let data = await http.get("/api/curations/publishing-data");
+      data = data.data;
+      this.setState({ publishingData: data });
     } catch (e) {
       console.error(e);
     }
@@ -140,38 +157,48 @@ export class DepositBoxComponent extends React.Component {
     this.loading = false;
   };
 
-  checkShouldFetchCurationRequest = async () => {
-    // Fetch curation request instantly when record was updated from an external component
-    const { lastFetchedAt } = this.state;
-    if (lastFetchedAt < this.record.updated) {
-      this.resetInterval();
-      this.fetchCurationRequest();
-    }
-  };
-
-  setGreenLightForCurationRequest = () => {
+  checkRecordSavedSuccessfully = () => {
     // TODO: For now this workaround assumes the deposit-form has a feedback banner triggered
     // to show by the save button.
     // Possible solutions to avoid this naive approach would be to explore how make use of
     // invenio-checks (https://github.com/inveniosoftware/invenio-checks) in this module.
     let positiveFeedback = document.getElementById("positive-feedback-div") != null;
     let infoFeedback = document.getElementById("info-feedback-div") != null;
-    
+
     return positiveFeedback || infoFeedback;
   };
 
+  checkShouldFetchCurationRequest = async () => {
+    // Fetch curation request instantly when record was updated from an external component
+    const { lastFetchedAt, fetchCurationWhenSaveSuccess } = this.state;
+    if (lastFetchedAt < this.record.updated) {
+      this.resetInterval();
+      this.fetchCurationRequest();
+    }
+    // Fetch curation after save action completed successfully. Make sure to control the
+    // state to only fetch one time per save action.
+    if (this.checkRecordSavedSuccessfully() && !fetchCurationWhenSaveSuccess) {
+        this.setState({ fetchCurationWhenSaveSuccess: true });
+        this.fetchCurationRequest();
+    } else if (!this.checkRecordSavedSuccessfully() && fetchCurationWhenSaveSuccess) {
+        this.setState({ fetchCurationWhenSaveSuccess: false });
+    }
+  };
+
   render() {
-    const { latestRequest } = this.state;
+    const { latestRequest, publishingData } = this.state;
     const { record, permissions, groupsEnabled } = this.props;
 
     this.checkShouldFetchCurationRequest();
-    record.savedSuccessfully = this.setGreenLightForCurationRequest();
-    
+    record.savedSuccessfully = this.checkRecordSavedSuccessfully();
+
     return (
       <Card className="access-right">
         <Form.Field required>
           <Card.Content>
-            <CustomDepositStatusBox record={record} request={latestRequest}
+            <CustomDepositStatusBox
+              record={record}
+              request={latestRequest}
               key={`status-${record?.id}-${latestRequest?.id}`}
             />
           </Card.Content>
@@ -190,6 +217,7 @@ export class DepositBoxComponent extends React.Component {
                 <RequestOrPublishButton
                   request={latestRequest}
                   record={record}
+                  publishingData={publishingData}
                   loading={this.loading}
                   handleCreateRequest={async (event) => {
                     this.handleSave(event);
