@@ -18,9 +18,15 @@ import {
   RequestResubmitModalTrigger,
   RequestReviewModalTrigger,
 } from "./ModalTriggers";
-import { CritiquedStatus, ResubmittedStatus, ReviewStatus } from "./Status.js";
+import {
+  CritiquedStatus,
+  PendingResubmissionStatus,
+  ResubmittedStatus,
+  ReviewStatus,
+} from "./Status.js";
 import {
   LabelStatusCritique,
+  LabelStatusPendingResubmission,
   LabelStatusResubmit,
   LabelStatusReview,
 } from "./StatusLabel.js";
@@ -29,6 +35,7 @@ import {
   TimelineCritiqueEvent,
   TimelineResubmitEvent,
   TimelineReviewEvent,
+  TimelinePendingResubmission,
 } from "./timelineActionEvents.js";
 import { RequestMetadata } from "./RequestMetadataLayout.js";
 
@@ -47,16 +54,19 @@ export const curationComponentOverrides = {
   "RequestStatusLabel.layout.critiqued": LabelStatusCritique,
   "RequestStatusLabel.layout.resubmitted": LabelStatusResubmit,
   "RequestStatusLabel.layout.review": LabelStatusReview,
+  "RequestStatusLabel.layout.pending_resubmission": LabelStatusPendingResubmission,
 
   // status label for the request details page
   "RequestStatus.layout.review": ReviewStatus,
   "RequestStatus.layout.resubmitted": ResubmittedStatus,
   "RequestStatus.layout.critiqued": CritiquedStatus,
+  "RequestStatus.layout.pending_resubmission": PendingResubmissionStatus,
 
   // buttons for opening the action modal
   "RequestActionModalTrigger.critique": RequestCritiqueModalTrigger,
   "RequestActionModalTrigger.resubmit": RequestResubmitModalTrigger,
   "RequestActionModalTrigger.review": RequestReviewModalTrigger,
+  "RequestActionModalTrigger.pending_resubmission": () => null,
 
   // custom titles for modals
   "RequestActionModal.title.review": () => i18next.t("Start curation review"),
@@ -67,9 +77,11 @@ export const curationComponentOverrides = {
   "RequestActionButton.critique": RequestCritiqueButton,
   "RequestActionButton.resubmit": RequestResubmitButton,
   "RequestActionButton.review": RequestReviewButton,
+  "RequestActionButton.pending_resubmission": () => null,
 
   // the request status are called "review" (as it's in progress), "resubmitted", and "critiqued"
   "TimelineEvent.layout.review": TimelineReviewEvent,
   "TimelineEvent.layout.resubmitted": TimelineResubmitEvent,
   "TimelineEvent.layout.critiqued": TimelineCritiqueEvent,
+  "TimelineEvent.layout.pending_resubmission": TimelinePendingResubmission,
 };
