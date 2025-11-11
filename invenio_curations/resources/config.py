@@ -68,9 +68,7 @@ class CurationsResourceConfig(RecordResourceConfig, ConfiguratorMixin):
     # types differ from superclass
     blueprint_name = "curations"
     url_prefix = "/curations"
-    routes: Final = {
-        "list": "/",
-    }
+    routes: Final = {"list": "/", "publishing-data": "/publishing-data"}
 
     request_view_args: Final = {
         "reference_type": ma.fields.Str(),
