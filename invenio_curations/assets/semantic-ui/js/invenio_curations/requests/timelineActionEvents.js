@@ -1,6 +1,6 @@
 // This file is part of InvenioRDM
 // Copyright (C) 2024 TU Wien.
-// Copyright (C) 2024 Graz University of Technology.
+// Copyright (C) 2024-2025 Graz University of Technology.
 //
 // Invenio-Curations is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
@@ -32,6 +32,15 @@ export const TimelineReviewEvent = ({ event }) => (
     iconName="eye"
     event={event}
     eventContent={i18next.t("started a review")}
+    iconColor="neutral"
+  />
+);
+
+export const TimelinePendingResubmission = ({ event }) => (
+  <TimelineActionEvent
+    iconName="eye"
+    event={event}
+    eventContent={i18next.t("edited the published record")}
     iconColor="neutral"
   />
 );
