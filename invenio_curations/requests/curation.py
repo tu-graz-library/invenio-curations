@@ -178,7 +178,7 @@ class CurationResubmitAction(actions.RequestAction):
 
     status_from: ClassVar[list[str]] = [
         "critiqued",
-        "accepted",
+        "pending_resubmission",
         "cancelled",
         "declined",
     ]
@@ -194,6 +194,21 @@ class CurationResubmitAction(actions.RequestAction):
                 ),
             ),
         )
+        super().execute(identity, uow)
+
+
+class CurationPendingResubmissionAction(actions.RequestAction):
+    """Mark request in a pending state, waiting to be resubmitted."""
+
+    status_from: ClassVar[list[str]] = [
+        "accepted",
+        "cancelled",
+        "declined",
+    ]
+    status_to: ClassVar[str] = "pending_resubmission"
+
+    def execute(self, identity: Identity, uow: UnitOfWork) -> None:
+        """Execute the pending_resubmit action."""
         super().execute(identity, uow)
 
 
@@ -219,6 +234,7 @@ class CurationRequest(RequestType):
         "review": CurationReviewAction,
         "critique": CurationCritiqueAction,
         "resubmit": CurationResubmitAction,
+        "pending_resubmission": CurationPendingResubmissionAction,
     }
 
     # Dict mapping status names to RequestState values
@@ -227,6 +243,7 @@ class CurationRequest(RequestType):
         "review": RequestState.OPEN,
         "critiqued": RequestState.OPEN,
         "resubmitted": RequestState.OPEN,
+        "pending_resubmission": RequestState.CLOSED,
     }
     """Available statuses for the request.
 
