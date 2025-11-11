@@ -75,6 +75,7 @@ class CurationsResource(RecordResource):
         return [
             route("GET", p(routes["list"]), self.search),
             route("POST", p(routes["list"]), self.create),
+            route("GET", p(routes["publishing-data"]), self.get_publishing_data),
         ]
 
     @request_extra_args
@@ -102,3 +103,10 @@ class CurationsResource(RecordResource):
             expand=resource_requestctx.args.get("expand", True),
         )
         return item.to_dict(), 201
+
+    @request_extra_args
+    @request_data
+    @response_handler()
+    def get_publishing_data(self) -> tuple[dict[str, Any], int]:
+        """Create an item."""
+        return self.service.get_publishing_data(g.identity), 200

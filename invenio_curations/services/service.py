@@ -32,6 +32,7 @@ from ..proxies import unproxy
 from ..requests import CurationRequest
 from .diff import DiffElement
 from .errors import OpenRecordCurationRequestAlreadyExistsError, RoleNotFoundError
+from .utils import is_identity_privileged
 
 
 class CurationRequestService:
@@ -233,3 +234,14 @@ class CurationRequestService:
             expand=expand,
             **kwargs,
         )
+
+    def get_publishing_data(
+        self,
+        identity: Identity,
+        **kwargs: Any,  # noqa: ARG002
+    ) -> dict:
+        """Get the necessary info to determine some curation UI states."""
+        return {
+            "is_admin": is_identity_privileged(self.privileged_roles, identity),
+            "publishing_edits": self.allow_publishing_edits,
+        }
