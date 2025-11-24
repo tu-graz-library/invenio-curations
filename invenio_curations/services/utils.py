@@ -34,4 +34,3 @@ def is_identity_privileged(privileged_roles: list[str], identity: Identity) -> b
     user = db.session.get(User, identity.id)
 
     return any(role in privileged_roles for role in user.roles)
-
