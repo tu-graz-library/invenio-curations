@@ -9,7 +9,7 @@
 
 from __future__ import annotations
 
-from typing import ClassVar
+from typing import Final
 
 from flask_principal import Identity
 from invenio_i18n import lazy_gettext as _
@@ -48,7 +48,7 @@ class CurationSubmitAction(actions.SubmitAction):
     """Submit action for user access requests."""
 
     # list of statuses this action can be performed from
-    status_from: ClassVar[list[str]] = ["created"]
+    status_from: Final[list[str]] = ["created"]
 
     def execute(self, identity: Identity, uow: UnitOfWork) -> None:
         """Execute the submit action."""
@@ -67,7 +67,7 @@ class CurationAcceptAction(actions.AcceptAction):
     """Accept a request."""
 
     # Require to go through review before accepting.
-    status_from: ClassVar[list[str]] = ["review"]
+    status_from: Final[list[str]] = ["review"]
 
     def execute(self, identity: Identity, uow: UnitOfWork) -> None:
         """Execute the accept action."""
@@ -87,7 +87,7 @@ class CurationDeclineAction(actions.DeclineAction):
     """Decline a request."""
 
     # Instead of declining, the record should be critiqued.
-    status_from: ClassVar[list[str]] = []
+    status_from: Final[list[str]] = []
 
 
 class CurationCancelAction(actions.CancelAction):
@@ -95,7 +95,7 @@ class CurationCancelAction(actions.CancelAction):
 
     # A user might want to cancel their request.
     # Also done when a draft for an already published record is deleted/discarded
-    status_from: ClassVar[list[str]] = [
+    status_from: Final[list[str]] = [
         "accepted",
         "cancelled",
         "created",
@@ -111,7 +111,7 @@ class CurationCancelAction(actions.CancelAction):
 class CurationExpireAction(actions.ExpireAction):
     """Expire a request."""
 
-    status_from: ClassVar[list[str]] = ["submitted", "critiqued", "resubmitted"]
+    status_from: Final[list[str]] = ["submitted", "critiqued", "resubmitted"]
 
 
 class CurationDeleteAction(actions.DeleteAction):
@@ -120,7 +120,7 @@ class CurationDeleteAction(actions.DeleteAction):
     # When a user deletes their draft, the request will get deleted. Should be possible from every state.
     # Usually delete is only possible programmatically, as the base permissions allow user driven deletion
     # only during `created` status
-    status_from: ClassVar[list[str]] = [
+    status_from: Final[list[str]] = [
         "accepted",
         "cancelled",
         "created",
@@ -136,8 +136,8 @@ class CurationDeleteAction(actions.DeleteAction):
 class CurationReviewAction(actions.RequestAction):
     """Mark request as review."""
 
-    status_from: ClassVar[list[str]] = ["submitted", "resubmitted"]
-    status_to: ClassVar[str] = "review"
+    status_from: Final[list[str]] = ["submitted", "resubmitted"]
+    status_to: Final[str] = "review"
 
     def execute(self, identity: Identity, uow: UnitOfWork) -> None:
         """Execute the review action."""
@@ -156,8 +156,8 @@ class CurationReviewAction(actions.RequestAction):
 class CurationCritiqueAction(actions.RequestAction):
     """Request changes for request."""
 
-    status_from: ClassVar[list[str]] = ["review"]
-    status_to: ClassVar[str] = "critiqued"
+    status_from: Final[list[str]] = ["review"]
+    status_to: Final[str] = "critiqued"
 
     def execute(self, identity: Identity, uow: UnitOfWork) -> None:
         """Execute the critique action."""
@@ -176,13 +176,13 @@ class CurationCritiqueAction(actions.RequestAction):
 class CurationResubmitAction(actions.RequestAction):
     """Mark request as ready for review."""
 
-    status_from: ClassVar[list[str]] = [
+    status_from: Final[list[str]] = [
         "critiqued",
         "pending_resubmission",
         "cancelled",
         "declined",
     ]
-    status_to: ClassVar[str] = "resubmitted"
+    status_to: Final[str] = "resubmitted"
 
     def execute(self, identity: Identity, uow: UnitOfWork) -> None:
         """Execute the resubmit action."""
@@ -200,12 +200,12 @@ class CurationResubmitAction(actions.RequestAction):
 class CurationPendingResubmissionAction(actions.RequestAction):
     """Mark request in a pending state, waiting to be resubmitted."""
 
-    status_from: ClassVar[list[str]] = [
+    status_from: Final[list[str]] = [
         "accepted",
         "cancelled",
         "declined",
     ]
-    status_to: ClassVar[str] = "pending_resubmission"
+    status_to: Final[str] = "pending_resubmission"
 
     def execute(self, identity: Identity, uow: UnitOfWork) -> None:
         """Execute the pending_resubmit action."""
@@ -218,11 +218,11 @@ class CurationPendingResubmissionAction(actions.RequestAction):
 class CurationRequest(RequestType):
     """Curation request type."""
 
-    type_id: ClassVar[str] = "rdm-curation"
-    name: ClassVar[str] = _("Curation")
+    type_id: Final[str] = "rdm-curation"
+    name: Final[str] = _("Curation")
 
     # Dict mapping action names to action classes
-    available_actions: ClassVar[dict[str, type[RequestAction]]] = {
+    available_actions: Final[dict[str, type[RequestAction]]] = {
         **RequestType.available_actions,
         "create": CurationCreateAndSubmitAction,
         "submit": CurationSubmitAction,
@@ -238,7 +238,7 @@ class CurationRequest(RequestType):
     }
 
     # Dict mapping status names to RequestState values
-    available_statuses: ClassVar[dict[str, RequestState]] = {
+    available_statuses: Final[dict[str, RequestState]] = {
         **RequestType.available_statuses,
         "review": RequestState.OPEN,
         "critiqued": RequestState.OPEN,
@@ -252,14 +252,14 @@ class CurationRequest(RequestType):
     or undefined.
     """
 
-    create_action: ClassVar[str] = "create"
+    create_action: Final[str] = "create"
     """Defines the action that's able to create this request.
 
     This must be set to one of the available actions for the custom request type.
     """
 
-    creator_can_be_none: ClassVar[bool] = False
-    topic_can_be_none: ClassVar[bool] = False
-    allowed_creator_ref_types: ClassVar[list[str]] = ["user", "community"]
-    allowed_receiver_ref_types: ClassVar[list[str]] = ["group"]
-    allowed_topic_ref_types: ClassVar[list[str]] = ["record"]
+    creator_can_be_none: Final[bool] = False
+    topic_can_be_none: Final[bool] = False
+    allowed_creator_ref_types: Final[list[str]] = ["user", "community"]
+    allowed_receiver_ref_types: Final[list[str]] = ["group"]
+    allowed_topic_ref_types: Final[list[str]] = ["record"]
