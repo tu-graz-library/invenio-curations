@@ -134,14 +134,16 @@ class CurationComponent(ServiceComponent, ABC):
 
         if current_draft_title != updated_draft_title:
             title = updated_draft_title or record["id"]  # type: ignore[index]
-            request["title"] = f"RDM Curation: {title}"
+            patch_request = {
+                "title": f"RDM Curation: {title}",
+            }
 
             # Using system identity, to not have to update the default request can_update permission.
             # Data will be checked in the requests service.
             _get_requests_service().update(
                 system_identity,
                 request["id"],
-                request,
+                patch_request,
                 uow=self.uow,
             )
 
