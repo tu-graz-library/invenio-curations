@@ -1,5 +1,5 @@
 ..
-    Copyright (C) 2024 Graz University of Technology.
+    Copyright (C) 2024-2025 Graz University of Technology.
 
     Invenio-Curations is free software; you can redistribute it and/or
     modify it under the terms of the MIT License; see LICENSE file for more
@@ -7,6 +7,13 @@
 
 Changes
 =======
+
+Version v0.4.0 (released 2025-12-02)
+
+- fix: send only patched title
+- types: change classVar to final
+- feat: integrate new 'pending_resubmission' status
+- feat: new get_publishing_data endpoint
 
 Version v0.3.1 (release 2025-10-22)
 
