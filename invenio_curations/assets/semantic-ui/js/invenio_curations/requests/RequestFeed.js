@@ -35,16 +35,16 @@ class CurationsTimelineFeedComponent extends Component {
 
   // ATTENTION BLOCK functions added for overridden component START
   componentDidMount() {
-    this.fetchAccessInfo();
+    this.fetchPublishingData();
   }
 
-  // get isAdmin from API
+  // get isPrivileged from API
   fetchPublishingData = async () => {
     this.loading = true;
     try {
       let data = await http.get("/api/curations/publishing-data");
-      let isAdmin = data.data.is_admin;
-      this.setState({ canSeeAllComments: isAdmin });
+      let isPrivileged = data.data.is_privileged;
+      this.setState({ canSeeAllComments: isPrivileged });
     } catch (e) {
       console.error(e);
     }
@@ -107,7 +107,6 @@ class CurationsTimelineFeedComponent extends Component {
                   event.created_by?.user != "system" || canSeeAllComments
               //  BLOCK END
                 )).map((event) => (
-
                   <TimelineCommentEventControlled
                     key={event.id}
                     event={event}

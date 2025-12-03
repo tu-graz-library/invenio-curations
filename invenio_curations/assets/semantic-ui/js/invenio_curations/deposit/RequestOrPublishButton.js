@@ -25,10 +25,10 @@ export const RequestOrPublishButton = (props) => {
   let elem = null;
 
   // 2 special cases:
-  // - user is admin: should bypass curation workflow
+  // - user is privileged: should bypass curation workflow
   // - record is published && user edits it && allow_publishing_edits=false => action
   // is rather a "resubmit" than a "publish"
-  if (publishingData?.is_admin) {
+  if (publishingData?.is_privileged) {
     elem = <PublishButton fluid record={record} />;
     return elem;
   }
