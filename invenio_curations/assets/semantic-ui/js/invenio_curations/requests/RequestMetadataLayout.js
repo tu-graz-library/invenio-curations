@@ -169,7 +169,7 @@ DeletedResource.propTypes = {
 export class RequestMetadataComponent extends Component {
   constructor(props) {
     super(props);
-     // ATTENTION BLOCK state added for overriden component START
+     // ATTENTION BLOCK state added for overridden component START
     this.state = {
       linkIsValid: false,
     };
@@ -181,7 +181,7 @@ export class RequestMetadataComponent extends Component {
     const { request } = this.props;
 
     if (request.status === "accepted" && request.topic?.record) {
-      // Even if the request is accepted, the publishing is the responsability of the record's
+      // Even if the request is accepted, the publishing is the responsibility of the record's
       // author. display the Record section only if the record was actually published.
       const url = `/records/${request.topic.record}`;
 
@@ -202,7 +202,7 @@ export class RequestMetadataComponent extends Component {
 
   render() {
     const { request } = this.props;
-    // ATTENTION BLOCK state: extra for overriden component START
+    // ATTENTION BLOCK state: extra for overridden component START
     const { linkIsValid } = this.state;
     // BLOCK END
     const expandedCreatedBy = request.expanded?.created_by;
@@ -266,7 +266,7 @@ export class RequestMetadataComponent extends Component {
           </>
         )}
 
-        {/* ATTENTION BLOCK state check: extra for overriden component START*/}
+        {/* ATTENTION BLOCK state check: extra for overridden component START*/}
         {linkIsValid && (
           <>
             <Divider />

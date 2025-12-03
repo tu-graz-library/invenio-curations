@@ -38,6 +38,7 @@ import {
   TimelinePendingResubmission,
 } from "./timelineActionEvents.js";
 import { RequestMetadata } from "./RequestMetadataLayout.js";
+import { CurationsTimelineFeed } from "./RequestFeed.js";
 
 export const curationComponentOverrides = {
   ...defaultContribComponents,
@@ -84,4 +85,7 @@ export const curationComponentOverrides = {
   "TimelineEvent.layout.resubmitted": TimelineResubmitEvent,
   "TimelineEvent.layout.critiqued": TimelineCritiqueEvent,
   "TimelineEvent.layout.pending_resubmission": TimelinePendingResubmission,
+
+  // override the TimelineFeed
+  "TimelineFeed.layout": CurationsTimelineFeed,
 };
