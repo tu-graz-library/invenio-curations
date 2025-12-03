@@ -27,7 +27,7 @@ class CurationsTimelineFeedComponent extends Component {
       modalOpen: false,
       modalAction: null,
       // ATTENTION BLOCK states added for overridden component START
-      isAdmin: false,
+      canSeeAllComments: false,
       loading: false,
       // BLOCK END
     };
@@ -35,16 +35,16 @@ class CurationsTimelineFeedComponent extends Component {
 
   // ATTENTION BLOCK functions added for overridden component START
   componentDidMount() {
-    this.fetchPublishingData();
+    this.fetchAccessInfo();
   }
 
   // get isPrivileged from API
-  fetchPublishingData = async () => {
+  fetchAccessInfo = async () => {
     this.loading = true;
     try {
-      let data = await http.get("/api/curations/publishing-data");
-      let isAdmin = data.data.is_admin;
-      this.setState({ isAdmin: isAdmin });
+      let data = await http.get("/api/curations/access-info");
+      let isPrivileged = data.data.is_privileged;
+      this.setState({ canSeeAllComments: isPrivileged });
     } catch (e) {
       console.error(e);
     }
@@ -79,7 +79,7 @@ class CurationsTimelineFeedComponent extends Component {
       warning,
     } = this.props;
     // ATTENTION BLOCK get isPrivileged from state added for overridden component START
-    const { modalOpen, modalAction, isAdmin } = this.state;
+    const { modalOpen, modalAction, canSeeAllComments } = this.state;
     // BLOCK END
 
     return (
@@ -102,17 +102,17 @@ class CurationsTimelineFeedComponent extends Component {
                 permissions={permissions}
               />
               <RequestsFeed>
-                // ATTENTION BLOCK new filter for overridden component START
-                {timeline.hits?.hits
-                  .filter((event) => event.created_by?.user != "system" || isAdmin)
-                  .map((event) => (
-                    // BLOCK END
-                    <TimelineCommentEventControlled
-                      key={event.id}
-                      event={event}
-                      openConfirmModal={this.onOpenModal}
-                    />
-                  ))}
+              // ATTENTION BLOCK new filter for overridden component START
+                {timeline.hits?.hits.filter((event) => (
+                  event.created_by?.user != "system" || canSeeAllComments
+                )).map((event) => (
+                // BLOCK END
+                  <TimelineCommentEventControlled
+                    key={event.id}
+                    event={event}
+                    openConfirmModal={this.onOpenModal}
+                  />
+                ))}
               </RequestsFeed>
               <Divider fitted />
               <Container textAlign="center" className="mb-15 mt-15">
