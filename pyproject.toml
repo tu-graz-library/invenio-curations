@@ -41,7 +41,7 @@ python_version = "3.12"
 follow_imports = "skip"
 ignore_missing_imports = true
 allow_subclassing_any = true
-disable_error_code = ["type-arg", "misc"]
+disable_error_code = ["type-arg", "misc", "untyped-decorator"]
 
 [[tool.mypy.overrides]] # Overrides for currently untyped modules
 module = [
