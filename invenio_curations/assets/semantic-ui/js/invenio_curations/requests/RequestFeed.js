@@ -17,6 +17,7 @@ import { Container, Divider, Message, Icon } from "semantic-ui-react";
 import Error from "@js/invenio_requests/components/Error";
 import Loader from "@js/invenio_requests/components/Loader";
 import PropTypes from "prop-types";
+import { http } from "react-invenio-forms";
 
 class CurationsTimelineFeedComponent extends Component {
   constructor(props) {
@@ -25,13 +26,45 @@ class CurationsTimelineFeedComponent extends Component {
     this.state = {
       modalOpen: false,
       modalAction: null,
+      // ATTENTION BLOCK states added for overridden component START
+      canSeeAllComments: false,
+      loading: false,
+      // BLOCK END
     };
   }
+
+  // ATTENTION BLOCK functions added for overridden component START
+  componentDidMount() {
+    this.fetchAccessInfo();
+  }
+
+  // get isAdmin from API
+  fetchPublishingData = async () => {
+    this.loading = true;
+    try {
+      let data = await http.get("/api/curations/publishing-data");
+      let isAdmin = data.data.is_admin;
+      this.setState({ canSeeAllComments: isAdmin });
+    } catch (e) {
+      console.error(e);
+    }
+
+    this.loading = false;
+  };
+  // BLOCK END
 
   onOpenModal = (action) => {
     this.setState({ modalOpen: true, modalAction: action });
   };
 
+  // This component overrides the TimelineFeed layout from InvenioApp RDM v13
+  // Because we need to hide the system generated comments based on privileges
+  // there is a need to call the api to get the privilege status of the current
+  // user, then use that to display only user-created comments or all comments
+  // in the timeline feed.
+  // See: https://github.com/inveniosoftware/invenio-requests/blob/23f001055a791499c34bf0289155512bbcae5462/invenio_requests/assets/semantic-ui/js/invenio_requests/timeline/TimelineFeed.js#L22
+  //
+  // Apart from ATTENTION BLOCKs, the rest of the component is copy-pasted.
   render() {
     const {
       timeline,
@@ -45,7 +78,9 @@ class CurationsTimelineFeedComponent extends Component {
       permissions,
       warning,
     } = this.props;
-    const { modalOpen, modalAction } = this.state;
+    // ATTENTION BLOCK get isPrivileged from state added for overridden component START
+    const { modalOpen, modalAction, canSeeAllComments } = this.state;
+    // BLOCK END
 
     return (
       <Loader isLoading={loading}>
@@ -67,8 +102,12 @@ class CurationsTimelineFeedComponent extends Component {
                 permissions={permissions}
               />
               <RequestsFeed>
-                {timeline.hits?.hits
-                .map((event) => (
+              {/* ATTENTION BLOCK new filter for overridden component START */}
+                {timeline.hits?.hits.filter((event) => (
+                  event.created_by?.user != "system" || canSeeAllComments
+              //  BLOCK END
+                )).map((event) => (
+
                   <TimelineCommentEventControlled
                     key={event.id}
                     event={event}
