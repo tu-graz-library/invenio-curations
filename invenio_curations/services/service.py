@@ -235,12 +235,12 @@ class CurationRequestService:
             **kwargs,
         )
 
-    def get_publishing_data(
+    def get_curations_data(
         self,
         identity: Identity,
         **kwargs: Any,  # noqa: ARG002
     ) -> dict:
-        """Get the necessary info to determine some curation UI states."""
+        """Method to get generic curations data needed to determine various states."""
         return {
             "is_privileged": is_identity_privileged(self.privileged_roles, identity),
             "publishing_edits": self.allow_publishing_edits,
