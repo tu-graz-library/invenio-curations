@@ -70,7 +70,7 @@ class CurationsResourceConfig(RecordResourceConfig, ConfiguratorMixin):
     url_prefix = "/curations"
     routes: Final = {
         "list": "/",
-        "publishing-data": "/publishing-data",
+        "data": "/data",
     }
 
     request_view_args: Final = {

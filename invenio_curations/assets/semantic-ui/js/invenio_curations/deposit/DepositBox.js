@@ -28,14 +28,14 @@ export class DepositBoxComponent extends React.Component {
       latestRequest: null,
       loading: false,
       lastFetchedAt: null,
-      publishingData: null,
+      curationsData: null,
       fetchCurationWhenSaveSuccess: false,
     };
   }
 
   componentDidMount() {
     this.fetchCurationRequest();
-    this.fetchPublishingData();
+    this.fetchCurationsData();
     this._setInterval();
   }
 
@@ -76,12 +76,12 @@ export class DepositBoxComponent extends React.Component {
   };
 
   // get all the information necessary for Publishing button
-  fetchPublishingData = async () => {
+  fetchCurationsData = async () => {
     this.loading = true;
     try {
-      let data = await http.get("/api/curations/publishing-data");
+      let data = await http.get("/api/curations/data");
       data = data.data;
-      this.setState({ publishingData: data });
+      this.setState({ curationsData: data });
     } catch (e) {
       console.error(e);
     }
@@ -186,7 +186,7 @@ export class DepositBoxComponent extends React.Component {
   };
 
   render() {
-    const { latestRequest, publishingData } = this.state;
+    const { latestRequest, curationsData } = this.state;
     const { record, permissions, groupsEnabled } = this.props;
 
     this.checkShouldFetchCurationRequest();
@@ -217,7 +217,7 @@ export class DepositBoxComponent extends React.Component {
                 <RequestOrPublishButton
                   request={latestRequest}
                   record={record}
-                  publishingData={publishingData}
+                  curationsData={curationsData}
                   loading={this.loading}
                   handleCreateRequest={async (event) => {
                     this.handleSave(event);
