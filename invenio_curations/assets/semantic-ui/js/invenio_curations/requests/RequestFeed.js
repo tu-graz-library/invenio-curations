@@ -35,14 +35,14 @@ class CurationsTimelineFeedComponent extends Component {
 
   // ATTENTION BLOCK functions added for overridden component START
   componentDidMount() {
-    this.fetchPublishingData();
+    this.fetchCurationsData();
   }
 
   // get isPrivileged from API
-  fetchPublishingData = async () => {
+  fetchCurationsData = async () => {
     this.loading = true;
     try {
-      let data = await http.get("/api/curations/publishing-data");
+      let data = await http.get("/api/curations/data");
       let isPrivileged = data.data.is_privileged;
       this.setState({ canSeeAllComments: isPrivileged });
     } catch (e) {
@@ -78,7 +78,7 @@ class CurationsTimelineFeedComponent extends Component {
       permissions,
       warning,
     } = this.props;
-    // ATTENTION BLOCK get isPrivileged from state added for overridden component START
+    // ATTENTION BLOCK get canSeeAllComments from state added for overridden component START
     const { modalOpen, modalAction, canSeeAllComments } = this.state;
     // BLOCK END
 

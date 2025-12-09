@@ -16,7 +16,7 @@ export const RequestOrPublishButton = (props) => {
   const {
     request,
     record,
-    publishingData,
+    curationsData,
     handleCreateRequest,
     handleResubmitRequest,
     loading,
@@ -28,13 +28,13 @@ export const RequestOrPublishButton = (props) => {
   // - user is privileged: should bypass curation workflow
   // - record is published && user edits it && allow_publishing_edits=false => action
   // is rather a "resubmit" than a "publish"
-  if (publishingData?.is_privileged) {
+  if (curationsData?.is_privileged) {
     elem = <PublishButton fluid record={record} />;
     return elem;
   }
   if (
     record?.is_published &&
-    !publishingData?.publishing_edits &&
+    !curationsData?.publishing_edits &&
     request?.status == "pending_resubmission"
   ) {
     elem = (
@@ -139,7 +139,7 @@ export const RequestOrPublishButton = (props) => {
 RequestOrPublishButton.propTypes = {
   request: PropTypes.object,
   record: PropTypes.object,
-  publishingData: PropTypes.object,
+  curationsData: PropTypes.object,
   handleCreateRequest: PropTypes.func.isRequired,
   handleResubmitRequest: PropTypes.func.isRequired,
   loading: PropTypes.bool,
@@ -148,6 +148,6 @@ RequestOrPublishButton.propTypes = {
 RequestOrPublishButton.defaultProps = {
   request: null,
   record: null,
-  publishingData: null,
+  curationsData: null,
   loading: false,
 };
