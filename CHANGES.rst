@@ -1,5 +1,5 @@
 ..
-    Copyright (C) 2024-2025 Graz University of Technology.
+    Copyright (C) 2024-2026 Graz University of Technology.
 
     Invenio-Curations is free software; you can redistribute it and/or
     modify it under the terms of the MIT License; see LICENSE file for more
@@ -7,6 +7,14 @@
 
 Changes
 =======
+
+Version v0.5.0 (released 2026-01-08)
+
+- fix(tests): ignore mypy untyped decorator
+- refactor: rename curations api
+- refactor: rename key returned by get-publish-data api
+- feat(ui): hide system comments from regular users
+- feat(ui): override TimelineFeed component from invenioRDM v13
 
 Version v0.4.0 (released 2025-12-02)
 
