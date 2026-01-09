@@ -10,7 +10,6 @@ import { DeleteConfirmationModal } from "@js/invenio_requests/components/modals/
 import RequestsFeed from "@js/invenio_requests/components/RequestsFeed";
 import { TimelineCommentEditor } from "@js/invenio_requests/timelineCommentEditor";
 import { TimelineCommentEventControlled } from "@js/invenio_requests/timelineCommentEventControlled";
-import { getEventIdFromUrl } from "@js/invenio_requests/timelineEvents/utils";
 import React, { Component } from "react";
 import Overridable from "react-overridable";
 import { Container, Message, Icon } from "semantic-ui-react";
@@ -19,6 +18,7 @@ import Loader from "@js/invenio_requests/components/Loader";
 import TimelineEventPlaceholder from "@js/invenio_requests/components/TimelineEventPlaceholder";
 import LoadMore from "@js/invenio_requests/timeline/LoadMore";
 import PropTypes from "prop-types";
+import { http } from "react-invenio-forms";
 
 class CurationsTimelineFeedComponent extends Component {
   constructor(props) {
@@ -27,8 +27,32 @@ class CurationsTimelineFeedComponent extends Component {
     this.state = {
       modalOpen: false,
       modalAction: null,
+      // ATTENTION BLOCK states added for overridden component START
+      canSeeAllComments: false,
+      loading: false,
+      // BLOCK END
     };
   }
+
+  // ATTENTION BLOCK functions added for overridden component START
+  componentDidMount() {
+    this.fetchCurationsData();
+  }
+
+  // get isPrivileged from API
+  fetchCurationsData = async () => {
+    this.loading = true;
+    try {
+      let data = await http.get("/api/curations/data");
+      let isPrivileged = data.data.is_privileged;
+      this.setState({ canSeeAllComments: isPrivileged });
+    } catch (e) {
+      console.error(e);
+    }
+
+    this.loading = false;
+  };
+  // BLOCK END
 
   loadNextAppendedPage = () => {
     const { fetchNextTimelinePage } = this.props;
@@ -46,10 +70,15 @@ class CurationsTimelineFeedComponent extends Component {
 
   renderHitList = (hits) => {
     const { userAvatar, permissions } = this.props;
+    const { canSeeAllComments } = this.state;
 
     return (
       <>
-        {hits.map((event) => (
+      {/* ATTENTION BLOCK new filter for overridden component START */}
+        {hits.filter((event) => (
+          event.created_by?.user != "system" || canSeeAllComments
+      //  BLOCK END
+        )).map((event) => (
           <TimelineCommentEventControlled
             key={event.id}
             event={event}
@@ -63,6 +92,14 @@ class CurationsTimelineFeedComponent extends Component {
     );
   };
 
+  // This component overrides the TimelineFeed layout from InvenioApp RDM v14
+  // Because we need to hide the system generated comments based on privileges
+  // there is a need to call the api to get the privilege status of the current
+  // user, then use that to display only user-created comments or all comments
+  // in the timeline feed.
+  // See: https://github.com/inveniosoftware/invenio-requests/blob/v11.2.1/invenio_requests/assets/semantic-ui/js/invenio_requests/timeline/index.js
+  //
+  // Apart from ATTENTION BLOCKs, the rest of the component is copy-pasted.
   render() {
     const {
       timeline,
