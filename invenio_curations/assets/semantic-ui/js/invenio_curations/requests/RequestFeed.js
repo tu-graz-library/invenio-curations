@@ -7,17 +7,18 @@
 // under the terms of the MIT License; see LICENSE file for more details.
 
 import { DeleteConfirmationModal } from "@js/invenio_requests/components/modals/DeleteConfirmationModal";
-import { Pagination } from "@js/invenio_requests/components/Pagination";
 import RequestsFeed from "@js/invenio_requests/components/RequestsFeed";
 import { TimelineCommentEditor } from "@js/invenio_requests/timelineCommentEditor";
 import { TimelineCommentEventControlled } from "@js/invenio_requests/timelineCommentEventControlled";
+import { getEventIdFromUrl } from "@js/invenio_requests/timelineEvents/utils";
 import React, { Component } from "react";
 import Overridable from "react-overridable";
-import { Container, Divider, Message, Icon } from "semantic-ui-react";
+import { Container, Message, Icon } from "semantic-ui-react";
 import Error from "@js/invenio_requests/components/Error";
 import Loader from "@js/invenio_requests/components/Loader";
+import TimelineEventPlaceholder from "@js/invenio_requests/components/TimelineEventPlaceholder";
+import LoadMore from "@js/invenio_requests/timeline/LoadMore";
 import PropTypes from "prop-types";
-import { http } from "react-invenio-forms";
 
 class CurationsTimelineFeedComponent extends Component {
   constructor(props) {
@@ -26,64 +27,93 @@ class CurationsTimelineFeedComponent extends Component {
     this.state = {
       modalOpen: false,
       modalAction: null,
-      // ATTENTION BLOCK states added for overridden component START
-      canSeeAllComments: false,
-      loading: false,
-      // BLOCK END
     };
   }
 
-  // ATTENTION BLOCK functions added for overridden component START
-  componentDidMount() {
-    this.fetchCurationsData();
-  }
-
-  // get isPrivileged from API
-  fetchCurationsData = async () => {
-    this.loading = true;
-    try {
-      let data = await http.get("/api/curations/data");
-      let isPrivileged = data.data.is_privileged;
-      this.setState({ canSeeAllComments: isPrivileged });
-    } catch (e) {
-      console.error(e);
-    }
-
-    this.loading = false;
+  loadNextAppendedPage = () => {
+    const { fetchNextTimelinePage } = this.props;
+    fetchNextTimelinePage("first");
   };
-  // BLOCK END
+
+  loadNextPageAfterFocused = () => {
+    const { fetchNextTimelinePage } = this.props;
+    fetchNextTimelinePage("focused");
+  };
 
   onOpenModal = (action) => {
     this.setState({ modalOpen: true, modalAction: action });
   };
 
-  // This component overrides the TimelineFeed layout from InvenioApp RDM v13
-  // Because we need to hide the system generated comments based on privileges
-  // there is a need to call the api to get the privilege status of the current
-  // user, then use that to display only user-created comments or all comments
-  // in the timeline feed.
-  // See: https://github.com/inveniosoftware/invenio-requests/blob/23f001055a791499c34bf0289155512bbcae5462/invenio_requests/assets/semantic-ui/js/invenio_requests/timeline/TimelineFeed.js#L22
-  //
-  // Apart from ATTENTION BLOCKs, the rest of the component is copy-pasted.
+  renderHitList = (hits) => {
+    const { userAvatar, permissions } = this.props;
+
+    return (
+      <>
+        {hits.map((event) => (
+          <TimelineCommentEventControlled
+            key={event.id}
+            event={event}
+            openConfirmModal={this.onOpenModal}
+            userAvatar={userAvatar}
+            allowQuote={false}
+            allowReply={permissions.can_reply_comment}
+          />
+        ))}
+      </>
+    );
+  };
+
   render() {
     const {
       timeline,
-      loading,
+      initialLoading,
       error,
-      setPage,
-      size,
-      page,
       userAvatar,
       request,
       permissions,
       warning,
+      size,
     } = this.props;
-    // ATTENTION BLOCK get canSeeAllComments from state added for overridden component START
-    const { modalOpen, modalAction, canSeeAllComments } = this.state;
-    // BLOCK END
+    const { modalOpen, modalAction } = this.state;
+    const {
+      firstPageHits,
+      lastPageHits,
+      focusedPageHits,
+      afterFirstPageHits,
+      afterFocusedPageHits,
+      focusedPage,
+      pageAfterFocused,
+      lastPage,
+      totalHits,
+      loadingAfterFirstPage,
+      loadingAfterFocusedPage,
+    } = timeline;
+
+    let remainingBeforeFocused = 0;
+    let remainingAfterFocused = 0;
+
+    if (focusedPage && focusedPage !== lastPage) {
+      remainingBeforeFocused =
+        (focusedPage - 1) * size - (firstPageHits.length + afterFirstPageHits.length);
+      remainingAfterFocused =
+        totalHits - (pageAfterFocused * size + lastPageHits.length);
+    } else {
+      remainingBeforeFocused =
+        totalHits -
+        (firstPageHits.length + afterFirstPageHits.length + lastPageHits.length);
+    }
+
+    const firstFeedClassName = remainingBeforeFocused > 0 ? "gradient-feed" : null;
+    const lastFeedClassName =
+      remainingAfterFocused > 0 || (remainingBeforeFocused > 0 && focusedPage === null)
+        ? "stretched-feed gradient-feed"
+        : null;
+    const focusedFeedClassName =
+      (focusedPage !== null && remainingBeforeFocused > 0 ? "stretched-feed" : "") +
+      (remainingAfterFocused > 0 ? " gradient-feed" : "");
 
     return (
-      <Loader isLoading={loading}>
+      <Loader isLoading={initialLoading}>
         <Error error={error}>
           {warning && (
             <Message visible warning>
@@ -101,29 +131,59 @@ class CurationsTimelineFeedComponent extends Component {
                 request={request}
                 permissions={permissions}
               />
-              <RequestsFeed>
-              {/* ATTENTION BLOCK new filter for overridden component START */}
-                {timeline.hits?.hits.filter((event) => (
-                  event.created_by?.user != "system" || canSeeAllComments
-              //  BLOCK END
-                )).map((event) => (
-                  <TimelineCommentEventControlled
-                    key={event.id}
-                    event={event}
-                    openConfirmModal={this.onOpenModal}
-                  />
-                ))}
+
+              {/* First Feed before focused page (oldest comments) */}
+              <RequestsFeed className={firstFeedClassName}>
+                {this.renderHitList(firstPageHits)}
+
+                {/* Events before focused page */}
+                {afterFirstPageHits && this.renderHitList(afterFirstPageHits)}
+                {loadingAfterFirstPage && <TimelineEventPlaceholder />}
               </RequestsFeed>
-              <Divider fitted />
-              <Container textAlign="center" className="mb-15 mt-15">
-                <Pagination
-                  page={page}
-                  size={size}
-                  setPage={setPage}
-                  totalLength={timeline.hits?.total}
+
+              {/* LoadMore button for events before focused */}
+              {remainingBeforeFocused > 0 && (
+                <LoadMore
+                  remaining={remainingBeforeFocused}
+                  loading={loadingAfterFirstPage}
+                  loadNextAppendedPage={this.loadNextAppendedPage}
                 />
-              </Container>
-              <TimelineCommentEditor userAvatar={userAvatar} />
+              )}
+
+              {/* Focused Feed */}
+              {focusedPageHits && (
+                <>
+                  <RequestsFeed className={focusedFeedClassName}>
+                    {/* Events at focused page */}
+                    {this.renderHitList(focusedPageHits)}
+
+                    {/* Events after focused page */}
+                    {this.renderHitList(afterFocusedPageHits)}
+                    {loadingAfterFocusedPage && <TimelineEventPlaceholder />}
+                  </RequestsFeed>
+
+                  {/* LoadMore button for events after focused */}
+                  {remainingAfterFocused > 0 && (
+                    <LoadMore
+                      remaining={remainingAfterFocused}
+                      loading={loadingAfterFocusedPage}
+                      loadNextAppendedPage={this.loadNextPageAfterFocused}
+                    />
+                  )}
+                </>
+              )}
+
+              {/* Last Feed (newest comments) */}
+              {lastPageHits.length > 0 && (
+                <RequestsFeed className={lastFeedClassName}>
+                  {this.renderHitList(lastPageHits)}
+                </RequestsFeed>
+              )}
+
+              <TimelineCommentEditor
+                userAvatar={userAvatar}
+                canCreateComment={permissions.can_create_comment}
+              />
               <DeleteConfirmationModal
                 open={modalOpen}
                 action={modalAction}
