@@ -23,8 +23,9 @@ from invenio_requests.services.generators import Creator, Receiver
 from ..requests.curation import CurationRequest
 from .generators import (
     CurationModerators,
+    IfCurationRecordBasedExists,
     IfCurationRequestAccepted,
-    IfCurationRequestExists,
+    IfCurationRequestBasedExists,
     IfRequestTypes,
     TopicPermission,
 )
@@ -34,16 +35,16 @@ class CurationRDMRecordPermissionPolicy(RDMRecordPermissionPolicy):
     """RDM record policy for curations."""
 
     can_preview = RDMRecordPermissionPolicy.can_preview + [
-        IfCurationRequestExists(then_=[CurationModerators()], else_=[]),
+        IfCurationRecordBasedExists(then_=[CurationModerators()], else_=[]),
     ]
     can_view = RDMRecordPermissionPolicy.can_view + [
-        IfCurationRequestExists(then_=[CurationModerators()], else_=[]),
+        IfCurationRecordBasedExists(then_=[CurationModerators()], else_=[]),
     ]
     can_read = RDMRecordPermissionPolicy.can_read + [
-        IfCurationRequestExists(then_=[CurationModerators()], else_=[]),
+        IfCurationRecordBasedExists(then_=[CurationModerators()], else_=[]),
     ]
     can_read_files = RDMRecordPermissionPolicy.can_read_files + [
-        IfCurationRequestExists(then_=[CurationModerators()], else_=[]),
+        IfCurationRecordBasedExists(then_=[CurationModerators()], else_=[]),
     ]
 
     # in order to get all base permissions in, we just add ours instead of adapting the then_ clause of the base permission
@@ -53,10 +54,10 @@ class CurationRDMRecordPermissionPolicy(RDMRecordPermissionPolicy):
     ]
 
     can_read_draft = RDMRecordPermissionPolicy.can_read_draft + [
-        IfCurationRequestExists(then_=[CurationModerators()], else_=[]),
+        IfCurationRecordBasedExists(then_=[CurationModerators()], else_=[]),
     ]
     can_draft_read_files = RDMRecordPermissionPolicy.can_draft_read_files + [
-        IfCurationRequestExists(then_=[CurationModerators()], else_=[]),
+        IfCurationRecordBasedExists(then_=[CurationModerators()], else_=[]),
     ]
 
     # in order to get all base permissions in, we just add ours instead of adapting the then_ clause of the base permission
@@ -78,7 +79,7 @@ class CurationRDMRecordPermissionPolicy(RDMRecordPermissionPolicy):
     )
 
     can_media_read_files = RDMRecordPermissionPolicy.can_media_read_files + [
-        IfCurationRequestExists(then_=[CurationModerators()], else_=[]),
+        IfCurationRecordBasedExists(then_=[CurationModerators()], else_=[]),
     ]
     can_media_get_content_files = (
         RDMRecordPermissionPolicy.can_media_get_content_files
@@ -103,9 +104,14 @@ class CurationRDMRequestsPermissionPolicy(RDMRequestsPermissionPolicy):
         IfRequestTypes(
             request_types=[CommunitySubmission],
             then_=[
-                IfCurationRequestAccepted(
-                    then_=RDMRequestsPermissionPolicy.can_action_accept,
-                    else_=[],
+                IfCurationRequestBasedExists(
+                    then_=[
+                        IfCurationRequestAccepted(
+                            then_=RDMRequestsPermissionPolicy.can_action_accept,
+                            else_=[],
+                        ),
+                    ],
+                    else_=RDMRequestsPermissionPolicy.can_action_accept,
                 ),
             ],
             else_=RDMRequestsPermissionPolicy.can_action_accept,
