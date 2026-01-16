@@ -48,8 +48,8 @@ class IfRequestTypes(ConditionalGenerator):
         return False
 
 
-class IfCurationRequestAccepted(ConditionalGenerator):
-    """Request-oriented generator checking if a curation request has been accepted."""
+class CurationRequestsConditionalGenerator(ConditionalGenerator):
+    """Base class for request-based curation condition generators."""
 
     _curations_service: CurationRequestService = unproxy(current_curations_service)
 
@@ -66,12 +66,38 @@ class IfCurationRequestAccepted(ConditionalGenerator):
         self.record_access_func = record_access_func
         super().__init__(then_ or [], else_ or [])
 
+    def _condition(self, **__: Any) -> bool:
+        """To be overridden by children classes."""
+        raise NotImplementedError
+
+
+class IfCurationRequestAccepted(CurationRequestsConditionalGenerator):
+    """Request-oriented generator checking if a curation request has been accepted."""
+
     def _condition(self, request: Request | None = None, **__: Any) -> bool:
         """Check if the curation request for the record has been accepted."""
         if request is not None:
             record_to_curate = self.record_access_func(request)
             return (
                 self._curations_service.accepted_record(
+                    system_identity,
+                    record_to_curate,
+                )
+                is not None
+            )
+
+        return False
+
+
+class IfCurationRequestBasedExists(CurationRequestsConditionalGenerator):
+    """Request-oriented generator checking if a curation request exists."""
+
+    def _condition(self, request: Request | None = None, **__: Any) -> bool:
+        """Check if the curation request for the record has been accepted."""
+        if request is not None:
+            record_to_curate = self.record_access_func(request)
+            return (
+                self._curations_service.get_review(
                     system_identity,
                     record_to_curate,
                 )
@@ -164,7 +190,7 @@ class CurationModerators(Generator):
         return [RoleNeed(self._curations_service.moderation_role_name)]
 
 
-class IfCurationRequestExists(ConditionalGenerator):
+class IfCurationRecordBasedExists(ConditionalGenerator):
     """Record-oriented generator checking if a curation request exists."""
 
     _curations_service: CurationRequestService = unproxy(current_curations_service)
