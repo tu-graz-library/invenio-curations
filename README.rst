@@ -145,6 +145,7 @@ Since we only want to change the behaviour of these community submission request
     from invenio_curations.requests.curation import CurationRequest
     from invenio_curations.services.generators import (
         IfCurationRequestAccepted,
+        IfCurationRequestBasedExists,
         IfRequestTypes,
         TopicPermission,
     )
@@ -160,16 +161,22 @@ Since we only want to change the behaviour of these community submission request
         )
 
         # Only allow community-submission requests to be accepted after the rdm-curation request has been accepted
-        can_action_accept = [
+        can_action_accept: Final = [
             IfRequestTypes(
                 request_types=[CommunitySubmission],
                 then_=[
-                    IfCurationRequestAccepted(
-                        then_=RDMRequestsPermissionPolicy.can_action_accept, else_=[]
-                    )
+                    IfCurationRequestBasedExists(
+                        then_=[
+                            IfCurationRequestAccepted(
+                                then_=RDMRequestsPermissionPolicy.can_action_accept,
+                                else_=[],
+                            ),
+                        ],
+                        else_=RDMRequestsPermissionPolicy.can_action_accept,
+                    ),
                 ],
                 else_=RDMRequestsPermissionPolicy.can_action_accept,
-            )
+            ),
         ]
 
         # Update can read and can comment with new states
@@ -197,6 +204,7 @@ Since we only want to change the behaviour of these community submission request
         can_action_critique = RDMRequestsPermissionPolicy.can_action_accept
 
         can_action_resubmit = can_action_submit
+        can_action_pending_resubmission = can_action_resubmit
 
     REQUESTS_PERMISSION_POLICY = CurationRDMRequestsPermissionPolicy
 
