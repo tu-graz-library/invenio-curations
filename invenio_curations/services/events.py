@@ -7,6 +7,7 @@
 # details.
 
 """Custom events module."""
+
 from typing import cast
 
 from invenio_requests.customizations.event_types import CommentEventType
