@@ -76,35 +76,31 @@ class IfCurationRequestAccepted(CurationRequestsConditionalGenerator):
 
     def _condition(self, request: Request | None = None, **__: Any) -> bool:
         """Check if the curation request for the record has been accepted."""
-        if request is not None:
-            record_to_curate = self.record_access_func(request)
-            return (
-                self._curations_service.accepted_record(
-                    system_identity,
-                    record_to_curate,
-                )
-                is not None
-            )
+        if request is None:
+            return False
 
-        return False
+        record_to_curate = self.record_access_func(request)
+        acc_rec = self._curations_service.accepted_record(
+            system_identity,
+            record_to_curate,
+        )
+        return bool(acc_rec)
 
 
 class IfCurationRequestBasedExists(CurationRequestsConditionalGenerator):
     """Request-oriented generator checking if a curation request exists."""
 
     def _condition(self, request: Request | None = None, **__: Any) -> bool:
-        """Check if the curation request for the record has been accepted."""
-        if request is not None:
-            record_to_curate = self.record_access_func(request)
-            return (
-                self._curations_service.get_review(
-                    system_identity,
-                    record_to_curate,
-                )
-                is not None
-            )
+        """Check if a curation request exists when other request type is submitted."""
+        if request is None:
+            return False
 
-        return False
+        record_to_curate = self.record_access_func(request)
+        review = self._curations_service.get_review(
+            system_identity,
+            record_to_curate,
+        )
+        return bool(review)
 
 
 class EntityReferenceServicePermission(Generator):
@@ -197,12 +193,12 @@ class IfCurationRecordBasedExists(ConditionalGenerator):
 
     def _condition(self, record: RDMDraft | None = None, **__: Any) -> bool:
         """Check if the record has a curation request or not."""
-        if record is not None:
-            # We use the system identity here to avoid visibility issues
-            request = self._curations_service.get_review(
-                identity=system_identity,
-                topic=record,
-            )
-            return request is not None
+        if record is None:
+            return False
 
-        return False
+        # We use the system identity here to avoid visibility issues
+        request = self._curations_service.get_review(
+            identity=system_identity,
+            topic=record,
+        )
+        return bool(request)
