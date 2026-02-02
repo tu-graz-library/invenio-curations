@@ -100,20 +100,23 @@ class CurationRDMRequestsPermissionPolicy(RDMRequestsPermissionPolicy):
     )
 
     # Only allow community-submission requests to be accepted after the rdm-curation request has been accepted
+    # (if curation request exists).
+    _can_communities_curation_accept: Final = [
+        IfCurationRequestBasedExists(
+            then_=[
+                IfCurationRequestAccepted(
+                    then_=RDMRequestsPermissionPolicy.can_action_accept,
+                    else_=[],
+                ),
+            ],
+            else_=RDMRequestsPermissionPolicy.can_action_accept,
+        ),
+    ]
+
     can_action_accept: Final = [
         IfRequestTypes(
             request_types=[CommunitySubmission],
-            then_=[
-                IfCurationRequestBasedExists(
-                    then_=[
-                        IfCurationRequestAccepted(
-                            then_=RDMRequestsPermissionPolicy.can_action_accept,
-                            else_=[],
-                        ),
-                    ],
-                    else_=RDMRequestsPermissionPolicy.can_action_accept,
-                ),
-            ],
+            then_=_can_communities_curation_accept,
             else_=RDMRequestsPermissionPolicy.can_action_accept,
         ),
     ]
