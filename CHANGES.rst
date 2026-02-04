@@ -8,6 +8,15 @@
 Changes
 =======
 
+Version v0.6.0 (released 2026-02-04)
+
+- refactor: reduce one permission condition level
+- fix: improve generators readability
+- fix: black formatting
+- tests: add curation unit tests
+- fix: update permission docs
+- fix(communities): show accept button for owners * fix requests permission policy to handle the case where records are created by curation privileged users so curation request is missing
+
 Version v0.5.0 (released 2026-01-08)
 
 - fix(tests): ignore mypy untyped decorator
