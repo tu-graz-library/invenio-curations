@@ -8,6 +8,13 @@
 Changes
 =======
 
+Version v0.7.0 (released 2026-02-10)
+
+- chore(setup): bump dependencies
+- fix: update required packages versions
+- feat: edit RequestFeed component
+- feat: adapt RequestFeed to invenio-requests>=11.0.0
+
 Version v0.6.0 (released 2026-02-04)
 
 - refactor: reduce one permission condition level
