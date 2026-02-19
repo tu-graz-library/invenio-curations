@@ -21,90 +21,90 @@ msgstr ""
 
 #: invenio_curations/ext.py:32
 msgid "Curation Requests"
-msgstr ""
+msgstr "Kurationsanfragen"
 
 #: invenio_curations/requests/curation.py:190
 msgid "Curation"
-msgstr ""
+msgstr "Kuration"
 
 #: invenio_curations/services/components.py:76
 msgid ""
 "Missing curation request. Please create a curation request, if the record"
 " is ready to be published."
-msgstr ""
+msgstr "Fehlende Kurationsanfrage. Bitte erstellen Sie eine Kurationsanfrage, wenn der Datensatz zur Veröffentlichung bereit ist."
 
 #: invenio_curations/services/errors.py:14
 msgid "An open curation request for this record exists already."
-msgstr ""
+msgstr "Für diesen Datensatz existiert bereits eine offene Kurationsanfrage."
 
 #: invenio_curations/services/errors.py:20
 msgid "The record has not been curated yet."
-msgstr ""
+msgstr "Der Datensatz wurde noch nicht kuratiert."
 
 #: invenio_curations/services/errors.py:29
 msgid "A role with name '{name}' does not exist."
-msgstr ""
+msgstr "Eine Rolle mit dem Namen „{name}“ existiert nicht."
 
 #: invenio_curations/services/facets.py:16
 msgid "Type"
-msgstr ""
+msgstr "Typ"
 
 #: invenio_curations/services/facets.py:18
 msgid "Curation review"
-msgstr ""
+msgstr "Kurationsüberprüfung"
 
 #: invenio_curations/services/facets.py:24
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
 #: invenio_curations/services/facets.py:26
 msgid "Submitted"
-msgstr ""
+msgstr "Eingereicht"
 
 #: invenio_curations/services/facets.py:27
 msgid "Expired"
-msgstr ""
+msgstr "Abgelaufen"
 
 #: invenio_curations/services/facets.py:28
 msgid "Accepted"
-msgstr ""
+msgstr "Akzeptiert"
 
 #: invenio_curations/services/facets.py:29
 msgid "Declined"
-msgstr ""
+msgstr "Abgelehnt"
 
 #: invenio_curations/services/facets.py:30
 msgid "Cancelled"
-msgstr ""
+msgstr "Abgebrochen"
 
 #: invenio_curations/services/facets.py:38
 #: invenio_curations/services/facets.py:40
 msgid "Open"
-msgstr ""
+msgstr "Offen"
 
 #: invenio_curations/services/facets.py:41
 msgid "Closed"
-msgstr ""
+msgstr "Geschlossen"
 
 #: invenio_curations/services/service.py:92
 msgid ""
 "Curation request moderation role must exist to enable record curation "
 "requests."
-msgstr ""
+msgstr "Damit Kurationsanfragen für Datensätze aktiviert werden können, muss die Moderationsrolle für Kurationsanfragen existieren."
 
 #: invenio_curations/templates/semantic-ui/invenio_curations/overview.html:9
 msgid "Requests"
-msgstr ""
+msgstr "Anfragen"
 
 #: invenio_curations/templates/semantic-ui/invenio_requests/rdm-curation/index.html:27
 msgid "Back to requests"
-msgstr ""
+msgstr "Zurück zu den Anfragen"
 
 #: invenio_curations/templates/semantic-ui/invenio_requests/rdm-curation/index.html:49
 msgid "Conversation"
-msgstr ""
+msgstr "Gesprächsverlauf"
 
 #: invenio_curations/templates/semantic-ui/invenio_requests/rdm-curation/index.html:61
 msgid "Record"
-msgstr ""
+msgstr "Datensatz"
 
