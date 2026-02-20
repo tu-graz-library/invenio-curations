@@ -78,6 +78,9 @@ class InvenioCurations:
         for k in dir(config):
             if k.startswith("CURATIONS_"):
                 app.config.setdefault(k, getattr(config, k))
+        if app.config.get("REQUESTS_REVIEWERS_ENABLED"):
+            msg = "Invenio-curations cannot be installed with reviewers feature enabled yet."
+            raise Exception(msg)
 
     def service_configs(self, app: Flask) -> ServiceConfigs:
         """Customized service configs."""
