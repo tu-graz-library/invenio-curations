@@ -77,9 +77,8 @@ class CurationsTimelineFeedComponent extends Component {
         {/* ATTENTION BLOCK new filter for overridden component START */}
         {hits
           .filter(
-            (event) =>
-              event.created_by?.user != "system" || canSeeAllComments
-              //  BLOCK END
+            (event) => event.created_by?.user != "system" || canSeeAllComments
+            //  BLOCK END
           )
           .map((event) => (
             <TimelineCommentEventControlled
@@ -239,18 +238,18 @@ class CurationsTimelineFeedComponent extends Component {
 }
 
 CurationsTimelineFeedComponent.propTypes = {
-  getTimelineWithRefresh: PropTypes.func.isRequired,
-  timelineStopRefresh: PropTypes.func.isRequired,
+  getTimelineWithRefresh: PropTypes.func,
+  timelineStopRefresh: PropTypes.func,
   timeline: PropTypes.object,
   error: PropTypes.object,
   isSubmitting: PropTypes.bool,
-  setPage: PropTypes.func.isRequired,
+  setPage: PropTypes.func,
   page: PropTypes.number,
   size: PropTypes.number,
   userAvatar: PropTypes.string,
   request: PropTypes.object.isRequired,
   permissions: PropTypes.object.isRequired,
-  loading: PropTypes.bool.isRequired,
+  loading: PropTypes.bool,
   warning: PropTypes.string,
 };
 
