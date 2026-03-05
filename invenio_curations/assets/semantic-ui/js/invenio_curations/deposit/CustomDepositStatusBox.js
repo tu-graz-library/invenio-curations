@@ -12,12 +12,8 @@ import { withCurationStatus } from "./withCurationStatus";
 const EnhancedStatusDisplay = withCurationStatus(StatusDisplay);
 
 // create the connected component that gets record state
-const mapStateToProps = (state) => {
-  const record = state.deposit.record;
-  return {
-    record: state.deposit.record,
-    request: record?.parent?.review || null,
-  };
-};
+const mapStateToProps = (state) => ({
+  record: state.deposit.record,
+});
 
 export const CustomDepositStatusBox = connect(mapStateToProps)(EnhancedStatusDisplay);
