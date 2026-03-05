@@ -15,8 +15,8 @@ import { i18next } from "@translations/invenio_curations/i18next";
 export const withCurationStatus = (WrappedComponent) => {
   const WithCurationStatus = ({ record, request, ...props }) => {
     const getStatusInfo = () => {
-      const isDraft = record?.status === 'draft_with_review';
       const isPublished = record?.is_published;
+      const isDraft = !isPublished;
 
       const hasValidationErrors = record?.ui?.validationErrors ||
         record?.errors?.length > 0 ||
