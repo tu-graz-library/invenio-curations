@@ -66,7 +66,7 @@ export class DepositBoxComponent extends React.Component {
     this.loading = true;
     this.setState({ lastFetchedAt: Date.now() });
     try {
-      const request = await http.get("/api/curations", {
+      const request = await http.get("/api/curations/", {
         params: { expand: 1, topic: `record:${this.record.id}` },
       });
 
