@@ -1,6 +1,6 @@
 // This file is part of InvenioRDM
 // Copyright (C) 2024 TU Wien.
-// Copyright (C) 2024 Graz University of Technology.
+// Copyright (C) 2024-2026 Graz University of Technology.
 //
 // Invenio-Curations is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
@@ -182,10 +182,10 @@ export class DepositBoxComponent extends React.Component {
     // Fetch curation after save action completed successfully. Make sure to control the
     // state to only fetch one time per save action.
     if (this.checkRecordSavedSuccessfully() && !fetchCurationWhenSaveSuccess) {
-        this.setState({ fetchCurationWhenSaveSuccess: true });
-        this.fetchCurationRequest();
+      this.setState({ fetchCurationWhenSaveSuccess: true });
+      this.fetchCurationRequest();
     } else if (!this.checkRecordSavedSuccessfully() && fetchCurationWhenSaveSuccess) {
-        this.setState({ fetchCurationWhenSaveSuccess: false });
+      this.setState({ fetchCurationWhenSaveSuccess: false });
     }
   };
 
