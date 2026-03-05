@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2024-2025 Graz University of Technology.
+# Copyright (C) 2024-2026 Graz University of Technology.
 #
 # Invenio-Curations is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
@@ -78,9 +78,6 @@ class InvenioCurations:
         for k in dir(config):
             if k.startswith("CURATIONS_"):
                 app.config.setdefault(k, getattr(config, k))
-        if app.config.get("REQUESTS_REVIEWERS_ENABLED"):
-            msg = "Invenio-curations cannot be installed with reviewers feature enabled yet."
-            raise Exception(msg)
 
     def service_configs(self, app: Flask) -> ServiceConfigs:
         """Customized service configs."""
