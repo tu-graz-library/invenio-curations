@@ -1,7 +1,7 @@
 // This file is part of InvenioRequests
 // Copyright (C) 2022 CERN.
 // Copyright (C) 2024 KTH Royal Institute of Technology.
-// Copyright (C) 2025 Graz University of Technology.
+// Copyright (C) 2025-2026 Graz University of Technology.
 //
 // Invenio RDM Records is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
@@ -74,20 +74,23 @@ class CurationsTimelineFeedComponent extends Component {
 
     return (
       <>
-      {/* ATTENTION BLOCK new filter for overridden component START */}
-        {hits.filter((event) => (
-          event.created_by?.user != "system" || canSeeAllComments
-      //  BLOCK END
-        )).map((event) => (
-          <TimelineCommentEventControlled
-            key={event.id}
-            event={event}
-            openConfirmModal={this.onOpenModal}
-            userAvatar={userAvatar}
-            allowQuote={false}
-            allowReply={permissions.can_reply_comment}
-          />
-        ))}
+        {/* ATTENTION BLOCK new filter for overridden component START */}
+        {hits
+          .filter(
+            (event) =>
+              event.created_by?.user != "system" || canSeeAllComments
+              //  BLOCK END
+          )
+          .map((event) => (
+            <TimelineCommentEventControlled
+              key={event.id}
+              event={event}
+              openConfirmModal={this.onOpenModal}
+              userAvatar={userAvatar}
+              allowQuote={false}
+              allowReply={permissions.can_reply_comment}
+            />
+          ))}
       </>
     );
   };
