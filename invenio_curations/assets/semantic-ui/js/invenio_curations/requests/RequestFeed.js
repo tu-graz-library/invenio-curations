@@ -8,8 +8,8 @@
 
 import { DeleteConfirmationModal } from "@js/invenio_requests/components/modals/DeleteConfirmationModal";
 import RequestsFeed from "@js/invenio_requests/components/RequestsFeed";
-import { TimelineCommentEditor } from "@js/invenio_requests/timelineCommentEditor";
-import { TimelineCommentEventControlled } from "@js/invenio_requests/timelineCommentEventControlled";
+import TimelineCommentEditor from "@js/invenio_requests/timelineCommentEditor/TimelineCommentEditor";
+import TimelineCommentEventControlled from "@js/invenio_requests/timelineCommentEventControlled/TimelineCommentEventControlled";
 import React, { Component } from "react";
 import Overridable from "react-overridable";
 import { Container, Message, Icon } from "semantic-ui-react";
