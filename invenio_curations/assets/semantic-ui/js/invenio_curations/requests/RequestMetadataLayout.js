@@ -9,15 +9,103 @@
 import { i18next } from "@translations/invenio_requests/i18next";
 import PropTypes from "prop-types";
 import React, { Component } from "react";
-import { Divider, Header } from "semantic-ui-react";
+import { Image } from "react-invenio-forms";
+import { Divider, Header, Icon, Message } from "semantic-ui-react";
 import { toRelativeTime } from "react-invenio-forms";
 import RequestStatus from "@js/invenio_requests/request/RequestStatus";
 import RequestTypeLabel from "@js/invenio_requests/request/RequestTypeLabel";
-import { RequestReviewers } from "@js/invenio_requests/request/reviewers/RequestReviewers";
-import {
-  EntityDetails,
-  DeletedResource,
-} from "@js/invenio_requests/request/RequestMetadata";
+
+// Sub-components for entity display (inlined for v13 compatibility — not exported by invenio-requests v13)
+const User = ({ user }) => (
+  <div className="flex">
+    <Image
+      src={user.links.avatar}
+      avatar
+      size="tiny"
+      className="mr-5"
+      ui={false}
+      rounded
+    />
+    <span>
+      {user.profile?.full_name ||
+        user?.username ||
+        user?.email ||
+        i18next.t("Anonymous user")}
+    </span>
+  </div>
+);
+
+User.propTypes = {
+  user: PropTypes.object.isRequired,
+};
+
+const Community = ({ community }) => (
+  <div className="flex">
+    <Image src={community.links.logo} avatar size="tiny" className="mr-5" ui={false} />
+    <a href={`/communities/${community.slug}`}>{community.metadata.title}</a>
+  </div>
+);
+
+Community.propTypes = {
+  community: PropTypes.object.isRequired,
+};
+
+const ExternalEmail = ({ email }) => (
+  <div className="flex">
+    <Icon name="mail" className="mr-5" />
+    <span>
+      {i18next.t("Email")}: {email.id}
+    </span>
+  </div>
+);
+
+ExternalEmail.propTypes = {
+  email: PropTypes.object.isRequired,
+};
+
+const Group = ({ group }) => (
+  <div className="flex">
+    <Icon name="group" className="mr-5" />
+    <span>
+      {i18next.t("Group")}: {group?.name}
+    </span>
+  </div>
+);
+
+Group.propTypes = {
+  group: PropTypes.object.isRequired,
+};
+
+const EntityDetails = ({ userData, details }) => {
+  const isUser = "user" in userData;
+  const isCommunity = "community" in userData;
+  const isExternalEmail = "email" in userData;
+  const isGroup = "group" in userData;
+
+  if (isUser) {
+    return <User user={details} />;
+  } else if (isCommunity) {
+    return <Community community={details} />;
+  } else if (isExternalEmail) {
+    return <ExternalEmail email={details} />;
+  } else if (isGroup) {
+    return <Group group={details} />;
+  }
+  return null;
+};
+
+EntityDetails.propTypes = {
+  userData: PropTypes.object.isRequired,
+  details: PropTypes.object.isRequired,
+};
+
+const DeletedResource = ({ details }) => (
+  <Message negative>{details.metadata.title}</Message>
+);
+
+DeletedResource.propTypes = {
+  details: PropTypes.object.isRequired,
+};
 
 // This component overrides the request metadata layout from InvenioApp RDM v13
 // Because the "original" request workflow from community-submission has the final
@@ -29,22 +117,15 @@ import {
 // to an error.
 // This override checks whether the link to the published record returns a positive status
 // and sets the state accordingly to be used in the rendering of the respective section.
-//
-// Apart from ATTENTION BLOCKs, the rest of the component is copy-pasted.
-// https://github.com/inveniosoftware/invenio-requests/blob/3596f4c2acd22c439a030fb9bab8d87e98c12a2e/invenio_requests/assets/semantic-ui/js/invenio_requests/request/RequestMetadata.js#L162C24-L162C61
-// it has been updated to include the RequestReviewers feature
 export class RequestMetadataComponent extends Component {
   constructor(props) {
     super(props);
 
-    // ATTENTION BLOCK state added for overridden component START
     this.state = {
       linkIsValid: false,
     };
-    // BLOCK END
   }
 
-  // ATTENTION BLOCK method was added to the component START
   componentDidMount() {
     const { request } = this.props;
 
@@ -64,34 +145,17 @@ export class RequestMetadataComponent extends Component {
         });
     }
   }
-  // BLOCK END
 
   isResourceDeleted = (details) => details.is_ghost === true;
 
   render() {
-    const { request, config, permissions } = this.props;
-    const { enableReviewers, allowGroupReviewers, maxReviewers } = config;
-
-    // ATTENTION BLOCK state: extra for overridden component START
+    const { request } = this.props;
     const { linkIsValid } = this.state;
-    // BLOCK END
 
     const expandedCreatedBy = request.expanded?.created_by;
     const expandedReceiver = request.expanded?.receiver;
     return (
       <>
-        {enableReviewers && (
-          <>
-            <RequestReviewers
-              request={request}
-              permissions={permissions}
-              allowGroupReviewers={allowGroupReviewers}
-              maxReviewers={maxReviewers}
-            />
-            <Divider />
-          </>
-        )}
-
         {expandedCreatedBy !== undefined && (
           <>
             <Header as="h3" size="tiny">
@@ -109,18 +173,22 @@ export class RequestMetadataComponent extends Component {
           </>
         )}
 
-        <Header as="h3" size="tiny">
-          {i18next.t("Receiver")}
-        </Header>
-        {this.isResourceDeleted(expandedReceiver) ? (
-          <DeletedResource details={expandedReceiver} />
-        ) : (
-          <EntityDetails
-            userData={request.receiver}
-            details={request.expanded?.receiver}
-          />
+        {expandedReceiver !== undefined && (
+          <>
+            <Header as="h3" size="tiny">
+              {i18next.t("Receiver")}
+            </Header>
+            {this.isResourceDeleted(expandedReceiver) ? (
+              <DeletedResource details={expandedReceiver} />
+            ) : (
+              <EntityDetails
+                userData={request.receiver}
+                details={request.expanded?.receiver}
+              />
+            )}
+            <Divider />
+          </>
         )}
-        <Divider />
 
         <Header as="h3" size="tiny">
           {i18next.t("Request type")}
@@ -149,7 +217,6 @@ export class RequestMetadataComponent extends Component {
           </>
         )}
 
-        {/* ATTENTION BLOCK state check: extra for overridden component START*/}
         {linkIsValid && (
           <>
             <Divider />
@@ -159,7 +226,6 @@ export class RequestMetadataComponent extends Component {
             <a href={`/records/${request.topic.record}`}>{request.title}</a>
           </>
         )}
-        {/* BLOCK END */}
       </>
     );
   }
@@ -167,10 +233,13 @@ export class RequestMetadataComponent extends Component {
 
 RequestMetadataComponent.propTypes = {
   request: PropTypes.object.isRequired,
-  config: PropTypes.object.isRequired,
-  permissions: PropTypes.object.isRequired,
+  config: PropTypes.object,
+  permissions: PropTypes.object,
 };
 
-RequestMetadataComponent.defaultProps = {};
+RequestMetadataComponent.defaultProps = {
+  config: {},
+  permissions: {},
+};
 
 export const RequestMetadata = RequestMetadataComponent;
