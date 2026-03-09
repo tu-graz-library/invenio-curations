@@ -14,6 +14,7 @@ from typing import Final
 from flask_principal import Identity
 from invenio_i18n import lazy_gettext as _
 from invenio_notifications.services.uow import NotificationOp
+from invenio_records_resources.services import EndpointLink
 from invenio_records_resources.services.uow import UnitOfWork
 from invenio_requests.customizations import RequestState, RequestType, actions
 from invenio_requests.customizations.actions import RequestAction
@@ -263,3 +264,13 @@ class CurationRequest(RequestType):
     allowed_creator_ref_types: Final[list[str]] = ["user", "community"]
     allowed_receiver_ref_types: Final[list[str]] = ["group"]
     allowed_topic_ref_types: Final[list[str]] = ["record"]
+
+    links_item: Final = {
+        "self_html": EndpointLink(
+            "invenio_app_rdm_requests.read_request",
+            params=["request_pid_value"],
+            vars=lambda _, values: (
+                values.update(request_pid_value=values["request"].id)
+            ),
+        ),
+    }
