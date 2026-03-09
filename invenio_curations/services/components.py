@@ -20,6 +20,8 @@ from invenio_pidstore.models import PIDStatus
 from invenio_rdm_records.records.api import RDMDraft, RDMRecord
 from invenio_requests.proxies import current_requests_service
 from invenio_requests.services import RequestsService
+from invenio_search import RecordsSearchV2
+from werkzeug.datastructures import ImmutableMultiDict
 
 from ..proxies import current_curations_service
 from . import CurationRequestService
@@ -274,3 +276,27 @@ class CurationComponent(ServiceComponent, ABC):
                 "pending_resubmission",
                 uow=self.uow,
             )
+
+
+class CurationEventsComponent(ServiceComponent, ABC):
+    """Service component for curation request events."""
+
+    def search(
+        self,
+        identity: Identity,
+        search: RecordsSearchV2,
+        params: ImmutableMultiDict,  # noqa: ARG002
+        **kwargs: Any,  # noqa: ARG002
+    ) -> RecordsSearchV2:
+        """Filter out the system created comments for regular users.
+
+        Comments created automatically by invenio-curations could be confusing for regular
+        users, this component offers the possibility to restrict the view of those comments
+        only to the curators (and other privileged roles like admin).
+        """
+        if not _skip_curations_flow(
+            _get_curations_service().privileged_roles,
+            identity,
+        ):
+            search = search.exclude("term", **{"created_by.user": "system"})
+        return search
