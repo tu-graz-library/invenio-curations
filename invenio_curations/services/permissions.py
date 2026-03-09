@@ -136,6 +136,7 @@ class CurationRDMRequestsPermissionPolicy(RDMRequestsPermissionPolicy):
         ),
     ]
     can_create_comment = can_read
+    can_reply_comment = can_create_comment
 
     # Update submit to also allow record reviewers/managers for curation requests
     can_action_submit = RDMRequestsPermissionPolicy.can_action_submit + [
