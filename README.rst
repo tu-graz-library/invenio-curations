@@ -346,7 +346,20 @@ How to enable it:
     CURATIONS_ENABLE_REQUEST_COMMENTS = True
 
 
-2. Setup the jinja template for the comment in the running instance's **./templates** folder. This is the the basic template and of course can be changed.
+2. Register the custom event type. This is **required** for the comment feature to work. Without it, the ``CurationCommentEventType`` payload schema will not be loaded, resulting in a ``ValidationError`` for the ``reference_draft`` field.
+
+.. code-block:: python
+
+    from invenio_curations.services.events import CurationCommentEventType
+    from invenio_requests.customizations import LogEventType
+
+    REQUESTS_REGISTERED_EVENT_TYPES = [
+        LogEventType(),
+        CurationCommentEventType(),
+    ]
+
+
+3. Setup the jinja template for the comment in the running instance's **./templates** folder. This is the the basic template and of course can be changed.
    The actual updates should be kept in whatever template is eventually used. Variables for those are: **adds**, **changes**, **removes**.
 
 .. code-block:: html
@@ -391,7 +404,7 @@ How to enable it:
         </body>
     </html>
 
-3. Optional: Configure the template file.
+4. Optional: Configure the template file.
 
 .. code-block:: python
 
@@ -399,7 +412,7 @@ How to enable it:
     CURATIONS_COMMENT_TEMPLATE_FILE = "comment-template.html"
 
 
-4. Optional: Extend or replace field rendering classes.
+5. Optional: Extend or replace field rendering classes.
 
 .. code-block:: python
 

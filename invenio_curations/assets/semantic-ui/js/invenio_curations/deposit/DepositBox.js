@@ -93,6 +93,7 @@ export class DepositBoxComponent extends React.Component {
     this.loading = false;
   };
 
+
   // create a new curation request for the record
   createCurationRequest = async () => {
     this.loading = true;
@@ -134,7 +135,8 @@ export class DepositBoxComponent extends React.Component {
     this.loading = true;
     try {
       const { latestRequest } = this.state;
-      const request = await http.post(latestRequest.links.actions.resubmit);
+      const resubmitUrl = new URL(latestRequest.links.actions.resubmit, window.location.origin);
+      const request = await http.post(resubmitUrl.pathname);
       this.setState({ latestRequest: request.data });
     } catch (e) {
       console.error(e);
