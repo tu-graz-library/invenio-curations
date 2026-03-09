@@ -1,6 +1,6 @@
 ..
     Copyright (C) 2021 CERN.
-    Copyright (C) 2024-2025 Graz University of Technology.
+    Copyright (C) 2024-2026 Graz University of Technology.
     Copyright (C) 2024 TU Wien.
 
     Invenio-Curations is free software; you can redistribute it and/or
@@ -404,6 +404,17 @@ How to enable it:
             {% endif %}
         </body>
     </html>
+
+3. Optional: Update the Request Events component
+
+   If your instance needs to hide these comments from regular users, you can use this component to achieve this:
+
+.. code-block:: python
+
+    from invenio_requests.config import REQUESTS_EVENTS_SERVICE_COMPONENTS as REQUESTS_EVENTS_SERVICE_COMPONENTS_BASE
+    from invenio_curations.services.components import CurationEventsComponent
+    REQUESTS_EVENTS_SERVICE_COMPONENTS = REQUESTS_EVENTS_SERVICE_COMPONENTS_BASE + [CurationEventsComponent]
+
 
 4. Optional: Configure the template file.
 
