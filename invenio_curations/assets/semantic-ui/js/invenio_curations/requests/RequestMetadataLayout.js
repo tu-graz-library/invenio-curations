@@ -1,6 +1,6 @@
 // This file is part of InvenioRDM
 // Copyright (C) 2022 CERN.
-// Copyright (C) 2024-2025 Graz University of Technology.
+// Copyright (C) 2024-2026 Graz University of Technology.
 // Copyright (C) 2024 KTH Royal Institute of Technology.
 
 // Invenio-Curations is free software; you can redistribute it and/or modify it
@@ -9,149 +9,15 @@
 import { i18next } from "@translations/invenio_requests/i18next";
 import PropTypes from "prop-types";
 import React, { Component } from "react";
-import { Image } from "react-invenio-forms";
-import Overridable from "react-overridable";
-import { Divider, Header, Icon, Message } from "semantic-ui-react";
+import { Divider, Header } from "semantic-ui-react";
 import { toRelativeTime } from "react-invenio-forms";
 import RequestStatus from "@js/invenio_requests/request/RequestStatus";
 import RequestTypeLabel from "@js/invenio_requests/request/RequestTypeLabel";
-import { connect } from "react-redux";
-import { connect as connectFormik } from "formik";
-
-const User = ({ user }) => (
-  <div className="flex">
-    <Image
-      src={user.links.avatar}
-      avatar
-      size="tiny"
-      className="mr-5"
-      ui={false}
-      rounded
-    />
-    <span>
-      {user.profile?.full_name ||
-        user?.username ||
-        user?.email ||
-        i18next.t("Anonymous user")}
-    </span>
-  </div>
-);
-
-User.propTypes = {
-  user: PropTypes.shape({
-    links: PropTypes.shape({
-      avatar: PropTypes.string.isRequired,
-    }).isRequired,
-    profile: PropTypes.shape({
-      full_name: PropTypes.string,
-    }),
-    username: PropTypes.string,
-    email: PropTypes.string,
-  }).isRequired,
-};
-
-const Community = ({ community }) => (
-  <div className="flex">
-    <Image src={community.links.logo} avatar size="tiny" className="mr-5" ui={false} />
-    <a href={`/communities/${community.slug}`}>{community.metadata.title}</a>
-  </div>
-);
-
-Community.propTypes = {
-  community: PropTypes.shape({
-    links: PropTypes.shape({
-      logo: PropTypes.string.isRequired,
-    }).isRequired,
-    slug: PropTypes.string.isRequired,
-    metadata: PropTypes.shape({
-      title: PropTypes.string.isRequired,
-    }).isRequired,
-  }).isRequired,
-};
-
-const ExternalEmail = ({ email }) => (
-  <div className="flex">
-    <Icon name="mail" className="mr-5" />
-    <span>
-      {i18next.t("Email")}: {email.id}
-    </span>
-  </div>
-);
-
-ExternalEmail.propTypes = {
-  email: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-  }).isRequired,
-};
-
-const Group = ({ group }) => (
-  <div className="flex">
-    <Icon name="group" className="mr-5" />
-    <span>
-      {i18next.t("Group")}: {group?.name}
-    </span>
-  </div>
-);
-
-Group.propTypes = {
-  group: PropTypes.shape({
-    name: PropTypes.string.isRequired,
-  }).isRequired,
-};
-
-const EntityDetails = ({ userData, details }) => {
-  const isUser = "user" in userData;
-  const isCommunity = "community" in userData;
-  const isExternalEmail = "email" in userData;
-  const isGroup = "group" in userData;
-
-  if (isUser) {
-    return <User user={details} />;
-  } else if (isCommunity) {
-    return <Community community={details} />;
-  } else if (isExternalEmail) {
-    return <ExternalEmail email={details} />;
-  } else if (isGroup) {
-    return <Group group={details} />;
-  }
-  return null;
-};
-
-EntityDetails.propTypes = {
-  userData: PropTypes.object.isRequired,
-  details: PropTypes.oneOfType([
-    PropTypes.shape({
-      links: PropTypes.shape({
-        avatar: PropTypes.string,
-        logo: PropTypes.string,
-      }),
-      profile: PropTypes.shape({
-        full_name: PropTypes.string,
-      }),
-      username: PropTypes.string,
-      email: PropTypes.string,
-      slug: PropTypes.string,
-      metadata: PropTypes.shape({
-        title: PropTypes.string,
-      }),
-      id: PropTypes.string,
-      name: PropTypes.string,
-    }),
-    PropTypes.object,
-  ]).isRequired,
-};
-
-const DeletedResource = ({ details }) => (
-  <Message negative>{details.metadata.title}</Message>
-);
-
-DeletedResource.propTypes = {
-  details: PropTypes.shape({
-    metadata: PropTypes.shape({
-      title: PropTypes.string.isRequired,
-    }).isRequired,
-  }).isRequired,
-};
+import { RequestReviewers } from "@js/invenio_requests/reviewers/RequestReviewers";
+import {
+  EntityDetails,
+  DeletedResource,
+} from "@js/invenio_requests/request/RequestMetadata";
 
 // This component overrides the request metadata layout from InvenioApp RDM v13
 // Because the "original" request workflow from community-submission has the final
@@ -166,10 +32,12 @@ DeletedResource.propTypes = {
 //
 // Apart from ATTENTION BLOCKs, the rest of the component is copy-pasted.
 // https://github.com/inveniosoftware/invenio-requests/blob/3596f4c2acd22c439a030fb9bab8d87e98c12a2e/invenio_requests/assets/semantic-ui/js/invenio_requests/request/RequestMetadata.js#L162C24-L162C61
+// it has been updated to include the RequestReviewers feature
 export class RequestMetadataComponent extends Component {
   constructor(props) {
     super(props);
-     // ATTENTION BLOCK state added for overridden component START
+
+    // ATTENTION BLOCK state added for overridden component START
     this.state = {
       linkIsValid: false,
     };
@@ -201,14 +69,29 @@ export class RequestMetadataComponent extends Component {
   isResourceDeleted = (details) => details.is_ghost === true;
 
   render() {
-    const { request } = this.props;
+    const { request, config, permissions } = this.props;
+    const { enableReviewers, allowGroupReviewers, maxReviewers } = config;
+
     // ATTENTION BLOCK state: extra for overridden component START
     const { linkIsValid } = this.state;
     // BLOCK END
+
     const expandedCreatedBy = request.expanded?.created_by;
     const expandedReceiver = request.expanded?.receiver;
     return (
       <>
+        {enableReviewers && (
+          <>
+            <RequestReviewers
+              request={request}
+              permissions={permissions}
+              allowGroupReviewers={allowGroupReviewers}
+              maxReviewers={maxReviewers}
+            />
+            <Divider />
+          </>
+        )}
+
         {expandedCreatedBy !== undefined && (
           <>
             <Header as="h3" size="tiny">
@@ -284,6 +167,8 @@ export class RequestMetadataComponent extends Component {
 
 RequestMetadataComponent.propTypes = {
   request: PropTypes.object.isRequired,
+  config: PropTypes.object.isRequired,
+  permissions: PropTypes.object.isRequired,
 };
 
 RequestMetadataComponent.defaultProps = {};
