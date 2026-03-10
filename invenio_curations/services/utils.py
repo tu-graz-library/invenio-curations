@@ -33,4 +33,4 @@ def is_identity_privileged(privileged_roles: list[str], identity: Identity) -> b
     """Check if given identity is privileged in curation context."""
     user = db.session.get(User, identity.id)
 
-    return any(role in privileged_roles for role in user.roles)
+    return any(role in privileged_roles for role in user.roles) if user else False
