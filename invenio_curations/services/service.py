@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2024-2025 Graz University of Technology.
+# Copyright (C) 2024-2026 Graz University of Technology.
 #
 # Invenio-Curations is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
@@ -10,7 +10,7 @@
 from typing import Any, cast
 
 from flask import current_app
-from flask_principal import Identity
+from flask_principal import AnonymousIdentity, Identity
 from flask_security import SQLAlchemyUserDatastore
 from invenio_access.permissions import system_identity
 from invenio_accounts.models import Role
@@ -33,6 +33,19 @@ from ..requests import CurationRequest
 from .diff import DiffElement
 from .errors import OpenRecordCurationRequestAlreadyExistsError, RoleNotFoundError
 from .utils import is_identity_privileged
+
+
+class EmptyResultList:
+    """Empty result list."""
+
+    def to_dict(self) -> dict:
+        """Mock the to dict."""
+        return {
+            "hits": {
+                "hits": [],
+                "total": 0,
+            },
+        }
 
 
 class CurationRequestService:
@@ -221,6 +234,10 @@ class CurationRequestService:
         **kwargs: Any,
     ) -> RecordList:
         """Search for curation requests."""
+        if type(identity) is AnonymousIdentity:
+            # secret link users do not have permissions to search requests
+            return EmptyResultList()
+
         return self.requests_service.search(
             identity,
             extra_filter=dsl.query.Bool(
