@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2025 Graz University of Technology.
+# Copyright (C) 2025-2026 Graz University of Technology.
 #
 # Invenio-Curations is free software; you can redistribute it and/or
 # modify it under the terms of the MIT License; see LICENSE file for more
@@ -33,4 +33,7 @@ def is_identity_privileged(privileged_roles: list[str], identity: Identity) -> b
     """Check if given identity is privileged in curation context."""
     user = db.session.get(User, identity.id)
 
-    return any(role in privileged_roles for role in user.roles)
+    if user:
+        return any(role in privileged_roles for role in user.roles)
+
+    return False
