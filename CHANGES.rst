@@ -8,6 +8,10 @@
 Changes
 =======
 
+Version v0.8.1 (released 2026-03-13)
+
+- fix(assets): import path
+
 Version v0.8.0 (released 2026-03-13)
 
 - translations: add translations for German language
