@@ -12,8 +12,14 @@
 from typing import Final
 
 import marshmallow as ma
-from flask_resources import HTTPJSONException, create_error_handler
+from flask_resources import (
+    HTTPJSONException,
+    JSONSerializer,
+    ResponseHandler,
+    create_error_handler,
+)
 from invenio_records_resources.resources import RecordResourceConfig
+from invenio_records_resources.resources.records.headers import etag_headers
 from invenio_records_resources.services.base.config import ConfiguratorMixin, FromConfig
 from invenio_requests.resources.requests.config import RequestSearchRequestArgsSchema
 
@@ -92,8 +98,9 @@ class CurationsResourceConfig(RecordResourceConfig, ConfiguratorMixin):
     )
 
     response_handlers: Final = {
-        "application/vnd.inveniordm.v1+json": RecordResourceConfig.response_handlers[
-            "application/json"
-        ],
-        **RecordResourceConfig.response_handlers,
+        "application/json": ResponseHandler(JSONSerializer(), headers=etag_headers),
+        "application/vnd.inveniordm.v1+json": ResponseHandler(
+            JSONSerializer(),
+            headers=etag_headers,
+        ),
     }

@@ -44,8 +44,12 @@ export class DepositBoxComponent extends React.Component {
   }
 
   get record() {
-    const { record } = this.props;
-    return record;
+    const { record, stateRecordId } = this.props;
+    return {
+      ...record,
+      id: stateRecordId || record.id,
+      savedSuccessfully: this.checkRecordSavedSuccessfully(),
+    };
   }
 
   set loading(val) {
@@ -62,7 +66,7 @@ export class DepositBoxComponent extends React.Component {
     this.loading = true;
     this.setState({ lastFetchedAt: Date.now() });
     try {
-      const request = await http.get("/api/curations", {
+      const request = await http.get("/api/curations/", {
         params: { expand: 1, topic: `record:${this.record.id}` },
       });
 
@@ -88,6 +92,7 @@ export class DepositBoxComponent extends React.Component {
 
     this.loading = false;
   };
+
 
   // create a new curation request for the record
   createCurationRequest = async () => {
@@ -130,7 +135,8 @@ export class DepositBoxComponent extends React.Component {
     this.loading = true;
     try {
       const { latestRequest } = this.state;
-      const request = await http.post(latestRequest.links.actions.resubmit);
+      const resubmitUrl = new URL(latestRequest.links.actions.resubmit, window.location.origin);
+      const request = await http.post(resubmitUrl.pathname);
       this.setState({ latestRequest: request.data });
     } catch (e) {
       console.error(e);
@@ -190,16 +196,15 @@ export class DepositBoxComponent extends React.Component {
     const { record, permissions, groupsEnabled } = this.props;
 
     this.checkShouldFetchCurationRequest();
-    record.savedSuccessfully = this.checkRecordSavedSuccessfully();
 
     return (
       <Card className="access-right">
         <Form.Field required>
           <Card.Content>
             <CustomDepositStatusBox
-              record={record}
+              record={this.record}
               request={latestRequest}
-              key={`status-${record?.id}-${latestRequest?.id}`}
+              key={`status-${this.record?.id}-${latestRequest?.id}`}
             />
           </Card.Content>
 
@@ -216,7 +221,7 @@ export class DepositBoxComponent extends React.Component {
               <Grid.Column width={16} className="pt-10 pb-10">
                 <RequestOrPublishButton
                   request={latestRequest}
-                  record={record}
+                  record={this.record}
                   curationsData={curationsData}
                   loading={this.loading}
                   handleCreateRequest={async (event) => {
@@ -263,9 +268,9 @@ DepositBoxComponent.defaultProps = {
 // can't wire up the `RequestOrPublishButton` with the Formik state like the `ShareDraftButton` does.
 // However, the `state.deposit.record` coming from Formik may not have the `record.parent` property
 // which is expected by the `ShareDraftButton` (and passed to it as prop from the `DepositBox`).
-// Thus, we merge the incoming record with the one from the original props.
-const mapStateToProps = (state, ownProps) => ({
-  record: { ...ownProps.record, ...state.deposit.record },
+// Thus, we inject the record.id from the Formik state.
+const mapStateToProps = (state) => ({
+  stateRecordId: state.deposit?.record?.id,
 });
 
 export const DepositBox = connect(
