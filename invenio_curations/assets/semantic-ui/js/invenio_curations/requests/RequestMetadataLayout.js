@@ -13,7 +13,7 @@ import { Divider, Header } from "semantic-ui-react";
 import { toRelativeTime } from "react-invenio-forms";
 import RequestStatus from "@js/invenio_requests/request/RequestStatus";
 import RequestTypeLabel from "@js/invenio_requests/request/RequestTypeLabel";
-import { RequestReviewers } from "@js/invenio_requests/reviewers/RequestReviewers";
+import { RequestReviewers } from "@js/invenio_requests/request/reviewers/RequestReviewers";
 import {
   EntityDetails,
   DeletedResource,
