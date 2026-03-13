@@ -8,6 +8,23 @@
 Changes
 =======
 
+Version v0.8.0 (released 2026-03-13)
+
+- translations: add translations for German language
+- fix: handle anonymous user
+- feat: add select reviewer feature to sidebar
+- fix: anonymous user handling
+- fix: filter system comments from backend
+- feat: add new reply permission
+- fix: apply new links creation
+- fix: use relative URLs for reverse proxy and add doc config
+- fix(ui): show all curation status states in despot form
+- fix(compatibility): invenio-requests>=12.3.0
+- fix(ui): permanent redirect not necessary
+- chore: update js file formatting
+- fix(ui): get only record.id from redux state
+- fix: exit when reviewrs feature enabled
+
 Version v0.7.0 (released 2026-02-10)
 
 - chore(setup): bump dependencies
