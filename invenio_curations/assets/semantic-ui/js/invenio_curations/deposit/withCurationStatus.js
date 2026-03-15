@@ -1,5 +1,5 @@
 // This file is part of InvenioRDM
-// Copyright (C) 2025 Graz University of Technology.
+// Copyright (C) 2025-2026 Graz University of Technology.
 //
 // Invenio-Curations is free software; you can redistribute it and/or modify it
 // under the terms of the MIT License; see LICENSE file for more details.
@@ -48,7 +48,7 @@ export const withCurationStatus = (WrappedComponent) => {
                 tooltip: i18next.t("Your record is ready to be submitted for review."),
               };
               break;
-            case "submitted":
+            case "review":
               statusInfo = {
                 icon: "clock",
                 color: "yellow",
