@@ -48,6 +48,22 @@ export const withCurationStatus = (WrappedComponent) => {
                 tooltip: i18next.t("Your record is ready to be submitted for review."),
               };
               break;
+            case "submitted":
+              statusInfo = {
+                icon: "clock",
+                color: "yellow",
+                text: i18next.t("Submitted"),
+                tooltip: i18next.t("This record has been submitted."),
+              };
+              break;
+            case "resubmitted":
+              statusInfo = {
+                icon: "clock",
+                color: "yellow",
+                text: i18next.t("Resubmitted"),
+                tooltip: i18next.t("This record has been resubmitted."),
+              };
+              break;
             case "review":
               statusInfo = {
                 icon: "clock",
