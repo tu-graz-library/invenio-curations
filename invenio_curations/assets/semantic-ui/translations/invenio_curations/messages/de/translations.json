@@ -29,5 +29,20 @@
   "Status": "Status",
   "Created": "Erstellt",
   "Expires": "Läuft ab",
-  "Record": "Datensatz"
+  "Record": "Datensatz",
+  "Published": "Veröffentlicht",
+  "Submitted": "Eingereicht",
+  "Ready for Review": "Bereicht für Überprüfung",
+  "Under Review": "Wird geprüft",
+  "Ready to publish": "Bereit zur Veröffentlichung",
+  "Declined": "Abgelehnt",
+  "Needs revision": "Muss überarbeitet werden",
+  "Your record is published.": "Ihr Eintrag wurde veröffentlicht.",
+  "Your record has been submitted.": "Ihr Eintrag wurde übermittelt.",
+  "Your record is ready to be submitted for review.": "Ihr Eintrag kann nun zur Prüfung eingereicht werden.",
+  "Your record has been resubmitted.": "Ihr Eintrag wurde erneut eingereicht.",
+  "Your record is being reviewed by curators.": "Ihr Eintrag wird von den Kuratoren geprüft.",
+  "You can publish the record yourself once accepted.": "Ihr Eintrag kann veröffentlicht werden, sobald er akzeptiert wurde.",
+  "Your record has been declined. Please check the curation request for details.": "Ihr Eintrag wurde abgelehnt. Weitere Informationen finden Sie in der Kurationsanfrage.",
+  "Your record needs revision. Please check the curation request for details.": "Ihr Eintrag muss überarbeitet werden. Weitere Informationen finden Sie in der Bearbeitungsanfrage."
 }
