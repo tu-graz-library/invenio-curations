@@ -101,3 +101,6 @@ msgstr "Expires"
 
 msgid "Record"
 msgstr "Record"
+
+msgid "edited the record"
+msgstr "edited the record"

@@ -107,4 +107,3 @@ msgstr "Gesprächsverlauf"
 #: invenio_curations/templates/semantic-ui/invenio_requests/rdm-curation/index.html:61
 msgid "Record"
 msgstr "Datensatz"
-
