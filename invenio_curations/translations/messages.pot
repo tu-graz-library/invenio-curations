@@ -166,3 +166,7 @@ msgstr ""
 #: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:80
 msgid "This record needs revision. Please check the curation request for details."
 msgstr ""
+
+#: invenio_curations/assets/semantic-ui/js/invenio_curations/requests/timelineActionEvents.js:43
+msgid "edited the record"
+msgstr ""
