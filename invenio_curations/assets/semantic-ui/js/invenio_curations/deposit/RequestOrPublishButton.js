@@ -55,6 +55,28 @@ export const RequestOrPublishButton = (props) => {
       </Button>
     );
     return elem;
+  } else if (
+    !record?.is_published &&
+    request?.status == "pending_resubmission"
+  ) {
+    elem = (
+      <Button
+        onClick={handleResubmitRequest}
+        loading={loading}
+        primary
+        size="medium"
+        type="button"
+        disabled={!recordCurateable}
+        positive
+        icon
+        labelPosition="left"
+        fluid
+      >
+        <Icon name="paper hand outline" />
+        {i18next.t("Resubmit updated record")}
+      </Button>
+    );
+    return elem;
   }
 
   if (request) {
