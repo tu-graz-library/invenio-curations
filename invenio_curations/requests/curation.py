@@ -105,6 +105,7 @@ class CurationCancelAction(actions.CancelAction):
         "resubmitted",
         "review",
         "submitted",
+        "pending_resubmission",
     ]
 
 
@@ -130,6 +131,7 @@ class CurationDeleteAction(actions.DeleteAction):
         "resubmitted",
         "review",
         "submitted",
+        "pending_resubmission",
     ]
 
 
