@@ -40,7 +40,7 @@ export const TimelinePendingResubmission = ({ event }) => (
   <TimelineActionEvent
     iconName="eye"
     event={event}
-    eventContent={i18next.t("edited the published record")}
+    eventContent={i18next.t("edited the record")}
     iconColor="neutral"
   />
 );
