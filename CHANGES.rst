@@ -8,6 +8,10 @@
 Changes
 =======
 
+Version v0.8.3 (released 2026-03-19)
+
+- fix: permanent redirect at POST
+
 Version v0.8.2 (released 2026-03-19)
 
 - fix(actions): allow cancel and delete from pending_resubmission
