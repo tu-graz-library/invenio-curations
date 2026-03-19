@@ -8,6 +8,10 @@
 Changes
 =======
 
+Version v0.6.2 (released 2026-03-19)
+
+- fix: permanent redirect at POST
+
 Version v0.6.1 (released 2026-03-19)
 
 - fix(ui): get only record.id from redux state
