@@ -11,7 +11,7 @@
 from .ext import InvenioCurations
 from .proxies import current_curations, current_curations_service
 
-__version__ = "0.8.1"
+__version__ = "0.8.2"
 
 __all__ = (
     "InvenioCurations",
