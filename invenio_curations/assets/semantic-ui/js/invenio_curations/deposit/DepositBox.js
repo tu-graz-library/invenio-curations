@@ -100,7 +100,7 @@ export class DepositBoxComponent extends React.Component {
 
     const payload = { topic: { record: this.record.id } };
     try {
-      const request = await http.post("/api/curations", payload, {
+      const request = await http.post("/api/curations/", payload, {
         params: { expand: 1 },
       });
 
