@@ -8,6 +8,15 @@
 Changes
 =======
 
+Version v0.6.1 (released 2026-03-19)
+
+- fix(ui): get only record.id from redux state
+- fix(ui): permanent redirect not necessary
+- fix: use relative URLs for reverse proxy and add doc config
+- fix: editing after Accept triggered View request
+- fix: pending_resubmission is not always on published records
+- fix(actions): allow cancel and delete from pending_resubmission
+
 Version v0.6.0 (released 2026-02-04)
 
 - refactor: reduce one permission condition level
