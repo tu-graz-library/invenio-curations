@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2024-09-04T12:44:42.800Z\n"
-"PO-Revision-Date: 2024-09-04T12:44:42.800Z\n"
+"POT-Creation-Date: 2026-03-24T10:42:59.503Z\n"
+"PO-Revision-Date: 2026-03-24T10:42:59.503Z\n"
 "Language: en\n"
 
 msgid "Curation request"
@@ -72,15 +72,6 @@ msgstr "started a review"
 msgid "Curation review"
 msgstr "Curation review"
 
-msgid "Anonymous user"
-msgstr "Anonymous user"
-
-msgid "Email"
-msgstr "Email"
-
-msgid "Group"
-msgstr "Group"
-
 msgid "Creator"
 msgstr "Creator"
 
@@ -104,3 +95,78 @@ msgstr "Record"
 
 msgid "edited the record"
 msgstr "edited the record"
+
+msgid "Resubmit published record"
+msgstr "Resubmit published record"
+
+msgid ""
+"Before creating a curation request, the draft has to be saved without any "
+"errors."
+msgstr ""
+"Before creating a curation request, the draft has to be saved without any "
+"errors."
+
+msgid "Draft"
+msgstr "Draft"
+
+msgid "Please fill in all required fields before submitting for review."
+msgstr "Please fill in all required fields before submitting for review."
+
+msgid ""
+"Once your upload is complete, you can submit it for review to the global "
+"repository curators."
+msgstr ""
+"Once your upload is complete, you can submit it for review to the global "
+"repository curators."
+
+msgid "Published"
+msgstr "Published"
+
+msgid "This record is published."
+msgstr "This record is published."
+
+msgid "Ready for Review"
+msgstr "Ready for Review"
+
+msgid "Your record is ready to be submitted for review."
+msgstr "Your record is ready to be submitted for review."
+
+msgid "Submitted"
+msgstr "Submitted"
+
+msgid "Your record has been submitted."
+msgstr "Your record has been submitted."
+
+msgid "Your record has been resubmitted."
+msgstr "Your record has been resubmitted."
+
+msgid "Under Review"
+msgstr "Under Review"
+
+msgid "Your record is being reviewed by curators."
+msgstr "Your record is being reviewed by curators."
+
+msgid "Ready to Publish"
+msgstr "Ready to Publish"
+
+msgid "You can publish the record yourself once accepted."
+msgstr "You can publish the record yourself once accepted."
+
+msgid "Declined"
+msgstr "Declined"
+
+msgid ""
+"Your record has been declined. Please check the curation request for "
+"details."
+msgstr ""
+"Your record has been declined. Please check the curation request for "
+"details."
+
+msgid "Needs revision"
+msgstr "Needs revision"
+
+msgid "This record needs revision. Please check the curation request for details."
+msgstr "This record needs revision. Please check the curation request for details."
+
+msgid "Pending resubmission"
+msgstr "Pending resubmission"
