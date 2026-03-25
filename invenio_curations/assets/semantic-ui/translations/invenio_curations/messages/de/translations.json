@@ -45,8 +45,8 @@
   "Draft": "Entwurf",
   "Please fill in all required fields before submitting for review.": "Bitte füllen Sie alle erforderlichen Felder aus, bevor Sie zur Prüfung einreichen.",
   "Once your upload is complete, you can submit it for review to the global repository curators.": "Sobald Ihr Upload abgeschlossen ist, können Sie ihn zur Prüfung an die globalen Repository-Kurator*innen einreichen.",
-  "This record is published.": "Dieser Datensatz ist veröffentlicht.",
   "Ready to Publish": "Bereit zur Veröffentlichung",
-  "This record needs revision. Please check the curation request for details.": "Dieser Datensatz muss überarbeitet werden. Bitte prüfen Sie die Kurationsanfrage für Details.",
-  "Pending resubmission": "Ausstehende erneute Einreichung"
+  "Pending resubmission": "Ausstehende erneute Einreichung",
+  "Your record is published.": "Ihr Datensatz ist veröffentlicht.",
+  "Your record needs revision. Please check the curation request for details.": "Ihr Datensatz muss überarbeitet werden. Bitte prüfen Sie die Kurationsanfrage für Details."
 }
