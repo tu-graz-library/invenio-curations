@@ -1,91 +1,89 @@
 # Translations template for invenio-curations.
-# Copyright (C) 2024 Graz University of Technology
+# Copyright (C) 2026 Graz University of Technology
 # This file is distributed under the same license as the invenio-curations
 # project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: invenio-curations 0.1.0\n"
+"Project-Id-Version: invenio-curations 0.8.3\n"
 "Report-Msgid-Bugs-To: info@tugraz.at\n"
-"POT-Creation-Date: 2024-09-04 15:05+0200\n"
+"POT-Creation-Date: 2026-03-25 13:49+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.15.0\n"
+"Generated-By: Babel 2.18.0\n"
 
-#: invenio_curations/ext.py:32
+#: invenio_curations/ext.py:53
 msgid "Curation Requests"
 msgstr ""
 
-#: invenio_curations/requests/curation.py:190
+#: invenio_curations/requests/curation.py:225
 msgid "Curation"
 msgstr ""
 
-#: invenio_curations/services/components.py:76
-msgid ""
-"Missing curation request. Please create a curation request, if the record"
-" is ready to be published."
+#: invenio_curations/services/comment.py:33
+msgid "Record saved successfully, but failed to update request comment."
 msgstr ""
 
-#: invenio_curations/services/errors.py:14
+#: invenio_curations/services/diff.py:157
+msgid "Record was resubmitted for review with the following changes:"
+msgstr ""
+
+#: invenio_curations/services/diff.py:158
+msgid "Record was updated after changes were requested!"
+msgstr ""
+
+#: invenio_curations/services/diff.py:160
+msgid "Record was updated! Please check the latest changes."
+msgstr ""
+
+#: invenio_curations/services/diff.py:162
+msgid "Action triggered comment update"
+msgstr ""
+
+#: invenio_curations/services/errors.py:16
 msgid "An open curation request for this record exists already."
 msgstr ""
 
-#: invenio_curations/services/errors.py:20
+#: invenio_curations/services/errors.py:22
 msgid "The record has not been curated yet."
 msgstr ""
 
-#: invenio_curations/services/errors.py:29
-msgid "A role with name '{name}' does not exist."
+#: invenio_curations/services/errors.py:31
+#, python-format
+msgid "A role with name '%(name)s' does not exist."
 msgstr ""
 
-#: invenio_curations/services/facets.py:16
+#: invenio_curations/services/facets.py:17
 msgid "Type"
 msgstr ""
 
-#: invenio_curations/services/facets.py:18
-msgid "Curation review"
-msgstr ""
-
-#: invenio_curations/services/facets.py:24
-msgid "Status"
+#: invenio_curations/services/facets.py:20
+msgid "RDM Curation"
 msgstr ""
 
 #: invenio_curations/services/facets.py:26
-msgid "Submitted"
-msgstr ""
-
-#: invenio_curations/services/facets.py:27
-msgid "Expired"
-msgstr ""
-
-#: invenio_curations/services/facets.py:28
-msgid "Accepted"
+msgid "Status"
 msgstr ""
 
 #: invenio_curations/services/facets.py:29
-msgid "Declined"
+msgid "In review"
 msgstr ""
 
 #: invenio_curations/services/facets.py:30
-msgid "Cancelled"
+msgid "Changes requested"
 msgstr ""
 
-#: invenio_curations/services/facets.py:38
-#: invenio_curations/services/facets.py:40
-msgid "Open"
+#: invenio_curations/services/facets.py:31
+msgid "Resubmitted"
 msgstr ""
 
-#: invenio_curations/services/facets.py:41
-msgid "Closed"
-msgstr ""
-
-#: invenio_curations/services/service.py:92
+#: invenio_curations/services/service.py:186
 msgid ""
 "Curation request moderation role must exist to enable record curation "
 "requests."
@@ -105,68 +103,4 @@ msgstr ""
 
 #: invenio_curations/templates/semantic-ui/invenio_requests/rdm-curation/index.html:61
 msgid "Record"
-msgstr ""
-
-#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:28
-msgid "Draft"
-msgstr ""
-
-#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:30
-msgid "Please fill in all required fields before submitting for review."
-msgstr ""
-
-#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:31
-msgid "Once your upload is complete, you can submit it for review to the global repository curators."
-msgstr ""
-
-#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:37
-msgid "Published"
-msgstr ""
-
-#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:38
-msgid "This record is published."
-msgstr ""
-
-#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:47
-msgid "Ready for Review"
-msgstr ""
-
-#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:48
-msgid "Your record is ready to be submitted for review."
-msgstr ""
-
-#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:55
-msgid "Under Review"
-msgstr ""
-
-#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:56
-msgid "This record is being reviewed by curators."
-msgstr ""
-
-#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:63
-msgid "Ready to Publish"
-msgstr ""
-
-#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:64
-msgid "Once accepted, you can publish the record yourself."
-msgstr ""
-
-#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:71
-msgid "Declined"
-msgstr ""
-
-#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:72
-msgid "This record has been declined. Please check the curation request for details."
-msgstr ""
-
-#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:79
-msgid "Needs revision"
-msgstr ""
-
-#: invenio_curations/assets/semantic-ui/js/invenio_curations/deposit/withCurationStatus.js:80
-msgid "This record needs revision. Please check the curation request for details."
-msgstr ""
-
-#: invenio_curations/assets/semantic-ui/js/invenio_curations/requests/timelineActionEvents.js:43
-msgid "edited the record"
 msgstr ""
