@@ -35,7 +35,7 @@ export const withCurationStatus = (WrappedComponent) => {
           icon: "check circle",
           color: "green",
           text: i18next.t("Published"),
-          tooltip: i18next.t("This record is published."),
+          tooltip: i18next.t("Your record is published."),
         };
       } else if (isDraft && request) {
         if (!hasValidationErrors) {
@@ -93,7 +93,7 @@ export const withCurationStatus = (WrappedComponent) => {
                 icon: "exclamation",
                 color: "orange",
                 text: i18next.t("Needs revision"),
-                tooltip: i18next.t("This record needs revision. Please check the curation request for details."),
+                tooltip: i18next.t("Your record needs revision. Please check the curation request for details."),
               };
               break;
           }
