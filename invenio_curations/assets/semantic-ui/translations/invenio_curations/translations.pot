@@ -5,8 +5,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"POT-Creation-Date: 2026-03-24T10:42:59.503Z\n"
-"PO-Revision-Date: 2026-03-24T10:42:59.503Z\n"
+"POT-Creation-Date: 2026-03-24T11:01:08.033Z\n"
+"PO-Revision-Date: 2026-03-24T11:01:08.033Z\n"
 "Language: en\n"
 
 msgid "Curation request"
@@ -122,9 +122,6 @@ msgstr ""
 msgid "Published"
 msgstr "Published"
 
-msgid "This record is published."
-msgstr "This record is published."
-
 msgid "Ready for Review"
 msgstr "Ready for Review"
 
@@ -165,8 +162,11 @@ msgstr ""
 msgid "Needs revision"
 msgstr "Needs revision"
 
-msgid "This record needs revision. Please check the curation request for details."
-msgstr "This record needs revision. Please check the curation request for details."
-
 msgid "Pending resubmission"
 msgstr "Pending resubmission"
+
+msgid "Your record is published."
+msgstr "Your record is published."
+
+msgid "Your record needs revision. Please check the curation request for details."
+msgstr "Your record needs revision. Please check the curation request for details."

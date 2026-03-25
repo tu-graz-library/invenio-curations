@@ -34,7 +34,6 @@
   "Please fill in all required fields before submitting for review.": "Please fill in all required fields before submitting for review.",
   "Once your upload is complete, you can submit it for review to the global repository curators.": "Once your upload is complete, you can submit it for review to the global repository curators.",
   "Published": "Published",
-  "This record is published.": "This record is published.",
   "Ready for Review": "Ready for Review",
   "Your record is ready to be submitted for review.": "Your record is ready to be submitted for review.",
   "Submitted": "Submitted",
@@ -47,6 +46,7 @@
   "Declined": "Declined",
   "Your record has been declined. Please check the curation request for details.": "Your record has been declined. Please check the curation request for details.",
   "Needs revision": "Needs revision",
-  "This record needs revision. Please check the curation request for details.": "This record needs revision. Please check the curation request for details.",
-  "Pending resubmission": "Pending resubmission"
+  "Pending resubmission": "Pending resubmission",
+  "Your record is published.": "Your record is published.",
+  "Your record needs revision. Please check the curation request for details.": "Your record needs revision. Please check the curation request for details."
 }
