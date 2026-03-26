@@ -37,7 +37,7 @@ msgstr "Datensatz wurde erneut eingereicht mit den folgenden Änderungen:"
 
 #: invenio_curations/services/diff.py:160
 msgid "Record was updated after changes were requested!"
-msgstr "Datensatz wurde geändert, nachdem Änderungen angefragt wurden."
+msgstr "Datensatz wurde aktualisiert, nachdem Änderungen angefragt wurden."
 
 #: invenio_curations/services/diff.py:162
 msgid "Record was updated! Please check the latest changes."
@@ -45,7 +45,7 @@ msgstr "Datensatz wurde aktualisiert! Bitte prüfen Sie die neuesten Änderungen
 
 #: invenio_curations/services/diff.py:164
 msgid "Action triggered comment update"
-msgstr "Handlung hat eine Aktualisierung der Kommentare ausgelöst"
+msgstr "Die Aktion hat eine Aktualisierung der Kommentare ausgelöst"
 
 #: invenio_curations/services/errors.py:16
 msgid "An open curation request for this record exists already."
@@ -58,7 +58,7 @@ msgstr "Der Datensatz wurde noch nicht kuratiert."
 #: invenio_curations/services/errors.py:31
 #, python-format
 msgid "A role with name '%(name)s' does not exist."
-msgstr "Eine Rolle mit dem Namen „{name}“ existiert nicht."
+msgstr "Eine Rolle mit dem Namen „%(name)s“ existiert nicht."
 
 #: invenio_curations/services/facets.py:17
 msgid "Type"
@@ -88,7 +88,7 @@ msgstr "Erneut eingereicht"
 msgid ""
 "Curation request moderation role must exist to enable record curation "
 "requests."
-msgstr "Damit Kurationsanfragen für Datensätze aktiviert werden können, muss die Moderationsrolle für Kurationsanfragen existieren."
+msgstr "Für die Aktivierung von Kurationsanfragen für Datensätze muss eine entsprechende Moderationsrolle vorhanden sein."
 
 #: invenio_curations/templates/semantic-ui/invenio_curations/overview.html:9
 msgid "Requests"
