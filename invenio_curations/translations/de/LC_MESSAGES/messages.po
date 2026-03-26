@@ -19,78 +19,76 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.15.0\n"
 
-#: invenio_curations/ext.py:32
+#: invenio_curations/ext.py:53
 msgid "Curation Requests"
 msgstr "Kurationsanfragen"
 
-#: invenio_curations/requests/curation.py:190
+#: invenio_curations/requests/curation.py:296
 msgid "Curation"
 msgstr "Kuration"
 
-#: invenio_curations/services/components.py:76
-msgid ""
-"Missing curation request. Please create a curation request, if the record"
-" is ready to be published."
-msgstr "Fehlende Kurationsanfrage. Bitte erstellen Sie eine Kurationsanfrage, wenn der Datensatz zur Veröffentlichung bereit ist."
+#: invenio_curations/services/comment.py:34
+msgid "Record saved successfully, but failed to update request comment."
+msgstr "Datensatz erfolgreich gespeichert, aber die Anfrage-Kommentare konnten nicht aktualisiert werden."
 
-#: invenio_curations/services/errors.py:14
+#: invenio_curations/services/diff.py:159
+msgid "Record was resubmitted for review with the following changes:"
+msgstr "Datensatz wurde erneut eingereicht mit den folgenden Änderungen:"
+
+#: invenio_curations/services/diff.py:160
+msgid "Record was updated after changes were requested!"
+msgstr "Datensatz wurde aktualisiert, nachdem Änderungen angefragt wurden."
+
+#: invenio_curations/services/diff.py:162
+msgid "Record was updated! Please check the latest changes."
+msgstr "Datensatz wurde aktualisiert! Bitte prüfen Sie die neuesten Änderungen."
+
+#: invenio_curations/services/diff.py:164
+msgid "Action triggered comment update"
+msgstr "Die Aktion hat eine Aktualisierung der Kommentare ausgelöst"
+
+#: invenio_curations/services/errors.py:16
 msgid "An open curation request for this record exists already."
 msgstr "Für diesen Datensatz existiert bereits eine offene Kurationsanfrage."
 
-#: invenio_curations/services/errors.py:20
+#: invenio_curations/services/errors.py:22
 msgid "The record has not been curated yet."
 msgstr "Der Datensatz wurde noch nicht kuratiert."
 
-#: invenio_curations/services/errors.py:29
-msgid "A role with name '{name}' does not exist."
-msgstr "Eine Rolle mit dem Namen „{name}“ existiert nicht."
+#: invenio_curations/services/errors.py:31
+#, python-format
+msgid "A role with name '%(name)s' does not exist."
+msgstr "Eine Rolle mit dem Namen „%(name)s“ existiert nicht."
 
-#: invenio_curations/services/facets.py:16
+#: invenio_curations/services/facets.py:17
 msgid "Type"
 msgstr "Typ"
 
-#: invenio_curations/services/facets.py:18
-msgid "Curation review"
-msgstr "Kurationsüberprüfung"
+#: invenio_curations/services/facets.py:20
+msgid "RDM Curation"
+msgstr "RDM-Kuration"
 
-#: invenio_curations/services/facets.py:24
+#: invenio_curations/services/facets.py:26
 msgid "Status"
 msgstr "Status"
 
-#: invenio_curations/services/facets.py:26
-msgid "Submitted"
-msgstr "Eingereicht"
-
-#: invenio_curations/services/facets.py:27
-msgid "Expired"
-msgstr "Abgelaufen"
-
-#: invenio_curations/services/facets.py:28
-msgid "Accepted"
-msgstr "Akzeptiert"
-
 #: invenio_curations/services/facets.py:29
-msgid "Declined"
-msgstr "Abgelehnt"
+msgid "In review"
+msgstr "In Begutachtung"
 
 #: invenio_curations/services/facets.py:30
-msgid "Cancelled"
-msgstr "Abgebrochen"
+msgid "Changes requested"
+msgstr "Änderungen angefordert"
 
-#: invenio_curations/services/facets.py:38
-#: invenio_curations/services/facets.py:40
-msgid "Open"
-msgstr "Offen"
+#: invenio_curations/services/facets.py:31
+msgid "Resubmitted"
+msgstr "Erneut eingereicht"
 
-#: invenio_curations/services/facets.py:41
-msgid "Closed"
-msgstr "Geschlossen"
-
-#: invenio_curations/services/service.py:92
+#: invenio_curations/services/service.py:186
 msgid ""
 "Curation request moderation role must exist to enable record curation "
 "requests."
-msgstr "Damit Kurationsanfragen für Datensätze aktiviert werden können, muss die Moderationsrolle für Kurationsanfragen existieren."
+msgstr "Für die Aktivierung von Kurationsanfragen für Datensätze muss eine entsprechende Moderationsrolle vorhanden sein."
 
 #: invenio_curations/templates/semantic-ui/invenio_curations/overview.html:9
 msgid "Requests"
