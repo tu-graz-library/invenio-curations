@@ -8,6 +8,17 @@
 Changes
 =======
 
+Version v0.8.4 (released 2026-03-31)
+
+- feat(translations): adjust backend translations
+- feat(translations): update backend translations
+- fix(ui): use lazy_gettext for facets
+- feat(translations): adjust frontend translations
+- fix: replace incorrect newline character
+- feat: add translations
+- fix: adjust wording
+- translations: add additional translations for German
+
 Version v0.8.3 (released 2026-03-19)
 
 - fix: permanent redirect at POST
