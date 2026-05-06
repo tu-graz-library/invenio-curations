@@ -113,15 +113,6 @@ class CurationComponent(ServiceComponent, ABC):
             _get_requests_service().delete(system_identity, request["id"], uow=self.uow)
             return
 
-        # Delete draft for a published record.
-        # Since only one request per record should exist, it is not deleted. Instead, put it back to accepted.
-        _get_requests_service().execute_action(
-            system_identity,
-            request["id"],
-            "cancel",
-            uow=self.uow,
-        )
-
     def _check_update_request(
         self,
         identity: Identity,  # noqa: ARG002
