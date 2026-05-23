@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2024 TU Wien.
+ * SPDX-License-Identifier: MIT
+ */
+
 import TRANSLATE_EN from "./en/translations.json";
 import TRANSLATE_DE from "./de/translations.json";
 
