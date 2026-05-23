@@ -1,3 +1,8 @@
+{#-
+  SPDX-FileCopyrightText: 2024-2025 Graz University of Technology.
+  SPDX-FileCopyrightText: 2025 TU Wien.
+  SPDX-License-Identifier: MIT
+-#}
 {% set curation_request = notification.context.request %}
 {% set group = curation_request.receiver %}
 {% set creator = curation_request.created_by %}
@@ -7,10 +12,10 @@
 {% set message = notification.context.message | safe if notification.context.message else '' %}
 {% set record_title = record.metadata.title %}
 {% set curator_name = executing_user.profile.full_name %}
-{% if not curator_name  %} 
+{% if not curator_name  %}
     {% set curator_name = executing_user.email %}
-{% else %} 
-    {% set curator_name = curator_name +  " - " + executing_user.email %} 
+{% else %}
+    {% set curator_name = curator_name +  " - " + executing_user.email %}
 {% endif %}
 
 {# TODO: use request.links.self_html when issue issue is resolved: https://github.com/inveniosoftware/invenio-rdm-records/issues/1327 #}

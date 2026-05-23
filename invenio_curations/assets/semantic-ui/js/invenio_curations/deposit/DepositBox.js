@@ -1,9 +1,8 @@
-// This file is part of InvenioRDM
-// Copyright (C) 2024 TU Wien.
-// Copyright (C) 2024-2026 Graz University of Technology.
-//
-// Invenio-Curations is free software; you can redistribute it and/or modify it
-// under the terms of the MIT License; see LICENSE file for more details.
+/*
+ * SPDX-FileCopyrightText: 2024 TU Wien.
+ * SPDX-FileCopyrightText: 2024-2026 Graz University of Technology.
+ * SPDX-License-Identifier: MIT
+ */
 
 import { Card, Form, Grid } from "semantic-ui-react";
 import { PreviewButton, SaveButton } from "@js/invenio_rdm_records";

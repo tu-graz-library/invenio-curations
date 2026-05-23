@@ -1,9 +1,7 @@
-// -*- coding: utf-8 -*-
-//
-// Copyright (C) 2024 Graz University of Technology.
-//
-// Invenio-curations is free software; you can redistribute it and/or modify it
-// under the terms of the MIT License; see LICENSE file for more details.
+/*
+ * SPDX-FileCopyrightText: 2024 Graz University of Technology.
+ * SPDX-License-Identifier: MIT
+ */
 
 import RequestStatusLabel from "@js/invenio_requests/request/RequestStatusLabel";
 import { i18next } from "@translations/invenio_curations/i18next";
