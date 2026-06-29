@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2024-2025 Graz University of Technology.
+# Copyright (C) 2024-2026 Graz University of Technology.
 #
 # Invenio-Curations is free software; you can redistribute it and/or
 # modify it under the terms of the MIT License; see LICENSE file for more
@@ -143,7 +143,17 @@ class EntityReferenceServicePermission(Generator):
             # The referenced entity could be deleted, which would result in not being able to serialize instead. Instead,
             # an empty set is returned for this permission.
             return set()
+
         popped_record = kwargs.pop("record")
+
+        # since SameAs gets the permission policy dynamically and
+        # kwargs gets CurationRDMRequestsPermissionPolicy and the
+        # permission refers to RDMRecordPermissionPolicy
+        # `get_service().config.permission_policy_cls` it needs that
+        # permission policy to resolve the correct SameAs generator
+        kwargs["permission_policy"] = (
+            entity.get_resolver().get_service().config.permission_policy_cls
+        )
         needs = [g.needs(record=record, **kwargs) for g in permission]
 
         kwargs["record"] = popped_record
@@ -164,6 +174,11 @@ class EntityReferenceServicePermission(Generator):
             # an empty set is returned for this permission.
             return set()
         popped_record = kwargs.pop("record")
+
+        # see for needs
+        kwargs["permission_policy"] = (
+            entity.get_resolver().get_service().config.permission_policy_cls
+        )
         excludes = [g.excludes(record=record, **kwargs) for g in permission]
 
         kwargs["record"] = popped_record
