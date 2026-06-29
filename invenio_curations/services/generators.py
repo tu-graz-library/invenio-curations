@@ -10,14 +10,15 @@
 
 from collections.abc import Callable
 from itertools import chain
-from typing import Any, cast
+from typing import Any
 
 from flask_principal import Need, RoleNeed
-from invenio_access.permissions import Permission, system_identity
+from invenio_access.permissions import system_identity
 from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_rdm_records.records.api import RDMDraft
 from invenio_rdm_records.requests.entity_resolvers import RDMRecordProxy
 from invenio_records_permissions.generators import ConditionalGenerator, Generator
+from invenio_records_permissions.policies import BasePermissionPolicy
 from invenio_requests.customizations.request_types import RequestType
 from invenio_requests.records.api import Request
 
@@ -114,15 +115,19 @@ class EntityReferenceServicePermission(Generator):
         assert self.entity_field is not None, "Subclass must define entity_field."
         super().__init__()
 
-    def _get_permission(self, entity: RDMRecordProxy) -> list[Permission]:
-        """Get the specified permission from the request entity service config."""
-        permission_policy_cls = (
-            entity.get_resolver().get_service().config.permission_policy_cls
-        )
-
-        return cast(
-            list[Permission],
-            getattr(permission_policy_cls, self.permission_name),
+    def _get_entity_permission_policy(
+        self,
+        entity: RDMRecordProxy,
+        **over: Any,
+    ) -> BasePermissionPolicy:
+        """Get the permission policy of the entity."""
+        return (
+            entity.get_resolver()
+            .get_service()
+            .permission_policy(
+                action_name=self.permission_name.removeprefix("can_"),
+                **over,
+            )
         )
 
     def _get_entity(self, request: Request) -> RDMRecordProxy:
@@ -135,7 +140,6 @@ class EntityReferenceServicePermission(Generator):
             return set()
 
         entity = self._get_entity(request)
-        permission = self._get_permission(entity)
         try:
             record = entity.resolve()
         except PIDDoesNotExistError:
@@ -144,10 +148,15 @@ class EntityReferenceServicePermission(Generator):
             # an empty set is returned for this permission.
             return set()
         popped_record = kwargs.pop("record")
-        needs = [g.needs(record=record, **kwargs) for g in permission]
+        permission_policy = self._get_entity_permission_policy(
+            entity,
+            record=record,
+            **kwargs,
+        )
+        needs = permission_policy.needs()
 
         kwargs["record"] = popped_record
-        return set(chain.from_iterable(needs))
+        return needs
 
     def excludes(self, request: Request | None = None, **kwargs: Any) -> set[Need]:
         """Set of excludes denying permission."""
@@ -155,7 +164,6 @@ class EntityReferenceServicePermission(Generator):
             return set()
 
         entity = self._get_entity(request)
-        permission = self._get_permission(entity)
         try:
             record = entity.resolve()
         except PIDDoesNotExistError:
@@ -164,10 +172,15 @@ class EntityReferenceServicePermission(Generator):
             # an empty set is returned for this permission.
             return set()
         popped_record = kwargs.pop("record")
-        excludes = [g.excludes(record=record, **kwargs) for g in permission]
+        permission_policy = self._get_entity_permission_policy(
+            entity,
+            record=record,
+            **kwargs,
+        )
+        excludes = permission_policy.excludes()
 
         kwargs["record"] = popped_record
-        return set(chain.from_iterable(excludes))
+        return excludes
 
 
 class TopicPermission(EntityReferenceServicePermission):
