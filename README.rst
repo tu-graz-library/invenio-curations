@@ -441,3 +441,8 @@ The name of this role can be specified via a configuration variable ``CURATIONS_
 The following ``invenio roles`` command can be used to create the role if it doesn't exist yet: ``invenio roles create <name-of-curation-role>``.
 
 After the role has been created, it can be assigned to users via: ``invenio roles add <user-email-address> <name-of-curation-role>``.
+
+Checks
+~~~~~~
+
+This package supports ``invenio-checks`` validations. Submitting a curation request can trigger globally configured checks. For more information about how to configure checks, `check` `here <https://inveniordm.docs.cern.ch/operate/customize/curation-checks/#configuring-checks>`_.
