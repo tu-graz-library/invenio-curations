@@ -44,3 +44,11 @@ export const LabelStatusPendingResubmission = () => {
     </Label>
   );
 };
+
+export const LabelCommunityReviewOnHold = () => {
+  return (
+    <Label horizontal color="orange" size="tiny" basic>
+      {i18next.t("Community review on hold")}
+    </Label>
+  );
+};
