@@ -50,3 +50,8 @@ module = [
     "tests.*",
 ]
 ignore_errors = true
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]

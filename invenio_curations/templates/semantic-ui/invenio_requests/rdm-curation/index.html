@@ -16,6 +16,11 @@
 {% set active_dashboard_menu_item = "curation-overview" if is_curator else "requests" %}
 
 {%- block request_header %}
+  <input
+    name="curations-config"
+    type="hidden"
+    value='{{ {"autoPublishOnAccept": config["CURATIONS_AUTO_PUBLISH_ON_ACCEPT"]} | tojson }}'
+  >
 
   {% set back_button_url = url_for("invenio_curations.curation_requests_overview" if is_curator else "invenio_app_rdm_users.requests") %}
   {% from "invenio_requests/macros/request_header.html" import inclusion_request_header %}
@@ -29,6 +34,9 @@
 {%- endblock request_header %}
 
 {% block request_timeline %}
+<script>
+  window.CURATIONS_CONFIG = {{ {"absoluteDates": config.get("CURATIONS_TIMELINE_ABSOLUTE_DATES", False)} | tojson | safe }};
+</script>
 <div
     class="ui container rdm-tab-container fluid rel-pt-2 ml-0-mobile mr-0-mobile"
     id="request-community-submission-tab-container"

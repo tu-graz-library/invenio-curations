@@ -9,6 +9,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import { Dropdown } from "semantic-ui-react";
 import {
+  RequestAcceptButton,
   RequestCritiqueButton,
   RequestResubmitButton,
   RequestReviewButton,
@@ -37,25 +38,32 @@ const RequestBaseModalTrigger = (props) => {
   );
 };
 
+export const RequestAcceptModalTrigger = (props) => {
+  return (
+    <RequestBaseModalTrigger {...props} button={<RequestAcceptButton {...props} />} />
+  );
+};
+
 export const RequestCritiqueModalTrigger = (props) => {
   return (
-    <RequestBaseModalTrigger {...props} button=<RequestCritiqueButton {...props} /> />
+    <RequestBaseModalTrigger {...props} button={<RequestCritiqueButton {...props} />} />
   );
 };
 
 export const RequestResubmitModalTrigger = (props) => {
   return (
-    <RequestBaseModalTrigger {...props} button=<RequestResubmitButton {...props} /> />
+    <RequestBaseModalTrigger {...props} button={<RequestResubmitButton {...props} />} />
   );
 };
 
 export const RequestReviewModalTrigger = (props) => {
   return (
-    <RequestBaseModalTrigger {...props} button=<RequestReviewButton {...props} /> />
+    <RequestBaseModalTrigger {...props} button={<RequestReviewButton {...props} />} />
   );
 };
 
 for (const component of [
+  RequestAcceptModalTrigger,
   RequestCritiqueModalTrigger,
   RequestResubmitModalTrigger,
   RequestReviewModalTrigger,

@@ -7,10 +7,16 @@
 // under the terms of the MIT License; see LICENSE file for more details.
 
 import { i18next } from "@translations/invenio_requests/i18next";
+import { DateTime } from "luxon";
 import PropTypes from "prop-types";
 import React, { Component } from "react";
 import { Divider, Header } from "semantic-ui-react";
 import { toRelativeTime } from "react-invenio-forms";
+
+const formatEventTime = (timestamp, language) =>
+  window.CURATIONS_CONFIG?.absoluteDates
+    ? DateTime.fromISO(timestamp).setLocale(language).toLocaleString(DateTime.DATETIME_MED)
+    : toRelativeTime(timestamp, language);
 import RequestStatus from "@js/invenio_requests/request/RequestStatus";
 import RequestTypeLabel from "@js/invenio_requests/request/RequestTypeLabel";
 import { RequestReviewers } from "@js/invenio_requests/request/reviewers/RequestReviewers";
@@ -66,7 +72,7 @@ export class RequestMetadataComponent extends Component {
   }
   // BLOCK END
 
-  isResourceDeleted = (details) => details.is_ghost === true;
+  isResourceDeleted = (details) => details?.is_ghost === true;
 
   render() {
     const { request, config, permissions } = this.props;
@@ -137,7 +143,7 @@ export class RequestMetadataComponent extends Component {
         <Header as="h3" size="tiny">
           {i18next.t("Created")}
         </Header>
-        {toRelativeTime(request.created, i18next.language)}
+        {formatEventTime(request.created, i18next.language)}
 
         {request.expires_at && (
           <>
@@ -145,7 +151,7 @@ export class RequestMetadataComponent extends Component {
             <Header as="h3" size="tiny">
               {i18next.t("Expires")}
             </Header>
-            {toRelativeTime(request.expires_at, i18next.language)}
+            {formatEventTime(request.expires_at, i18next.language)}
           </>
         )}
 
@@ -167,10 +173,12 @@ export class RequestMetadataComponent extends Component {
 
 RequestMetadataComponent.propTypes = {
   request: PropTypes.object.isRequired,
-  config: PropTypes.object.isRequired,
+  config: PropTypes.object,
   permissions: PropTypes.object.isRequired,
 };
 
-RequestMetadataComponent.defaultProps = {};
+RequestMetadataComponent.defaultProps = {
+  config: {},
+};
 
 export const RequestMetadata = RequestMetadataComponent;

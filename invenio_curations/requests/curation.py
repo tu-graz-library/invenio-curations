@@ -9,15 +9,24 @@
 
 from __future__ import annotations
 
+import contextvars
+from datetime import datetime, timezone
 from typing import Final
 
+from flask import current_app
 from flask_principal import Identity
+from invenio_access.permissions import system_identity
+from invenio_db.uow import Operation
 from invenio_i18n import lazy_gettext as _
 from invenio_notifications.services.uow import NotificationOp
+from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_records_resources.services import EndpointLink
 from invenio_records_resources.services.uow import UnitOfWork
 from invenio_requests.customizations import RequestState, RequestType, actions
 from invenio_requests.customizations.actions import RequestAction
+from invenio_requests.proxies import current_requests_service
+from invenio_users_resources.proxies import current_users_service
+from marshmallow_utils.fields import ISODateString, SanitizedUnicode
 
 from invenio_curations.notifications.builders import (
     CurationRequestAcceptNotificationBuilder,
@@ -26,6 +35,37 @@ from invenio_curations.notifications.builders import (
     CurationRequestReviewNotificationBuilder,
     CurationRequestSubmitNotificationBuilder,
 )
+
+# ContextVar is used instead of a class-level flag to avoid cross-request pollution
+# under multi-threaded WSGI workers (each request has its own context).
+_auto_publish_ctx: contextvars.ContextVar[bool] = contextvars.ContextVar(
+    "_auto_publish_ctx", default=False,
+)
+
+
+class PublishRecordOp(Operation):
+    """Operation to publish a record after curation request is accepted."""
+
+    def __init__(self, record_id: str) -> None:
+        """Initialize the publish operation."""
+        super().__init__()
+        self._record_id = record_id
+
+    def on_post_commit(self, uow: UnitOfWork) -> None:  # noqa: ARG002
+        """Publish the record after the transaction is committed."""
+        token = _auto_publish_ctx.set(True)
+        try:
+            current_rdm_records_service.publish(
+                identity=system_identity,
+                id_=self._record_id,
+            )
+        except Exception:
+            current_app.logger.exception(
+                "Auto-publish failed for record %s after curation acceptance",
+                self._record_id,
+            )
+        finally:
+            _auto_publish_ctx.reset(token)
 
 
 class CurationCreateAndSubmitAction(actions.CreateAndSubmitAction):
@@ -68,7 +108,8 @@ class CurationAcceptAction(actions.AcceptAction):
     """Accept a request."""
 
     # Require to go through review before accepting.
-    status_from: Final[list[str]] = ["review"]
+    # Also allowed when a draft for a published record is deleted/discarded
+    status_from: Final[list[str]] = ["review", "pending_resubmission"]
 
     def execute(self, identity: Identity, uow: UnitOfWork) -> None:
         """Execute the accept action."""
@@ -82,6 +123,32 @@ class CurationAcceptAction(actions.AcceptAction):
         )
 
         super().execute(identity, uow)
+
+        # Register operation to publish the record after the transaction commits
+        if current_app.config.get("CURATIONS_AUTO_PUBLISH_ON_ACCEPT", False):
+            try:
+                topic = self.request.topic.resolve()
+                parent = topic.parent
+                review = parent.get("review")
+
+                if not (review and review.get("type") == "community-submission"):
+                    # if there is no pending community inclusion request, auto publish after accepting the curation request
+                    uow.register(
+                        PublishRecordOp(
+                            record_id=topic["id"],
+                        ),
+                    )
+                elif current_app.config.get("CURATIONS_AUTO_SUBMIT_COMMUNITY", False):
+                    current_requests_service.execute_action(
+                        identity=system_identity,
+                        id_=review["id"],
+                        action="submit",
+                        uow=uow,
+                    )
+            except Exception:
+                current_app.logger.exception(
+                    "Auto-publish or community-submit failed after curation acceptance",
+                )
 
 
 class CurationDeclineAction(actions.DeclineAction):
@@ -98,15 +165,14 @@ class CurationCancelAction(actions.CancelAction):
     # Also done when a draft for an already published record is deleted/discarded
     status_from: Final[list[str]] = [
         "accepted",
-        "cancelled",
         "created",
         "critiqued",
         "declined",
         "expired",
+        "pending_resubmission",
         "resubmitted",
         "review",
         "submitted",
-        "pending_resubmission",
     ]
 
 
@@ -136,6 +202,23 @@ class CurationDeleteAction(actions.DeleteAction):
     ]
 
 
+def _resolve_user_display_name(identity: Identity) -> str | None:
+    """Resolve a display name (full name or username) for the given identity."""
+    user_id = getattr(identity, "id", None)
+    if not user_id:
+        return None
+
+    try:
+        user = current_users_service.read(identity, user_id).to_dict()
+    except Exception:
+        current_app.logger.exception(
+            "Could not resolve display name for user %s", user_id,
+        )
+        return None
+
+    return user.get("profile", {}).get("full_name") or user.get("username")
+
+
 class CurationReviewAction(actions.RequestAction):
     """Mark request as review."""
 
@@ -144,14 +227,22 @@ class CurationReviewAction(actions.RequestAction):
 
     def execute(self, identity: Identity, uow: UnitOfWork) -> None:
         """Execute the review action."""
-        uow.register(
-            NotificationOp(
-                CurationRequestReviewNotificationBuilder.build(
-                    identity=identity,
-                    request=self.request,
+        if self.request["status"] == "submitted":
+            uow.register(
+                NotificationOp(
+                    CurationRequestReviewNotificationBuilder.build(
+                        identity=identity,
+                        request=self.request,
+                    ),
                 ),
-            ),
-        )
+            )
+
+        display_name = _resolve_user_display_name(identity)
+        if display_name:
+            self.request["payload"] = {
+                "review_started_by": display_name,
+                "review_started_at": datetime.now(timezone.utc).isoformat(),
+            }
 
         super().execute(identity, uow)
 
@@ -180,6 +271,7 @@ class CurationResubmitAction(actions.RequestAction):
     """Mark request as ready for review."""
 
     status_from: Final[list[str]] = [
+        "accepted",
         "critiqued",
         "pending_resubmission",
         "cancelled",
@@ -246,7 +338,7 @@ class CurationRequest(RequestType):
         "review": RequestState.OPEN,
         "critiqued": RequestState.OPEN,
         "resubmitted": RequestState.OPEN,
-        "pending_resubmission": RequestState.CLOSED,
+        "pending_resubmission": RequestState.OPEN,
     }
     """Available statuses for the request.
 
@@ -266,6 +358,17 @@ class CurationRequest(RequestType):
     allowed_creator_ref_types: Final[list[str]] = ["user", "community"]
     allowed_receiver_ref_types: Final[list[str]] = ["group"]
     allowed_topic_ref_types: Final[list[str]] = ["record"]
+
+    payload_schema: Final = {
+        "review_started_by": SanitizedUnicode(),
+        "review_started_at": ISODateString(),
+    }
+    """Payload storing who last started the curation review, and when.
+
+    This is a display-only snapshot (not indexed/filterable, as the request
+    payload field is not indexed), updated every time the ``review`` action
+    is executed.
+    """
 
     links_item: Final = {
         "self_html": EndpointLink(

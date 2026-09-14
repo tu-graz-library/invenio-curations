@@ -91,6 +91,21 @@ Choose a file from the instance's templates folder to render the request comment
 More details in README.
 """
 
+CURATIONS_AUTO_PUBLISH_ON_ACCEPT = False
+"""Automatically publish the record when a curation request is accepted."""
+
+CURATIONS_AUTO_SUBMIT_COMMUNITY = False
+"""Automatically submit pending community inclusion requests after curation accept."""
+
+CURATIONS_COMMENTS_USE_USER_IDENTITY = False
+"""Use the user's identity for comment actions instead of system identity."""
+
+CURATIONS_BLOCK_EDIT_DURING_REVIEW = False
+"""Block editing of drafts while a curation request is under review."""
+
+CURATIONS_ALLOW_CREATOR_CANCEL = False
+"""Allow record creators to cancel their own curation requests."""
+
 CURATIONS_PRIVILEGED_ROLES = ["administration"]
 """Curation privileged roles.
 
@@ -99,4 +114,26 @@ Note: this does not apply for community curations. This config should be used ju
 to allow admins to publish records without having to perform the extra steps necessary
 for approval.
 Also used for creating rdm-records demo records in testing.
+"""
+
+CURATIONS_NOTIFICATIONS_OVERRIDE_EMAIL = None
+"""If set, redirect all curation request notification emails to this address.
+
+When set to a single email address, all curation-related notification emails
+(submit, resubmit, review, accept, critique) are sent only to this address,
+instead of the actually resolved recipients (e.g. all members of the curation
+group, or the request creator).
+
+Leave unset (``None``) to send notifications to the normal recipients.
+"""
+
+CURATIONS_TIMELINE_ABSOLUTE_DATES = False
+"""Display absolute dates instead of relative dates in the curation timeline.
+
+When set to ``True``, timestamps in timeline events and the request metadata sidebar
+are rendered as locale-formatted datetime strings (e.g. "Jun 30, 2026, 2:30 PM")
+instead of relative values (e.g. "3 minutes ago").
+
+Can be toggled via the environment variable
+``INVENIO_CURATIONS_TIMELINE_ABSOLUTE_DATES=true``.
 """

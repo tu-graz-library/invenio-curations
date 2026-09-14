@@ -23,9 +23,11 @@ from invenio_requests.services.generators import Creator, Receiver
 from ..requests.curation import CurationRequest
 from .generators import (
     CurationModerators,
+    IfCurationCreatorCancelEnabled,
     IfCurationRecordBasedExists,
     IfCurationRequestAccepted,
     IfCurationRequestBasedExists,
+    IfCurationRequestBlocksEdit,
     IfRequestTypes,
     TopicPermission,
 )
@@ -47,9 +49,12 @@ class CurationRDMRecordPermissionPolicy(RDMRecordPermissionPolicy):
         IfCurationRecordBasedExists(then_=[CurationModerators()], else_=[]),
     ]
 
+    can_review = RDMRecordPermissionPolicy.can_review + [CurationModerators()]
+
     # in order to get all base permissions in, we just add ours instead of adapting the then_ clause of the base permission
+    # Use CurationModerators() directly to avoid re-evaluating can_read_files (which may trigger an ES query).
     can_get_content_files = RDMRecordPermissionPolicy.can_get_content_files + [
-        IfTransferType(LOCAL_TRANSFER_TYPE, can_read_files),
+        IfTransferType(LOCAL_TRANSFER_TYPE, [CurationModerators()]),
         SystemProcess(),
     ]
 
@@ -61,22 +66,40 @@ class CurationRDMRecordPermissionPolicy(RDMRecordPermissionPolicy):
     ]
 
     # in order to get all base permissions in, we just add ours instead of adapting the then_ clause of the base permission
+    # Use CurationModerators() directly to avoid re-evaluating can_draft_read_files (which may trigger an ES query).
     can_draft_get_content_files = (
         RDMRecordPermissionPolicy.can_draft_get_content_files
         + [
-            IfTransferType(LOCAL_TRANSFER_TYPE, can_draft_read_files),
+            IfTransferType(LOCAL_TRANSFER_TYPE, [CurationModerators()]),
             SystemProcess(),
         ]
     )
 
     # in order to get all base permissions in, we just add ours instead of adapting the then_ clause of the base permission
+    # Use CurationModerators() directly to avoid re-evaluating can_preview (which may trigger an ES query).
     can_draft_media_get_content_files = (
         RDMRecordPermissionPolicy.can_draft_media_get_content_files
         + [
-            IfTransferType(LOCAL_TRANSFER_TYPE, can_preview),
+            IfTransferType(LOCAL_TRANSFER_TYPE, [CurationModerators()]),
             SystemProcess(),
         ]
     )
+
+    # When CURATIONS_BLOCK_EDIT_DURING_REVIEW is True and request is in a blocking state,
+    # allow moderators to still update the draft (e.g. to make corrections during review).
+    can_update_draft = [  # noqa: RUF012
+        IfCurationRequestBlocksEdit(
+            then_=[CurationModerators()],
+            else_=RDMRecordPermissionPolicy.can_update_draft,
+        ),
+    ]
+
+    # RDMRecordPermissionPolicy.can_publish references the base can_review list
+    # object directly, so it does not pick up our can_review extension above -
+    # curators need this granted separately to publish edits themselves.
+    can_publish = RDMRecordPermissionPolicy.can_publish + [
+        IfCurationRecordBasedExists(then_=[CurationModerators()], else_=[]),
+    ]
 
     can_media_read_files = RDMRecordPermissionPolicy.can_media_read_files + [
         IfCurationRecordBasedExists(then_=[CurationModerators()], else_=[]),
@@ -148,3 +171,8 @@ class CurationRDMRequestsPermissionPolicy(RDMRequestsPermissionPolicy):
     can_action_critique = RDMRequestsPermissionPolicy.can_action_accept
     can_action_resubmit = can_action_submit
     can_action_pending_resubmission = can_action_resubmit
+
+    # Allow creators to cancel their own curation requests
+    can_action_cancel = RDMRequestsPermissionPolicy.can_action_cancel + [
+        IfCurationCreatorCancelEnabled(then_=[Creator()], else_=[]),
+    ]

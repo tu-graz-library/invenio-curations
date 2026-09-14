@@ -49,10 +49,12 @@ class DiffElement:
         if self._diff is None:
             raise DiffError
         update, key, result = self._diff
+        # Convert key to string to avoid unhashable type errors
+        key_str = str(key) if not isinstance(key, str) else key
         if update != "change":
-            return str({key: result})
+            return f"{key_str}: {result}"
         old, new = result
-        return str({key: {"old": old, "new": new}})
+        return f"{key_str}: {old} → {new}"
 
     @property
     def diff(self) -> DIFF_TYPE | None:

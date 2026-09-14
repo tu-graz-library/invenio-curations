@@ -27,6 +27,7 @@ from invenio_requests.records.api import Request
 from invenio_users_resources.notifications.filters import UserPreferencesRecipientFilter
 from invenio_users_resources.notifications.generators import UserRecipient
 
+from .filters import OverrideEmailRecipientFilter
 from .generators import GroupMembersRecipient
 
 
@@ -50,6 +51,8 @@ class CurationRequestActionNotificationBuilder(NotificationBuilder):
     recipient_filters: ClassVar[list[RecipientFilter]] = [
         UserPreferencesRecipientFilter(),
         UserRecipientFilter("executing_user"),
+        # keep last: overrides all previously resolved recipients, if configured
+        OverrideEmailRecipientFilter(),
     ]
 
     recipient_backends: ClassVar[list[UserEmailBackend]] = [

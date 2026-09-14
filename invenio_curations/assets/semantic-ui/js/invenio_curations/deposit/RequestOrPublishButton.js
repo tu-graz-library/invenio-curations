@@ -20,8 +20,17 @@ export const RequestOrPublishButton = (props) => {
     handleCreateRequest,
     handleResubmitRequest,
     loading,
+    formik,
+    files,
   } = props;
-  const recordCurateable = record?.id != null && record?.savedSuccessfully;
+
+  // Check if any files are currently uploading
+  // InvenioRDM tracks this with isFileUploadInProgress flag in the files state
+  const hasUploadInProgress = files?.isFileUploadInProgress || false;
+
+  const recordCurateable =
+    record?.id != null && record?.savedSuccessfully && !hasUploadInProgress;
+  const isDirty = formik?.dirty;
   let elem = null;
 
   // 2 special cases:
@@ -82,7 +91,50 @@ export const RequestOrPublishButton = (props) => {
   if (request) {
     switch (request.status) {
       case "accepted":
-        elem = <PublishButton fluid record={record} />;
+        // For published records, user must resubmit changes for review
+        if (record?.is_published) {
+          elem = (
+            <Button
+              onClick={handleResubmitRequest}
+              loading={loading}
+              primary
+              size="medium"
+              type="button"
+              disabled={!recordCurateable}
+              positive
+              icon
+              labelPosition="left"
+              fluid
+            >
+              <Icon name="paper hand outline" />
+              {i18next.t("Resubmit for review")}
+            </Button>
+          );
+        } else if (isDirty || !record?.savedSuccessfully) {
+          elem = (
+            <Popup
+              content={i18next.t("Please save your changes before publishing.")}
+              trigger={
+                <span>
+                  <Button
+                    primary
+                    disabled
+                    fluid
+                    size="medium"
+                    type="button"
+                    icon
+                    labelPosition="left"
+                  >
+                    <Icon name="upload" />
+                    {i18next.t("Publish")}
+                  </Button>
+                </span>
+              }
+            />
+          );
+        } else {
+          elem = <PublishButton fluid record={record} />;
+        }
         break;
 
       case "critiqued":
@@ -128,15 +180,21 @@ export const RequestOrPublishButton = (props) => {
     elem = (
       <Popup
         disabled={recordCurateable}
-        content={i18next.t(
-          "Before creating a curation request, the draft has to be saved without any errors."
-        )}
+        content={
+          hasUploadInProgress
+            ? i18next.t(
+                "Please wait for all file uploads to complete before starting the publication process."
+              )
+            : i18next.t(
+                "Before creating a curation request, the draft has to be saved without any errors."
+              )
+        }
         position="top center"
         trigger={
           <span>
             <Button
               onClick={handleCreateRequest}
-              loading={loading}
+              loading={!hasUploadInProgress && loading}
               primary
               size="medium"
               type="button"
@@ -165,6 +223,8 @@ RequestOrPublishButton.propTypes = {
   handleCreateRequest: PropTypes.func.isRequired,
   handleResubmitRequest: PropTypes.func.isRequired,
   loading: PropTypes.bool,
+  formik: PropTypes.object,
+  files: PropTypes.object,
 };
 
 RequestOrPublishButton.defaultProps = {
@@ -172,4 +232,6 @@ RequestOrPublishButton.defaultProps = {
   record: null,
   curationsData: null,
   loading: false,
+  formik: null,
+  files: null,
 };

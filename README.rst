@@ -441,3 +441,79 @@ The name of this role can be specified via a configuration variable ``CURATIONS_
 The following ``invenio roles`` command can be used to create the role if it doesn't exist yet: ``invenio roles create <name-of-curation-role>``.
 
 After the role has been created, it can be assigned to users via: ``invenio roles add <user-email-address> <name-of-curation-role>``.
+
+Optional workflow flags
+~~~~~~~~~~~~~~~~~~~~~~~
+
+All flags below default to ``False`` to preserve existing installations.
+Enable them explicitly in ``invenio.cfg`` as needed.
+
+``CURATIONS_AUTO_PUBLISH_ON_ACCEPT``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Automatically publish the record when a curation request is accepted, instead of
+requiring the creator to manually click "Publish" afterwards.
+
+.. code-block:: python
+
+    CURATIONS_AUTO_PUBLISH_ON_ACCEPT = True
+
+
+``CURATIONS_AUTO_SUBMIT_COMMUNITY``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+After a curation request is accepted, automatically submit any pending community
+inclusion requests for the same record. Only relevant when records are submitted to
+communities alongside the curation workflow.
+
+.. code-block:: python
+
+    CURATIONS_AUTO_SUBMIT_COMMUNITY = True
+
+
+``CURATIONS_ALLOW_PUBLISHING_EDITS``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Allow users to publish metadata edits to already-published records without going
+through another curation review. Useful when the initial quality check is considered
+sufficient and minor metadata updates should not block re-publication.
+
+.. code-block:: python
+
+    CURATIONS_ALLOW_PUBLISHING_EDITS = True
+
+
+``CURATIONS_BLOCK_EDIT_DURING_REVIEW``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Prevent creators from editing their draft while a curation request is in the
+``submitted`` or ``under_review`` state. Ensures curators always review the version
+that was actually submitted.
+
+.. code-block:: python
+
+    CURATIONS_BLOCK_EDIT_DURING_REVIEW = True
+
+
+``CURATIONS_ALLOW_CREATOR_CANCEL``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Allow the record creator to cancel their own curation request (e.g. to withdraw a
+submission and make further edits). Without this flag, only curators and
+administrators can cancel requests.
+
+.. code-block:: python
+
+    CURATIONS_ALLOW_CREATOR_CANCEL = True
+
+
+``CURATIONS_COMMENTS_USE_USER_IDENTITY``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When automatically generated diff comments are posted (see
+``CURATIONS_ENABLE_REQUEST_COMMENTS`` above), use the submitting user's identity
+instead of the system identity. Affects who appears as the comment author.
+
+.. code-block:: python
+
+    CURATIONS_COMMENTS_USE_USER_IDENTITY = True

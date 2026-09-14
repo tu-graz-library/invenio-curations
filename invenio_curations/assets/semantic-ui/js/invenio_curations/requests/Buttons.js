@@ -6,6 +6,7 @@
 // under the terms of the MIT License; see LICENSE file for more details.
 
 import { i18next } from "@translations/invenio_curations/i18next";
+import { getInputFromDOM } from "../deposit/utils";
 import React from "react";
 import { Button } from "semantic-ui-react";
 
@@ -60,6 +61,24 @@ export const RequestReviewButton = (props) => {
       icon="eye"
       color="neutral"
       content={i18next.t("Start review")}
+      {...props}
+    />
+  );
+};
+
+export const RequestAcceptButton = (props) => {
+  const config = getInputFromDOM("curations-config") || {};
+  const requestType = props.requestType || props.request?.type || props.record?.type || props.result?.type;
+  const isCurationRequest = requestType === "rdm-curation";
+  const content = isCurationRequest && config.autoPublishOnAccept
+    ? i18next.t("Accept and publish")
+    : i18next.t("Accept");
+
+  return (
+    <RequestBaseButton
+      icon="check circle"
+      color="positive"
+      content={content}
       {...props}
     />
   );

@@ -145,17 +145,21 @@ class EntityReferenceServicePermission(Generator):
             return set()
 
         popped_record = kwargs.pop("record")
-
         # since SameAs gets the permission policy dynamically and
         # kwargs gets CurationRDMRequestsPermissionPolicy and the
         # permission refers to RDMRecordPermissionPolicy
         # `get_service().config.permission_policy_cls` it needs that
         # permission policy to resolve the correct SameAs generator
-        kwargs["permission_policy"] = (
+        popped_policy = kwargs.pop("permission_policy", None)
+        permission_policy_cls = (
             entity.get_resolver().get_service().config.permission_policy_cls
         )
-        needs = [g.needs(record=record, **kwargs) for g in permission]
-
+        needs = [
+            g.needs(record=record, permission_policy=permission_policy_cls, **kwargs)
+            for g in permission
+        ]
+        if popped_policy is not None:
+            kwargs["permission_policy"] = popped_policy
         kwargs["record"] = popped_record
         return set(chain.from_iterable(needs))
 
@@ -174,13 +178,17 @@ class EntityReferenceServicePermission(Generator):
             # an empty set is returned for this permission.
             return set()
         popped_record = kwargs.pop("record")
-
         # see for needs
-        kwargs["permission_policy"] = (
+        popped_policy = kwargs.pop("permission_policy", None)
+        permission_policy_cls = (
             entity.get_resolver().get_service().config.permission_policy_cls
         )
-        excludes = [g.excludes(record=record, **kwargs) for g in permission]
-
+        excludes = [
+            g.excludes(record=record, permission_policy=permission_policy_cls, **kwargs)
+            for g in permission
+        ]
+        if popped_policy is not None:
+            kwargs["permission_policy"] = popped_policy
         kwargs["record"] = popped_record
         return set(chain.from_iterable(excludes))
 
@@ -217,3 +225,58 @@ class IfCurationRecordBasedExists(ConditionalGenerator):
             topic=record,
         )
         return bool(request)
+
+
+class IfCurationRequestBlocksEdit(ConditionalGenerator):
+    """Record-oriented generator checking if a curation request blocks editing.
+
+    A curation request blocks editing when it is in a status where the moderators
+    are reviewing the draft (review). It does NOT block
+    editing when changes have been requested (critiqued status) or when it is
+    waiting for a moderator to start the review (submitted, resubmitted).
+    """
+
+    _curations_service: CurationRequestService = unproxy(current_curations_service)
+
+    # Statuses where editing should be blocked (actively under review)
+    BLOCKING_STATUSES = {"review"}
+
+    def _condition(self, record: RDMDraft | None = None, **__: Any) -> bool:
+        """Check if the record has a curation request that blocks editing."""
+        if not self._curations_service.block_edit_during_review:
+            return False
+
+        if record is not None:
+            # We use the system identity here to avoid visibility issues
+            request = self._curations_service.get_review(
+                identity=system_identity,
+                topic=record,
+            )
+            if request is not None:
+                # Block editing if request is open and in a blocking status
+                return (
+                    request.get("is_open", False)
+                    and request.get("status") in self.BLOCKING_STATUSES
+                )
+
+        return False
+
+
+class IfCurationCreatorCancelEnabled(ConditionalGenerator):
+    """Request-oriented generator enabling creator cancel when config is active.
+
+    Only applies to curation requests so that other request types (community
+    submissions, access requests, etc.) are not inadvertently affected.
+    """
+
+    _curations_service: CurationRequestService = unproxy(current_curations_service)
+
+    def _condition(self, request: Request | None = None, **__: Any) -> bool:
+        """Return True only for curation requests with creator-cancel enabled."""
+        if not self._curations_service.allow_creator_cancel:
+            return False
+        if request is None:
+            return False
+        from ..requests.curation import CurationRequest
+
+        return isinstance(request.type, CurationRequest)
