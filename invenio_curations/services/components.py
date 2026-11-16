@@ -13,6 +13,7 @@ from abc import ABC
 from typing import Any, cast
 
 import dictdiffer
+from flask import current_app
 from flask_principal import Identity
 from invenio_access.permissions import system_identity
 from invenio_drafts_resources.services.records.components import ServiceComponent
@@ -259,8 +260,12 @@ class CurationComponent(ServiceComponent, ABC):
         diff = dictdiffer.diff(current_data, updated_data)
         diff_list = list(diff)
 
-        # Request is closed but draft was updated with new data. Flag that as a pending resubmission.
-        if diff_list and request["status"] != "pending_resubmission":
+        if (
+            not current_app.config.get("CURATIONS_ALLOW_CHANGES_AFTER_ACCEPT")
+            and diff_list
+            and request["status"] != "pending_resubmission"
+        ):
+            # Request is closed but draft was updated with new data. Flag that as a pending resubmission.
             _get_requests_service().execute_action(
                 identity,
                 request["id"],
