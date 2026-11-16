@@ -100,3 +100,10 @@ to allow admins to publish records without having to perform the extra steps nec
 for approval.
 Also used for creating rdm-records demo records in testing.
 """
+
+CURATIONS_ALLOW_CHANGES_AFTER_ACCEPT = True
+"""Permit changes in the draft after a curation request is accepted.
+
+Default: allow changes. set this to False in order to force a user to resubmit the draft
+for review if changes in the draft are made after Accept.
+"""

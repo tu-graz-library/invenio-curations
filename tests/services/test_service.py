@@ -7,6 +7,8 @@
 
 """Test curation services module."""
 
+import copy
+
 import pytest
 from invenio_rdm_records.proxies import current_rdm_records
 from invenio_rdm_records.requests import CommunitySubmission
@@ -15,6 +17,7 @@ from invenio_requests import current_request_type_registry, current_requests_ser
 from invenio_requests.errors import CannotExecuteActionError
 
 from invenio_curations import current_curations_service
+from invenio_curations.services.errors import CurationRequestNotAcceptedError
 
 
 def test_create_curation_request(
@@ -274,3 +277,115 @@ def test_curation_permissions_community_wo_curations(
         com_req.id,
         "accept",
     )
+
+
+@pytest.mark.parametrize("allow_changes", [True, False])
+def test_curations_allow_changes_after_accept(
+    app,
+    db,
+    curator_role,
+    location,
+    simple_identity,
+    curator_identity,
+    basic_record_data,
+    monkeypatch,
+    allow_changes,
+):
+    """Test CURATIONS_ALLOW_CHANGES_AFTER_ACCEPT configuration."""
+    monkeypatch.setitem(
+        app.config,
+        "CURATIONS_ALLOW_CHANGES_AFTER_ACCEPT",
+        allow_changes,
+    )
+
+    draft = current_rdm_records.records_service.create(
+        identity=simple_identity,
+        data=basic_record_data,
+    )
+
+    req = current_curations_service.create(
+        identity=simple_identity,
+        data={"topic": {"record": draft.id}},
+    )
+
+    current_requests_service.execute_action(curator_identity, req.id, "review")
+    current_requests_service.execute_action(curator_identity, req.id, "accept")
+
+    req_accepted = current_requests_service.read(simple_identity, req.id)
+    assert req_accepted.data["status"] == "accepted"
+
+    current_draft = current_rdm_records.records_service.draft_cls.pid.resolve(
+        draft.id,
+        registered_only=False,
+    )
+    assert current_curations_service.accepted_record(
+        identity=simple_identity,
+        record=current_draft,
+    )
+
+    # Updating without modifications should keep request accepted regardless of config
+    current_rdm_records.records_service.update_draft(
+        identity=simple_identity,
+        id_=draft.id,
+        data=basic_record_data,
+    )
+    req_unchanged = current_requests_service.read(simple_identity, req.id)
+    assert req_unchanged.data["status"] == "accepted"
+
+    # Modify draft metadata after acceptance
+    updated_data = copy.deepcopy(basic_record_data)
+    updated_data["metadata"]["title"] = "Updated title after accept"
+
+    current_rdm_records.records_service.update_draft(
+        identity=simple_identity,
+        id_=draft.id,
+        data=updated_data,
+    )
+
+    req_after_update = current_requests_service.read(simple_identity, req.id)
+    current_draft = current_rdm_records.records_service.draft_cls.pid.resolve(
+        draft.id,
+        registered_only=False,
+    )
+
+    if allow_changes:
+        assert req_after_update.data["status"] == "accepted"
+        assert current_curations_service.accepted_record(
+            identity=simple_identity,
+            record=current_draft,
+        )
+
+        published = current_rdm_records.records_service.publish(
+            identity=simple_identity,
+            id_=draft.id,
+        )
+        assert published.id == draft.id
+    else:
+        assert req_after_update.data["status"] == "pending_resubmission"
+        assert not current_curations_service.accepted_record(
+            identity=simple_identity,
+            record=current_draft,
+        )
+
+        with pytest.raises(CurationRequestNotAcceptedError):
+            current_rdm_records.records_service.publish(
+                identity=simple_identity,
+                id_=draft.id,
+            )
+
+        # Ensure user can resubmit and proceed after re-acceptance
+        current_requests_service.execute_action(simple_identity, req.id, "resubmit")
+        req_resubmitted = current_requests_service.read(simple_identity, req.id)
+        assert req_resubmitted.data["status"] == "resubmitted"
+
+        current_requests_service.execute_action(curator_identity, req.id, "review")
+        current_requests_service.execute_action(curator_identity, req.id, "accept")
+
+        req_accepted_again = current_requests_service.read(simple_identity, req.id)
+        assert req_accepted_again.data["status"] == "accepted"
+
+        published = current_rdm_records.records_service.publish(
+            identity=simple_identity,
+            id_=draft.id,
+        )
+        assert published.id == draft.id
