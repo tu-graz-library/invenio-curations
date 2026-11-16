@@ -28,6 +28,7 @@ from . import CurationRequestService
 from .comment import CommentProcessor
 from .diff import DiffProcessor
 from .errors import CurationRequestNotAcceptedError
+from .normalizers import CURATIONS_COMMENTS_DATA_DIFF_NORMALIZERS
 from .utils import is_identity_privileged
 
 
@@ -155,6 +156,10 @@ class CurationComponent(ServiceComponent, ABC):
         for field in supported_fields:
             new_data[field] = data[field]
             new_crt_draft[field] = current_draft[field]
+
+        for normalizer in CURATIONS_COMMENTS_DATA_DIFF_NORMALIZERS:
+            new_data = normalizer(new_data).normalize()
+            new_crt_draft = normalizer(new_crt_draft).normalize()
 
         return new_data, new_crt_draft
 

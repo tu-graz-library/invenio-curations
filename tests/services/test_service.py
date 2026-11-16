@@ -15,6 +15,7 @@ from invenio_requests import current_request_type_registry, current_requests_ser
 from invenio_requests.errors import CannotExecuteActionError
 
 from invenio_curations import current_curations_service
+from invenio_curations.services.normalizers import SubjectFieldNormalizer
 
 
 def test_create_curation_request(
@@ -274,3 +275,41 @@ def test_curation_permissions_community_wo_curations(
         com_req.id,
         "accept",
     )
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        {
+            "metadata": {
+                "title": "Test title",
+                "subjects": [{"id": "test_id", "description": "subject description"}],
+            },
+        },
+        {
+            "metadata": {
+                "title": "Test title",
+                "subjects": [{"id": "test_id"}],
+            },
+        },
+    ],
+)
+def test_curation_normalizers(data):
+    """Test data normalizers for curation comments."""
+    normalizers = [SubjectFieldNormalizer]
+
+    norm_data = {
+        "metadata": {
+            "title": "Test title",
+            "subjects": [
+                {
+                    "id": "test_id",
+                },
+            ],
+        },
+    }
+
+    for norm in normalizers:
+        data = norm(data).normalize()
+
+    assert data == norm_data
